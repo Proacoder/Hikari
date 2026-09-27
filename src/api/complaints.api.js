@@ -33,16 +33,22 @@ export const getComplaintById = async (id) => {
 export const createComplaint = async (formData) => {
   if (MOCK_MODE) {
     await mockDelay(1200);
+    const lat = Number(formData.get ? (formData.get('latitude') || formData.get('lat')) : (formData.latitude || formData.lat)) || 19.076;
+    const lng = Number(formData.get ? (formData.get('longitude') || formData.get('lng')) : (formData.longitude || formData.lng)) || 72.877;
+    const wardId = Number(formData.get ? formData.get('ward') : formData.ward) || 1;
+    const landmark = formData.get ? formData.get('landmark') : (formData.landmark || '');
+
     const newComplaint = {
       id: `cmp-${Date.now()}`,
       title: formData.get ? formData.get('title') : formData.title,
       description: formData.get ? formData.get('description') : formData.description,
       category: formData.get ? formData.get('category') : formData.category,
-      severity: Math.floor(Math.random() * 40) + 40,
-      latitude: Number(formData.get ? formData.get('lat') : formData.lat) || 19.076,
-      longitude: Number(formData.get ? formData.get('lng') : formData.lng) || 72.877,
-      ward: Number(formData.get ? formData.get('ward') : formData.ward) || 1,
-      imageUrl: 'https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=600&q=80',
+      severity: Number(formData.severity) || Math.floor(Math.random() * 30) + 55,
+      latitude: lat,
+      longitude: lng,
+      ward: wardId,
+      landmark: landmark,
+      imageUrl: formData.imageUrl || 'https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=600&q=80',
       status: 'reported',
       createdBy: { id: 'user-001', name: 'Priya Nair' },
       assignedOfficer: null,
@@ -52,7 +58,7 @@ export const createComplaint = async (formData) => {
       resolvedAt: null,
       aiAnalysis: {
         categoryDetected: formData.get ? formData.get('category') : formData.category,
-        confidence: 0.89,
+        confidence: formData.confidence ? parseFloat(formData.confidence) / 100 : 0.94,
         aqiAtLocation: 112,
         weatherCondition: 'Partly cloudy',
       },
