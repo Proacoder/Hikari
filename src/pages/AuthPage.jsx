@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
-import { useNavigate, useSearchParams } from 'react-router-dom';
-import { Shield, User, Lock, Phone, ArrowRight, CheckCircle2 } from 'lucide-react';
+import { useNavigate, useSearchParams, Link } from 'react-router-dom';
+import { Shield, User, Lock, Phone, ArrowRight, CheckCircle2, BadgeCheck } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { Button } from '../components/common/Button';
 import { Input } from '../components/common/Input';
@@ -162,6 +162,23 @@ export const AuthPage = () => {
               </button>
             </span>
           )}
+        </div>
+
+        {/* Officer Portal Banner */}
+        <div className="mt-4 p-3 bg-gradient-to-r from-blue-900/5 to-indigo-900/5 border border-blue-100 rounded-xl flex items-center gap-3">
+          <div className="w-8 h-8 bg-blue-100 rounded-xl flex items-center justify-center shrink-0">
+            <BadgeCheck size={15} className="text-blue-600" />
+          </div>
+          <div className="flex-1 min-w-0">
+            <p className="text-xs font-semibold text-neutral-800">Ward Officer Portal</p>
+            <p className="text-[11px] text-neutral-500">26 ward officers with individual dashboards</p>
+          </div>
+          <Link
+            to="/officer-login"
+            className="text-xs font-semibold text-blue-600 hover:text-blue-700 flex items-center gap-1 shrink-0"
+          >
+            Access <ArrowRight size={12} />
+          </Link>
         </div>
       </Card>
     </div>

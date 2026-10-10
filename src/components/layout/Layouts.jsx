@@ -1,15 +1,16 @@
 // ─── Layout components ────────────────────────────────────────────────────
-import { Outlet, Link, NavLink, useNavigate } from 'react-router-dom';
-import { useState } from 'react';
+import { Outlet, Link, NavLink, useNavigate, useLocation } from 'react-router-dom';
+import { useState, useMemo } from 'react';
 import {
   Shield, Home, Map, FileText, Bell, User, BarChart3,
   Users, Building2, Settings, LogOut, Menu, X, ChevronRight,
-  AlertTriangle, TrendingUp, ClipboardList, Layers
+  AlertTriangle, TrendingUp, ClipboardList, Layers, Star, BadgeCheck
 } from 'lucide-react';
 import { Navbar } from './Navbar';
 import { Footer } from './Footer';
 import { useAuth } from '../../context/AuthContext';
 import { classNames } from '../../utils/formatters';
+import { MOCK_OFFICERS } from '../../utils/mockData';
 
 // ── Public layout (marketing site) ───────────────────────────────────────────
 export const PublicLayout = () => (
@@ -162,31 +163,91 @@ const OFFICER_NAV = [
   { to: '/officer/profile',      icon: User,        label: 'Profile'       },
 ];
 
-const OfficerSidebar = ({ open, onClose }) => (
-  <>
-    {open && <div className="fixed inset-0 bg-neutral-900/30 z-30 lg:hidden" onClick={onClose} />}
-    <aside
-      className={classNames(
-        'fixed inset-y-0 left-0 z-40 w-60 bg-white border-r border-neutral-100 flex flex-col shadow-soft-md transition-transform duration-250 lg:static lg:translate-x-0 lg:shadow-none',
-        open ? 'translate-x-0' : '-translate-x-full'
-      )}
-    >
-      <div className="flex items-center justify-between">
-        <SidebarBrand />
-        <button onClick={onClose} className="lg:hidden p-2 mr-2 rounded-xl text-neutral-400 hover:bg-neutral-100">
-          <X size={18} />
-        </button>
-      </div>
-      <div className="mx-3 mt-3 mb-2 px-3 py-2 bg-sky-50 border border-sky-100 rounded-xl">
-        <p className="text-xs font-semibold text-sky-700">Officer Portal</p>
-        <p className="text-xs text-sky-500">K/E Ward – Andheri East</p>
-      </div>
-      <nav className="flex-1 overflow-y-auto p-3 space-y-0.5" aria-label="Officer navigation">
-        {OFFICER_NAV.map((l) => <SideLink key={l.to} {...l} onClick={onClose} />)}
-      </nav>
-    </aside>
-  </>
-);
+const OfficerSidebar = ({ open, onClose }) => {
+  const { user } = useAuth();
+  const location = useLocation();
+
+  // Extract officer ID from current path: /officer/:officerId/...
+  const parts = location.pathname.split('/').filter(Boolean);
+  const subPages = ['ward-overview', 'performance', 'notifications', 'profile'];
+  const officerParam = parts[1] && !subPages.includes(parts[1]) ? parts[1] : null;
+
+  const currentOfficer = useMemo(() => {
+    if (officerParam) {
+      const match = MOCK_OFFICERS.find(o => o.id === officerParam || String(o.ward) === officerParam);
+      if (match) return match;
+    }
+    if (user?.role === 'officer' && user?.id) {
+      const match = MOCK_OFFICERS.find(o => o.id === user.id);
+      if (match) return match;
+    }
+    const stored = localStorage.getItem('kaiser_officer_id');
+    if (stored) {
+      const match = MOCK_OFFICERS.find(o => o.id === stored);
+      if (match) return match;
+    }
+    return MOCK_OFFICERS[0];
+  }, [officerParam, user]);
+
+  const base = `/officer/${currentOfficer.id}`;
+  const navItems = [
+    { to: base,                    icon: Home,       label: 'Complaint Queue', end: true },
+    { to: `${base}/ward-overview`, icon: Map,        label: 'Ward Overview' },
+    { to: `${base}/performance`,   icon: TrendingUp, label: 'Performance' },
+    { to: `${base}/notifications`, icon: Bell,       label: 'Notifications' },
+    { to: `${base}/profile`,       icon: User,       label: 'Profile' },
+  ];
+
+  return (
+    <>
+      {open && <div className="fixed inset-0 bg-neutral-900/30 z-30 lg:hidden" onClick={onClose} />}
+      <aside
+        className={classNames(
+          'fixed inset-y-0 left-0 z-40 w-60 bg-white border-r border-neutral-100 flex flex-col shadow-soft-md transition-transform duration-250 lg:static lg:translate-x-0 lg:shadow-none',
+          open ? 'translate-x-0' : '-translate-x-full'
+        )}
+      >
+        <div className="flex items-center justify-between">
+          <SidebarBrand />
+          <button onClick={onClose} className="lg:hidden p-2 mr-2 rounded-xl text-neutral-400 hover:bg-neutral-100">
+            <X size={18} />
+          </button>
+        </div>
+
+        {/* Officer Profile Card in Sidebar */}
+        <div className="mx-3 mt-3 mb-1">
+          <div className="bg-gradient-to-br from-slate-800 to-blue-900 rounded-xl p-3 text-white shadow-sm">
+            <div className="flex items-center gap-2.5 mb-2">
+              <div className="w-8 h-8 bg-white/20 rounded-lg flex items-center justify-center text-xs font-bold shrink-0">
+                {currentOfficer.avatarInitials}
+              </div>
+              <div className="min-w-0">
+                <p className="text-xs font-semibold truncate">{currentOfficer.name}</p>
+                <p className="text-[10px] text-white/70 truncate">{currentOfficer.wardName.split('–')[0]?.trim()}</p>
+              </div>
+            </div>
+            <div className="flex items-center gap-1 text-[10px] text-white/70">
+              <BadgeCheck size={11} className="text-brand-300" />
+              <span className="font-mono truncate">{currentOfficer.employeeId}</span>
+            </div>
+          </div>
+        </div>
+
+        <nav className="flex-1 overflow-y-auto p-3 space-y-0.5" aria-label="Officer navigation">
+          {navItems.map((l) => <SideLink key={l.to} {...l} onClick={onClose} />)}
+        </nav>
+
+        {/* Dept Badge */}
+        <div className="p-3 border-t border-neutral-100">
+          <div className="px-3 py-2 bg-sky-50 border border-sky-100 rounded-xl text-xs">
+            <p className="font-semibold text-sky-700">{currentOfficer.department}</p>
+            <p className="text-sky-500/80 text-[10px] mt-0.5">{currentOfficer.status} Officer</p>
+          </div>
+        </div>
+      </aside>
+    </>
+  );
+};
 
 export const OfficerLayout = () => {
   const [sidebarOpen, setSidebarOpen] = useState(false);
