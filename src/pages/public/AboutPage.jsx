@@ -548,7 +548,7 @@ export const AboutPage = () => {
 
           <div className="flex flex-wrap items-center justify-center gap-4 pt-2">
             <Link to="/app/report">
-              <Button size="lg" className="bg-white text-brand-800 hover:bg-neutral-50 font-bold shadow-soft">
+              <Button variant="white" size="lg" className="font-bold shadow-soft">
                 Report Issue Now <ArrowRight size={16} className="ml-1" />
               </Button>
             </Link>
