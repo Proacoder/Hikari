@@ -78,14 +78,31 @@ const WeatherCorrelationChart = ({ data }) => (
   </ResponsiveContainer>
 );
 
+import { useLocation } from 'react-router-dom';
+
 export const AdminDashboard = () => {
+  const location = useLocation();
   const [analytics, setAnalytics] = useState(null);
   const [categoryData, setCategoryData] = useState([]);
   const [wardData, setWardData] = useState([]);
   const [trends, setTrends] = useState(null);
   const [weather, setWeather] = useState(null);
   const [mapComplaints, setMapComplaints] = useState([]);
-  const [activeSection, setActiveSection] = useState('overview');
+
+  const sectionFromPath = () => {
+    const p = location.pathname;
+    if (p.endsWith('/wards')) return 'wards';
+    if (p.endsWith('/officers')) return 'leaderboard';
+    if (p.endsWith('/complaints')) return 'complaints';
+    if (p.endsWith('/reports')) return 'map';
+    return 'overview';
+  };
+
+  const [activeSection, setActiveSection] = useState(sectionFromPath());
+
+  useEffect(() => {
+    setActiveSection(sectionFromPath());
+  }, [location.pathname]);
 
   useEffect(() => {
     async function load() {

@@ -1,12 +1,32 @@
 import { apiClient, MOCK_MODE, mockDelay, successResponse } from './client';
 import { MOCK_COMPLAINTS, MOCK_COMMENTS } from '../utils/mockData';
 
+const STORAGE_KEY = 'kaiser_complaints_store';
+
+export const getStoredComplaints = () => {
+  try {
+    const raw = localStorage.getItem(STORAGE_KEY);
+    if (raw) return JSON.parse(raw);
+  } catch (e) {
+    console.warn(e);
+  }
+  return MOCK_COMPLAINTS;
+};
+
+export const saveStoredComplaints = (list) => {
+  try {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(list));
+  } catch (e) {
+    console.warn(e);
+  }
+};
+
 // GET /api/complaints
-export const getComplaints = async ({ ward, category, status, page = 1, limit = 10 } = {}) => {
+export const getComplaints = async ({ ward, category, status, page = 1, limit = 50 } = {}) => {
   if (MOCK_MODE) {
     await mockDelay();
-    let data = [...MOCK_COMPLAINTS];
-    if (ward)     data = data.filter((c) => c.ward === Number(ward));
+    let data = [...getStoredComplaints()];
+    if (ward)     data = data.filter((c) => Number(c.ward) === Number(ward));
     if (category) data = data.filter((c) => c.category === category);
     if (status)   data = data.filter((c) => c.status === status);
     const total = data.length;
@@ -21,7 +41,8 @@ export const getComplaints = async ({ ward, category, status, page = 1, limit = 
 export const getComplaintById = async (id) => {
   if (MOCK_MODE) {
     await mockDelay();
-    const found = MOCK_COMPLAINTS.find((c) => c.id === id);
+    const complaints = getStoredComplaints();
+    const found = complaints.find((c) => c.id === id);
     if (!found) throw { response: { data: { success: false, error: { code: 'NOT_FOUND', message: 'Complaint not found' } } } };
     return successResponse(found);
   }
@@ -29,10 +50,15 @@ export const getComplaintById = async (id) => {
   return res.data;
 };
 
-// POST /api/complaints (multipart)
+// POST /api/complaints (multipart or json)
 export const createComplaint = async (formData) => {
   if (MOCK_MODE) {
-    await mockDelay(1200);
+    await mockDelay(600);
+    const uploadedImage = formData.get
+      ? formData.get('imageUrl') || formData.get('image')
+      : (formData.imageUrl || formData.image);
+    const defaultImg = 'https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=600&q=80';
+
     const lat = Number(formData.get ? (formData.get('latitude') || formData.get('lat')) : (formData.latitude || formData.lat)) || 19.076;
     const lng = Number(formData.get ? (formData.get('longitude') || formData.get('lng')) : (formData.longitude || formData.lng)) || 72.877;
     const wardId = Number(formData.get ? formData.get('ward') : formData.ward) || 1;
@@ -48,11 +74,11 @@ export const createComplaint = async (formData) => {
       longitude: lng,
       ward: wardId,
       landmark: landmark,
-      imageUrl: formData.imageUrl || 'https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=600&q=80',
+      imageUrl: uploadedImage || formData.imageUrl || defaultImg,
       status: 'reported',
       createdBy: { id: 'user-001', name: 'Priya Nair' },
       assignedOfficer: null,
-      upvoteCount: 0,
+      upvoteCount: 1,
       commentCount: 0,
       createdAt: new Date().toISOString(),
       resolvedAt: null,
@@ -63,7 +89,12 @@ export const createComplaint = async (formData) => {
         weatherCondition: 'Partly cloudy',
       },
     };
+
+    const currentList = getStoredComplaints();
+    const updated = [newComplaint, ...currentList];
+    saveStoredComplaints(updated);
     MOCK_COMPLAINTS.unshift(newComplaint);
+
     return successResponse(newComplaint);
   }
   const res = await apiClient.post('/complaints', formData, {
@@ -76,9 +107,16 @@ export const createComplaint = async (formData) => {
 export const updateComplaint = async (id, payload) => {
   if (MOCK_MODE) {
     await mockDelay();
-    const idx = MOCK_COMPLAINTS.findIndex((c) => c.id === id);
-    if (idx >= 0) Object.assign(MOCK_COMPLAINTS[idx], payload);
-    return successResponse(MOCK_COMPLAINTS[idx]);
+    const currentList = getStoredComplaints();
+    const idx = currentList.findIndex((c) => c.id === id);
+    if (idx >= 0) {
+      currentList[idx] = { ...currentList[idx], ...payload };
+      saveStoredComplaints(currentList);
+      const mIdx = MOCK_COMPLAINTS.findIndex((c) => c.id === id);
+      if (mIdx >= 0) Object.assign(MOCK_COMPLAINTS[mIdx], payload);
+      return successResponse(currentList[idx]);
+    }
+    return successResponse({ id, ...payload });
   }
   const res = await apiClient.patch(`/complaints/${id}`, payload);
   return res.data;
@@ -88,8 +126,9 @@ export const updateComplaint = async (id, payload) => {
 export const getMapData = async (filters = {}) => {
   if (MOCK_MODE) {
     await mockDelay(500);
+    const complaints = getStoredComplaints();
     return successResponse(
-      MOCK_COMPLAINTS.map((c) => ({
+      complaints.map((c) => ({
         id: c.id,
         title: c.title,
         latitude: c.latitude,
@@ -99,6 +138,7 @@ export const getMapData = async (filters = {}) => {
         status: c.status,
         upvoteCount: c.upvoteCount,
         imageUrl: c.imageUrl,
+        ward: c.ward,
       }))
     );
   }
@@ -110,7 +150,8 @@ export const getMapData = async (filters = {}) => {
 export const getMyComplaints = async () => {
   if (MOCK_MODE) {
     await mockDelay();
-    return successResponse(MOCK_COMPLAINTS.filter((c) => c.createdBy.id === 'user-001'));
+    const complaints = getStoredComplaints();
+    return successResponse(complaints.filter((c) => c.createdBy?.id === 'user-001'));
   }
   const res = await apiClient.get('/complaints/my-complaints');
   return res.data;

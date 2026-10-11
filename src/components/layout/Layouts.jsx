@@ -1,10 +1,10 @@
 // ─── Layout components ────────────────────────────────────────────────────
-import { Outlet, Link, NavLink, useNavigate } from 'react-router-dom';
-import { useState } from 'react';
+import { Outlet, Link, NavLink, useNavigate, useLocation } from 'react-router-dom';
+import { useState, useMemo } from 'react';
 import {
   Shield, Home, Map, FileText, Bell, User, BarChart3,
   Users, Building2, Settings, LogOut, Menu, X, ChevronRight,
-  AlertTriangle, TrendingUp, ClipboardList, Layers, Globe, ChevronDown
+  AlertTriangle, TrendingUp, ClipboardList, Layers, Globe, ChevronDown, Star, BadgeCheck
 } from 'lucide-react';
 import { Navbar } from './Navbar';
 import { Footer } from './Footer';
@@ -13,6 +13,7 @@ import { useLanguage } from '../../context/LanguageContext';
 import { useNotifications } from '../../context/NotificationContext';
 import { NotificationDrawer } from '../notifications/NotificationDrawer';
 import { classNames } from '../../utils/formatters';
+import { MOCK_OFFICERS } from '../../utils/mockData';
 
 // ── Public layout (marketing site) ───────────────────────────────────────────
 export const PublicLayout = () => (
@@ -219,15 +220,40 @@ export const CitizenLayout = () => {
 
 // ── Officer Sidebar + Layout ──────────────────────────────────────────────────
 const OfficerSidebar = ({ open, onClose }) => {
+  const { user } = useAuth();
   const { t } = useLanguage();
   const { unreadCount } = useNotifications();
+  const location = useLocation();
 
-  const officerNav = [
-    { to: '/officer',              icon: Home,        label: t('nav.dashboard', 'Dashboard'),       end: true },
-    { to: '/officer/ward-overview',icon: Map,         label: t('nav.wardOverview', 'Ward Overview') },
-    { to: '/officer/performance',  icon: TrendingUp,  label: t('nav.performance', 'Performance')   },
-    { to: '/officer/notifications', icon: Bell,       label: t('nav.notifications', 'Notifications'), badge: unreadCount },
-    { to: '/officer/profile',      icon: User,        label: t('nav.profile', 'Profile')       },
+  // Extract officer ID from current path: /officer/:officerId/...
+  const parts = location.pathname.split('/').filter(Boolean);
+  const subPages = ['ward-overview', 'performance', 'notifications', 'profile'];
+  const officerParam = parts[1] && !subPages.includes(parts[1]) ? parts[1] : null;
+
+  const currentOfficer = useMemo(() => {
+    if (officerParam) {
+      const match = MOCK_OFFICERS.find(o => o.id === officerParam || String(o.ward) === officerParam);
+      if (match) return match;
+    }
+    if (user?.role === 'officer' && user?.id) {
+      const match = MOCK_OFFICERS.find(o => o.id === user.id);
+      if (match) return match;
+    }
+    const stored = localStorage.getItem('kaiser_officer_id');
+    if (stored) {
+      const match = MOCK_OFFICERS.find(o => o.id === stored);
+      if (match) return match;
+    }
+    return MOCK_OFFICERS[0];
+  }, [officerParam, user]);
+
+  const base = `/officer/${currentOfficer.id}`;
+  const navItems = [
+    { to: base,                    icon: Home,       label: t('nav.dashboard', 'Complaint Queue'), end: true },
+    { to: `${base}/ward-overview`, icon: Map,        label: t('nav.wardOverview', 'Ward Overview') },
+    { to: `${base}/performance`,   icon: TrendingUp, label: t('nav.performance', 'Performance') },
+    { to: `${base}/notifications`, icon: Bell,       label: t('nav.notifications', 'Notifications'), badge: unreadCount },
+    { to: `${base}/profile`,       icon: User,       label: t('nav.profile', 'Profile') },
   ];
 
   return (
@@ -245,13 +271,37 @@ const OfficerSidebar = ({ open, onClose }) => {
             <X size={18} />
           </button>
         </div>
-        <div className="mx-3 mt-3 mb-2 px-3 py-2 bg-sky-50 border border-sky-100 rounded-xl">
-          <p className="text-xs font-semibold text-sky-700">Officer Portal</p>
-          <p className="text-xs text-sky-500">K/E Ward – Andheri East</p>
+
+        {/* Officer Profile Card in Sidebar */}
+        <div className="mx-3 mt-3 mb-1">
+          <div className="bg-gradient-to-br from-slate-800 to-blue-900 rounded-xl p-3 text-white shadow-sm">
+            <div className="flex items-center gap-2.5 mb-2">
+              <div className="w-8 h-8 bg-white/20 rounded-lg flex items-center justify-center text-xs font-bold shrink-0">
+                {currentOfficer.avatarInitials}
+              </div>
+              <div className="min-w-0">
+                <p className="text-xs font-semibold truncate">{currentOfficer.name}</p>
+                <p className="text-[10px] text-white/70 truncate">{currentOfficer.wardName.split('–')[0]?.trim()}</p>
+              </div>
+            </div>
+            <div className="flex items-center gap-1 text-[10px] text-white/70">
+              <BadgeCheck size={11} className="text-brand-300" />
+              <span className="font-mono truncate">{currentOfficer.employeeId}</span>
+            </div>
+          </div>
         </div>
+
         <nav className="flex-1 overflow-y-auto p-3 space-y-0.5" aria-label="Officer navigation">
-          {officerNav.map((l) => <SideLink key={l.to} {...l} onClick={onClose} />)}
+          {navItems.map((l) => <SideLink key={l.to} {...l} onClick={onClose} />)}
         </nav>
+
+        {/* Dept Badge */}
+        <div className="p-3 border-t border-neutral-100">
+          <div className="px-3 py-2 bg-sky-50 border border-sky-100 rounded-xl text-xs">
+            <p className="font-semibold text-sky-700">{currentOfficer.department}</p>
+            <p className="text-sky-500/80 text-[10px] mt-0.5">{currentOfficer.status} Officer</p>
+          </div>
+        </div>
       </aside>
     </>
   );
