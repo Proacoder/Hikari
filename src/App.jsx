@@ -144,6 +144,7 @@ export function App() {
                 <Route path="wards" element={<AdminDashboard />} />
                 <Route path="officers" element={<AdminDashboard />} />
                 <Route path="analytics" element={<AdminDashboard />} />
+                <Route path="disaster" element={<AdminDashboard />} />
                 <Route path="complaints" element={<AdminDashboard />} />
                 <Route path="reports" element={<AdminDashboard />} />
                 <Route path="notifications" element={<NotificationsPage />} />

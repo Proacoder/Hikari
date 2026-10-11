@@ -19,6 +19,7 @@ import { Badge } from '../components/common/Badge';
 import { Modal } from '../components/common/Modal';
 import { LeafletMap } from '../components/map/LeafletMap';
 import { useAuth } from '../context/AuthContext';
+import { FieldInspectionModal } from '../components/officer/FieldInspectionModal';
 import {
   BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer,
   PieChart, Pie, Cell, AreaChart, Area, CartesianGrid
@@ -109,7 +110,7 @@ const ImageLightbox = ({ src, title, onClose }) => (
 );
 
 // ── Complaint Detail Modal with Full Image Inspection ─────────────────────────
-const ComplaintDetailModal = ({ complaint, onClose, onUpdate }) => {
+const ComplaintDetailModal = ({ complaint, onClose, onUpdate, onInspect }) => {
   const [status, setStatus] = useState(complaint?.status || 'reported');
   const [remarks, setRemarks] = useState('');
   const [saving, setSaving] = useState(false);
@@ -228,8 +229,18 @@ const ComplaintDetailModal = ({ complaint, onClose, onUpdate }) => {
             />
           </div>
 
-          <div className="flex justify-end gap-2 pt-2 border-t border-neutral-100">
+          <div className="flex flex-wrap justify-end gap-2 pt-2 border-t border-neutral-100">
             <Button variant="ghost" onClick={onClose}>Cancel</Button>
+            <Button
+              variant="outline"
+              onClick={() => {
+                onClose();
+                if (onInspect) onInspect(complaint);
+              }}
+              className="text-brand-600 border-brand-200 hover:bg-brand-50"
+            >
+              <Shield size={13} className="mr-1 text-brand-600" /> Field Seal & Inspection
+            </Button>
             <Button variant="primary" onClick={handleSave} loading={saving}>Save & Update Status</Button>
           </div>
         </div>
@@ -239,7 +250,7 @@ const ComplaintDetailModal = ({ complaint, onClose, onUpdate }) => {
 };
 
 // ── Complaint Row with Thumbnail Preview ───────────────────────────────────────
-const ComplaintRow = ({ item, onView }) => (
+const ComplaintRow = ({ item, onView, onInspect }) => (
   <tr className="hover:bg-neutral-50/80 transition-colors group">
     <td className="px-4 py-3 font-mono text-[11px] font-semibold text-neutral-500">{item.id}</td>
     <td className="px-4 py-3">
@@ -266,9 +277,14 @@ const ComplaintRow = ({ item, onView }) => (
       <span className="flex items-center gap-1 font-semibold"><ThumbsUp size={11} className="text-brand-600" />{item.upvoteCount || 0}</span>
     </td>
     <td className="px-4 py-3 text-right">
-      <Button variant="outline" size="sm" onClick={() => onView(item)} className="text-xs font-semibold">
-        <Eye size={12} className="mr-1" /> View & Inspect
-      </Button>
+      <div className="flex items-center justify-end gap-1.5">
+        <Button variant="outline" size="sm" onClick={() => onView(item)} className="text-xs font-semibold">
+          <Eye size={12} className="mr-1" /> View
+        </Button>
+        <Button variant="primary" size="sm" onClick={() => onInspect(item)} className="text-xs font-semibold bg-brand-600 hover:bg-brand-700">
+          <Shield size={12} className="mr-1" /> Inspect
+        </Button>
+      </div>
     </td>
   </tr>
 );
@@ -559,13 +575,14 @@ export const OfficerDashboard = ({ activeTabOverride }) => {
     return activeTabOverride || 'queue';
   }, [location.pathname, activeTabOverride]);
 
-  const [complaints,     setComplaints]     = useState([]);
-  const [selectedTicket, setSelectedTicket] = useState(null);
-  const [weather,        setWeather]        = useState(null);
-  const [filterStatus,   setFilterStatus]   = useState('all');
-  const [filterCat,      setFilterCat]      = useState('all');
-  const [searchQ,        setSearchQ]        = useState('');
-  const [loading,        setLoading]        = useState(true);
+  const [complaints,       setComplaints]       = useState([]);
+  const [selectedTicket,   setSelectedTicket]   = useState(null);
+  const [inspectionTicket, setInspectionTicket] = useState(null);
+  const [weather,          setWeather]          = useState(null);
+  const [filterStatus,     setFilterStatus]     = useState('all');
+  const [filterCat,        setFilterCat]        = useState('all');
+  const [searchQ,          setSearchQ]          = useState('');
+  const [loading,          setLoading]          = useState(true);
 
   // Load ward complaints and weather
   const loadWardData = useCallback(async () => {
@@ -822,7 +839,12 @@ export const OfficerDashboard = ({ activeTabOverride }) => {
                 </thead>
                 <tbody className="divide-y divide-neutral-100 text-xs">
                   {filteredComplaints.map((item) => (
-                    <ComplaintRow key={item.id} item={item} onView={setSelectedTicket} />
+                    <ComplaintRow
+                      key={item.id}
+                      item={item}
+                      onView={setSelectedTicket}
+                      onInspect={setInspectionTicket}
+                    />
                   ))}
                 </tbody>
               </table>
@@ -856,6 +878,22 @@ export const OfficerDashboard = ({ activeTabOverride }) => {
         complaint={selectedTicket}
         onClose={() => setSelectedTicket(null)}
         onUpdate={handleUpdateStatus}
+        onInspect={setInspectionTicket}
+      />
+
+      {/* ── Field Inspection & Digital Seal Modal ── */}
+      <FieldInspectionModal
+        complaint={inspectionTicket}
+        officer={officerProfile}
+        isOpen={!!inspectionTicket}
+        onClose={() => setInspectionTicket(null)}
+        onResolveSuccess={(updated) => {
+          handleUpdateStatus(updated.id, {
+            status: 'resolved',
+            officerRemarks: updated.officerNotes,
+            resolvedAt: updated.resolvedAt,
+          });
+        }}
       />
     </div>
   );

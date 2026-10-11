@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useLocation } from 'react-router-dom';
 import {
   BarChart3, Building2, Users, TrendingUp, AlertTriangle, CheckCircle2,
   Download, Filter, Layers, Shield, Award, Star, MapPin, Activity,
@@ -12,6 +13,8 @@ import { Button } from '../components/common/Button';
 import { Badge } from '../components/common/Badge';
 import { LeafletMap } from '../components/map/LeafletMap';
 import { getComplaints } from '../api/complaints.api';
+import { MunicipalReportModal } from '../components/admin/MunicipalReportModal';
+import { PredictiveDisasterCenter } from '../components/admin/PredictiveDisasterCenter';
 import {
   BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer,
   LineChart, Line, CartesianGrid, Area, AreaChart,
@@ -78,9 +81,6 @@ const WeatherCorrelationChart = ({ data }) => (
   </ResponsiveContainer>
 );
 
-import { useLocation } from 'react-router-dom';
-import { MunicipalReportModal } from '../components/admin/MunicipalReportModal';
-
 export const AdminDashboard = () => {
   const location = useLocation();
   const [analytics, setAnalytics] = useState(null);
@@ -97,6 +97,7 @@ export const AdminDashboard = () => {
     if (p.endsWith('/officers')) return 'leaderboard';
     if (p.endsWith('/complaints')) return 'complaints';
     if (p.endsWith('/reports')) return 'reports';
+    if (p.endsWith('/disaster')) return 'disaster';
     if (p.endsWith('/analytics')) return 'analytics';
     return 'overview';
   };
@@ -197,13 +198,13 @@ export const AdminDashboard = () => {
 
       {/* Section Tabs */}
       <div className="flex border-b border-neutral-200 space-x-6 text-sm font-semibold text-neutral-500 overflow-x-auto">
-        {['overview', 'leaderboard', 'analytics', 'map'].map(tab => (
+        {['overview', 'leaderboard', 'analytics', 'disaster', 'map'].map(tab => (
           <button
             key={tab}
             onClick={() => setActiveSection(tab)}
             className={`pb-2 transition-colors whitespace-nowrap capitalize ${activeSection === tab ? 'text-brand-600 border-b-2 border-brand-600' : 'hover:text-neutral-800'}`}
           >
-            {tab === 'overview' ? 'Ward Performance' : tab === 'leaderboard' ? 'Officer Leaderboard' : tab === 'analytics' ? 'Charts & Analytics' : 'City Map'}
+            {tab === 'overview' ? 'Ward Performance' : tab === 'leaderboard' ? 'Officer Leaderboard' : tab === 'analytics' ? 'Charts & Analytics' : tab === 'disaster' ? 'Monsoon & Disaster AI ⚡' : 'City Map'}
           </button>
         ))}
       </div>
@@ -468,6 +469,11 @@ export const AdminDashboard = () => {
             </Card>
           </div>
         </div>
+      )}
+
+      {/* SECTION: Monsoon Disaster AI Command Center */}
+      {activeSection === 'disaster' && (
+        <PredictiveDisasterCenter />
       )}
 
       {/* SECTION: City Map */}

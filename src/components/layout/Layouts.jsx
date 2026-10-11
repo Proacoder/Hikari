@@ -4,7 +4,7 @@ import { useState, useMemo } from 'react';
 import {
   Shield, Home, Map, FileText, Bell, User, BarChart3,
   Users, Building2, Settings, LogOut, Menu, X, ChevronRight,
-  AlertTriangle, TrendingUp, ClipboardList, Layers, Globe, ChevronDown, Star, BadgeCheck, Trophy
+  AlertTriangle, TrendingUp, ClipboardList, Layers, Globe, ChevronDown, Star, BadgeCheck, Trophy, CloudRain
 } from 'lucide-react';
 import { Navbar } from './Navbar';
 import { Footer } from './Footer';
@@ -334,6 +334,7 @@ const AdminSidebar = ({ open, onClose }) => {
     { to: '/admin/wards',      icon: Building2,    label: t('nav.wards', 'Wards')         },
     { to: '/admin/officers',   icon: Users,        label: t('nav.officers', 'Officers')      },
     { to: '/admin/analytics',  icon: TrendingUp,   label: t('nav.analytics', 'Analytics')     },
+    { to: '/admin/disaster',   icon: CloudRain,    label: 'Disaster & Floods ⚡'               },
     { to: '/admin/complaints', icon: ClipboardList,label: t('nav.complaints', 'Complaints')    },
     { to: '/admin/reports',    icon: Layers,       label: t('nav.reports', 'Reports')       },
   ];
