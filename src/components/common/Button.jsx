@@ -3,12 +3,14 @@ import React from 'react';
 import { classNames } from '../../utils/formatters';
 
 const VARIANTS = {
-  primary:   'bg-brand-600 text-white hover:bg-brand-700 focus-visible:ring-brand-500 shadow-brand hover:shadow-brand-lg border border-brand-600',
-  secondary: 'bg-white text-brand-700 hover:bg-brand-50 focus-visible:ring-brand-400 border border-brand-300',
-  ghost:     'bg-transparent text-brand-700 hover:bg-brand-50 focus-visible:ring-brand-400 border border-transparent',
-  outline:   'bg-white text-neutral-700 hover:bg-neutral-50 focus-visible:ring-neutral-400 border border-neutral-300',
-  danger:    'bg-white text-red-600 hover:bg-red-50 border border-red-300 focus-visible:ring-red-400',
-  accent:    'bg-accent-600 text-white hover:bg-accent-700 focus-visible:ring-accent-500 shadow-accent border border-accent-600',
+  primary:       'bg-brand-600 text-white hover:bg-brand-700 focus-visible:ring-brand-500 shadow-brand hover:shadow-brand-lg border border-brand-600',
+  secondary:     'bg-white text-brand-700 hover:bg-brand-50 focus-visible:ring-brand-400 border border-brand-300 shadow-sm',
+  ghost:         'bg-transparent text-brand-700 hover:bg-brand-50 focus-visible:ring-brand-400 border border-transparent',
+  outline:       'bg-transparent text-neutral-700 hover:bg-neutral-100 focus-visible:ring-neutral-400 border border-neutral-300',
+  'outline-light': 'bg-transparent text-white hover:bg-white/10 focus-visible:ring-white/50 border border-white/40',
+  white:         'bg-white text-brand-700 hover:bg-neutral-100 focus-visible:ring-brand-400 border border-white shadow-sm',
+  danger:        'bg-white text-red-600 hover:bg-red-50 border border-red-300 focus-visible:ring-red-400',
+  accent:        'bg-accent-600 text-white hover:bg-accent-700 focus-visible:ring-accent-500 shadow-accent border border-accent-600',
 };
 
 const SIZES = {

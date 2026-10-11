@@ -231,10 +231,7 @@ const OfficerSidebar = ({ open, onClose }) => {
   const officerParam = parts[1] && !subPages.includes(parts[1]) ? parts[1] : null;
 
   const currentOfficer = useMemo(() => {
-    if (officerParam) {
-      const match = MOCK_OFFICERS.find(o => o.id === officerParam || String(o.ward) === officerParam);
-      if (match) return match;
-    }
+    // ACCESS CONTROL: The authenticated officer ALWAYS sees only their own profile
     if (user?.role === 'officer' && user?.id) {
       const match = MOCK_OFFICERS.find(o => o.id === user.id);
       if (match) return match;
@@ -244,8 +241,12 @@ const OfficerSidebar = ({ open, onClose }) => {
       const match = MOCK_OFFICERS.find(o => o.id === stored);
       if (match) return match;
     }
+    if (officerParam) {
+      const match = MOCK_OFFICERS.find(o => o.id === officerParam || String(o.ward) === officerParam);
+      if (match) return match;
+    }
     return MOCK_OFFICERS[0];
-  }, [officerParam, user]);
+  }, [user, officerParam]);
 
   const base = `/officer/${currentOfficer.id}`;
   const navItems = [

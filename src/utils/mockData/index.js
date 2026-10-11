@@ -45,7 +45,20 @@ export const MOCK_USERS = {
     ward: 8,
     wardName: 'G/N Ward – Bandra (North)',
     avatarInitials: 'PN',
+    password: 'Citizen@123',
     createdAt: '2024-03-15T10:30:00Z',
+  },
+  citizen2: {
+    id: 'user-002',
+    name: 'Aarav Sharma',
+    email: 'aarav.sharma@example.com',
+    phone: '+91 99887 76543',
+    role: 'citizen',
+    ward: 12,
+    wardName: 'K/E Ward – Andheri (East)',
+    avatarInitials: 'AS',
+    password: 'Citizen@456',
+    createdAt: '2024-06-20T14:00:00Z',
   },
   officer: {
     id: 'officer-012',
@@ -68,9 +81,13 @@ export const MOCK_USERS = {
     role: 'admin',
     department: 'Municipal Commissioner Office',
     avatarInitials: 'RM',
+    password: 'Admin@2024',
     createdAt: '2020-01-15T08:00:00Z',
   },
 };
+
+// All demo citizen accounts for easy lookup
+export const DEMO_CITIZENS = [MOCK_USERS.citizen, MOCK_USERS.citizen2];
 
 const makeDateAgo = (days) => {
   const d = new Date();
@@ -151,16 +168,16 @@ export const MOCK_COMPLAINTS = [
   makeCmp('cmp-012', 'Overflowing bins near Kurla market',  'BMC bins at Kurla market complex overflowing for 5 consecutive days.',      'Garbage',       70, 19.0720, 72.8800, 6,  GARBAGE, 'assigned',   'u-012','Tarun Yadav',  'officer-006','Vikram Salvi',   54, 6, 4, null),
   makeCmp('cmp-013', 'Blocked drain Dharavi 90 ft road',    'Main drain on 90 ft road, Dharavi, clogged causing waterlogging.',          'Drainage',      90, 19.0419, 72.8551, 7,  DRAIN,   'reported',   'u-013','Vijay More',   null,          null,             198,28, 3, null),
   makeCmp('cmp-014', 'Broken streetlight near Sion fort',   'Streetlight near historic Sion fort non-functional; safety hazard at night.','Streetlight',  60, 19.0440, 72.8570, 7,  LIGHT,   'resolved',   'u-014','Lalita Pawar', 'officer-007','Preeti Kulkarni',42, 7,20, 7),
-  makeCmp('cmp-015', 'Pothole SV Road near Bandra station', '2-foot wide pothole 200m north of Bandra station causing swerving.',        'Pothole',       87, 19.0596, 72.8296, 8,  POTHOLES,'in_progress','u-015','Priya Nair',   'officer-008','Suresh Patil',   143,18,12, null),
-  makeCmp('cmp-016', 'Garbage overflowing Lokhandwala',     'Three bins in Lokhandwala complex overflowing for 4 days.',                 'Garbage',       72, 19.0620, 72.8310, 8,  GARBAGE, 'assigned',   'u-016','Arun Shetty',  'officer-008','Suresh Patil',   89, 7, 5, null),
+  makeCmp('cmp-015', 'Pothole SV Road near Bandra station', '2-foot wide pothole 200m north of Bandra station causing swerving.',        'Pothole',       87, 19.0596, 72.8296, 8,  POTHOLES,'in_progress','user-001','Priya Nair',   'officer-008','Suresh Patil',   143,18,12, null),
+  makeCmp('cmp-016', 'Garbage overflowing Lokhandwala',     'Three bins in Lokhandwala complex overflowing for 4 days.',                 'Garbage',       72, 19.0620, 72.8310, 8,  GARBAGE, 'assigned',   'user-001','Priya Nair',   'officer-008','Suresh Patil',   89, 7, 5, null),
   makeCmp('cmp-017', 'Water leakage Khar Linking Road',     'Pipeline burst near Linking Road Khar, water gushing for 6+ hours.',        'Water Leakage', 95, 19.0695, 72.8340, 9,  WATER,   'in_progress','u-017','Sangeeta Joshi','officer-009','Meena Rao',      312,41, 1, null),
   makeCmp('cmp-018', 'Pothole Bandra South Carter Road',    'Potholes on Carter Road stretch causing traffic jams daily.',               'Pothole',       68, 19.0524, 72.8258, 9,  POTHOLES,'reported',   'u-018','Amit Tiwari',  null,          null,             77, 10, 5, null),
   makeCmp('cmp-019', 'Streetlight outage Santacruz East',   'Entire stretch of Andheri-Kurla road near Santacruz East lacks lighting.',  'Streetlight',   75, 19.0820, 72.8512, 10, LIGHT,   'assigned',   'u-019','Rohit Kumar',  'officer-010','Ajay Nair',      88, 12, 7, null),
   makeCmp('cmp-020', 'Drainage block near Kalina village',  'Storm water drain near Kalina village completely blocked.',                 'Drainage',      82, 19.0840, 72.8540, 10, DRAIN,   'in_progress','u-020','Bhavna Rao',   'officer-010','Ajay Nair',      65, 9, 4, null),
   makeCmp('cmp-021', 'Garbage pile Vile Parle bus depot',   'Garbage piling up outside Vile Parle bus depot for 1 week.',               'Garbage',       65, 19.0987, 72.8440, 11, GARBAGE, 'assigned',   'u-021','Kiran Naik',   'officer-011','Deepa Joshi',    56, 8, 6, null),
   makeCmp('cmp-022', 'Pothole Santacruz West market',       'Deep pothole in busy Santacruz West market lane causing vehicle damage.',   'Pothole',       79, 19.1000, 72.8460, 11, POTHOLES,'in_progress','u-022','Sunita Desai', 'officer-011','Deepa Joshi',    103,14, 9, null),
-  makeCmp('cmp-023', 'Broken footpath Andheri East JB Nagar','Footpath completely broken near JB Nagar metro station Andheri East.',    'Other',         58, 19.1152, 72.8680, 12, DEBRIS,  'reported',   'u-023','Manoj Gupta',  null,          null,             43, 5, 3, null),
-  makeCmp('cmp-024', 'Waterlogging MIDC Andheri East',      'MIDC road waterlogged after rain blocking industrial traffic.',             'Drainage',      88, 19.1170, 72.8700, 12, DRAIN,   'in_progress','u-024','Rajesh Raut',  'officer-012','Ravi Mehta',     134,19, 5, null),
+  makeCmp('cmp-023', 'Broken footpath Andheri East JB Nagar','Footpath completely broken near JB Nagar metro station Andheri East.',    'Other',         58, 19.1152, 72.8680, 12, DEBRIS,  'reported',   'user-002','Aarav Sharma',  'officer-012','Ravi Mehta',     43, 5, 3, null),
+  makeCmp('cmp-024', 'Waterlogging MIDC Andheri East',      'MIDC road waterlogged after rain blocking industrial traffic.',             'Drainage',      88, 19.1170, 72.8700, 12, DRAIN,   'in_progress','user-002','Aarav Sharma',  'officer-012','Ravi Mehta',     134,19, 5, null),
   makeCmp('cmp-025', 'Potholes Andheri West Lokhandwala',   'Series of potholes on Lokhandwala road, Andheri West causing accidents.',   'Pothole',       81, 19.1197, 72.8290, 13, POTHOLES,'assigned',   'u-025','Priti Shah',   'officer-013','Sunita Pawar',   112,16, 7, null),
   makeCmp('cmp-026', 'Garbage bins overflowing DN Nagar',   'Municipal bins near DN Nagar, Andheri West overflowing for 3 days.',       'Garbage',       68, 19.1210, 72.8310, 13, GARBAGE, 'reported',   'u-026','Sachin Verma', null,          null,             67, 7, 2, null),
   makeCmp('cmp-027', 'Drainage overflow Kurla East',        'Main drain blocked near Kurla East causing severe waterlogging.',           'Drainage',      93, 19.0726, 72.8849, 14, DRAIN,   'reported',   'u-027','Suresh Jagtap',null,          null,             213,35, 1, null),

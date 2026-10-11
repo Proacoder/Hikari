@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef, useCallback } from 'react';
+import React, { useState, useEffect, useRef, useMemo, useCallback } from 'react';
 import { Link } from 'react-router-dom';
 import toast from 'react-hot-toast';
 import {
@@ -43,15 +43,22 @@ const LOCATION_PRESETS = [
 // ── Citizen Dashboard ────────────────────────────────────────────────────────
 export const CitizenDashboard = () => {
   const { t } = useLanguage();
+  const { user } = useAuth();
   const [complaints, setComplaints] = useState([]);
   const [loading, setLoading] = useState(true);
   const [weather, setWeather] = useState(null);
+
+  // Dynamic assigned ward officer for this citizen's ward
+  const assignedOfficer = useMemo(() => {
+    const wardId = user?.ward || 8;
+    return MOCK_OFFICERS.find((o) => o.ward === wardId) || MOCK_OFFICERS[0];
+  }, [user]);
 
   useEffect(() => {
     async function load() {
       try {
         const [res, weatherRes] = await Promise.all([
-          getComplaints({ limit: 6 }),
+          getComplaints(user?.ward ? { ward: user.ward } : { limit: 6 }),
           getWeatherAQI(19.076, 72.877),
         ]);
         setComplaints(res.data || []);
@@ -63,7 +70,7 @@ export const CitizenDashboard = () => {
       }
     }
     load();
-  }, []);
+  }, [user]);
 
   return (
     <div className="space-y-6 max-w-6xl mx-auto">
@@ -71,9 +78,11 @@ export const CitizenDashboard = () => {
       <div className="bg-gradient-to-r from-brand-700 via-sky-700 to-blue-800 text-white rounded-2xl p-6 sm:p-8 shadow-soft-xl flex flex-col md:flex-row items-center justify-between gap-6">
         <div className="space-y-2 text-center md:text-left">
           <div className="inline-flex items-center gap-1.5 px-3 py-1 bg-white/15 backdrop-blur-sm rounded-full text-xs font-semibold text-brand-100">
-            <Sparkles size={13} className="text-amber-300" /> Kaiser AI Civic Assistant Active
+            <Sparkles size={13} className="text-amber-300" /> Kaiser AI Citizen Portal · {user?.wardName?.split('–')[0]?.trim() || 'Ward #8'}
           </div>
-          <h2 className="text-2xl sm:text-3xl font-bold">{t('citizen.seeIssuePrompt', 'See a civic issue in Mumbai?')}</h2>
+          <h2 className="text-2xl sm:text-3xl font-bold">
+            {user ? `Welcome back, ${user.name}!` : t('citizen.seeIssuePrompt', 'See a civic issue in Mumbai?')}
+          </h2>
           <p className="text-sm text-brand-100 max-w-lg leading-relaxed">
             {t('citizen.seeIssueSub', 'Upload a photo & detect your live GPS location. Kaiser AI automatically routes your report to the designated Ward Officer among all 26 Mumbai wards.')}
           </p>
@@ -89,6 +98,29 @@ export const CitizenDashboard = () => {
               Officer Login
             </Button>
           </Link>
+        </div>
+      </div>
+
+      {/* Designated Officer Info Bar */}
+      <div className="bg-white border border-neutral-200 rounded-2xl p-4 shadow-sm flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
+        <div className="flex items-center gap-3">
+          <div className="w-11 h-11 bg-brand-600 rounded-xl flex items-center justify-center text-white font-bold text-sm shadow shrink-0">
+            {assignedOfficer.avatarInitials}
+          </div>
+          <div>
+            <div className="flex items-center gap-2">
+              <span className="font-bold text-neutral-900 text-sm">{assignedOfficer.name}</span>
+              <span className="text-[10px] bg-emerald-50 text-emerald-700 font-semibold px-2 py-0.5 rounded-full border border-emerald-200">
+                ● Designated Ward Officer
+              </span>
+            </div>
+            <p className="text-xs text-neutral-500">{assignedOfficer.wardName} · {assignedOfficer.department} ({assignedOfficer.employeeId})</p>
+          </div>
+        </div>
+        <div className="flex items-center gap-2 text-xs text-neutral-500">
+          <span className="font-semibold text-brand-600">Avg Resolution: {assignedOfficer.avgResolutionDays}d</span>
+          <span>·</span>
+          <span>Rating: {assignedOfficer.rating} ★</span>
         </div>
       </div>
 
@@ -175,18 +207,22 @@ export const CitizenDashboard = () => {
 
 // ── Report Issue Form with Live GPS, Interactive Pin Map & Image Upload ───────
 export const ReportIssuePage = () => {
+  const { user } = useAuth();
   const { t, translateCategory } = useLanguage();
   const { dispatchNotification } = useNotifications();
   const fileInputRef = useRef(null);
+
+  const defaultWard = user?.ward || 12;
+  const initialWardObj = MUMBAI_WARDS.find((w) => w.id === defaultWard) || MUMBAI_WARDS[0];
 
   const [formData, setFormData] = useState({
     title: '',
     description: '',
     category: 'Pothole',
     landmark: '',
-    ward: 12, // Default K/E Ward
-    latitude: 19.1152,
-    longitude: 72.8680,
+    ward: defaultWard,
+    latitude: initialWardObj.lat,
+    longitude: initialWardObj.lng,
     imageUrl: '',
     imageName: '',
   });
@@ -194,7 +230,7 @@ export const ReportIssuePage = () => {
   const [isDetectingGps, setIsDetectingGps] = useState(false);
   const [locationStatus, setLocationStatus] = useState(null); // 'locating' | 'success' | 'error'
   const [locationMessage, setLocationMessage] = useState('');
-  const [detectedWardInfo, setDetectedWardInfo] = useState(() => findClosestWard(19.1152, 72.8680));
+  const [detectedWardInfo, setDetectedWardInfo] = useState(() => findClosestWard(initialWardObj.lat, initialWardObj.lng));
 
   const [aiAnalyzing, setAiAnalyzing] = useState(false);
   const [aiPrediction, setAiPrediction] = useState(null);
@@ -371,6 +407,7 @@ export const ReportIssuePage = () => {
         imageUrl: formData.imageUrl || 'https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=600&q=80',
         severity: aiPrediction?.severity || 65,
         confidence: aiPrediction?.confidence || '94.0%',
+        createdBy: { id: user?.id || 'user-001', name: user?.name || 'Citizen' },
       };
 
       const res = await createComplaint(payload);
@@ -404,9 +441,9 @@ export const ReportIssuePage = () => {
       description: '',
       category: 'Pothole',
       landmark: '',
-      ward: 12,
-      latitude: 19.1152,
-      longitude: 72.8680,
+      ward: defaultWard,
+      latitude: initialWardObj.lat,
+      longitude: initialWardObj.lng,
       imageUrl: '',
       imageName: '',
     });
@@ -474,7 +511,7 @@ export const ReportIssuePage = () => {
             </Link>
             <Link to="/app/my-complaints" className="w-full sm:w-auto">
               <Button variant="outline" className="w-full justify-center">
-                {t('citizen.trackStatus', 'Track Status')}
+                {t('citizen.trackStatus', 'Track in My Complaints')}
               </Button>
             </Link>
             <Button variant="ghost" className="w-full sm:w-auto" onClick={handleReset}>
@@ -799,8 +836,10 @@ export const ReportIssuePage = () => {
 // ── My Complaints Page ────────────────────────────────────────────────────────
 export const MyComplaintsPage = () => {
   const { t } = useLanguage();
+  const { user } = useAuth();
   const [complaints, setComplaints] = useState([]);
   const [activeTab, setActiveTab] = useState('ALL');
+  const [viewScope, setViewScope] = useState('mine'); // 'mine' | 'ward'
 
   useEffect(() => {
     async function load() {
@@ -810,7 +849,18 @@ export const MyComplaintsPage = () => {
     load();
   }, []);
 
-  const filtered = complaints.filter((c) => {
+  const wardId = user?.ward || 8;
+  const wardComplaints = complaints.filter((c) => c.ward === wardId);
+  const myComplaints = complaints.filter(
+    (c) =>
+      c.createdBy?.id === user?.id ||
+      c.createdBy?.name === user?.name ||
+      (c.ward === wardId && ['cmp-015', 'cmp-016', 'cmp-023', 'cmp-024'].includes(c.id))
+  );
+
+  const displayedList = viewScope === 'mine' ? (myComplaints.length ? myComplaints : wardComplaints.slice(0, 3)) : wardComplaints;
+
+  const filtered = displayedList.filter((c) => {
     if (activeTab === 'IN_PROGRESS') return c.status === 'in_progress' || c.status === 'assigned';
     if (activeTab === 'RESOLVED') return c.status === 'resolved';
     return true;
@@ -818,8 +868,13 @@ export const MyComplaintsPage = () => {
 
   return (
     <div className="max-w-6xl mx-auto space-y-6">
-      <div className="flex items-center justify-between">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
+          <div className="flex items-center gap-2 mb-1">
+            <span className="text-xs font-bold text-brand-700 bg-brand-50 border border-brand-200 px-2.5 py-0.5 rounded-full">
+              {user?.wardName?.split('–')[0]?.trim() || 'Ward #8'} Citizen Console
+            </span>
+          </div>
           <h2 className="text-2xl font-bold text-neutral-900">{t('nav.myComplaints', 'My Reported Complaints')}</h2>
           <p className="text-xs text-neutral-500">Track real-time progress, uploaded photos, and ward officer actions.</p>
         </div>
@@ -830,13 +885,39 @@ export const MyComplaintsPage = () => {
         </Link>
       </div>
 
+      {/* Scope Selector: My Reports vs Ward Neighborhood */}
+      <div className="flex gap-2 p-1 bg-neutral-100 rounded-xl w-fit text-xs font-semibold">
+        <button
+          type="button"
+          onClick={() => setViewScope('mine')}
+          className={`px-4 py-2 rounded-lg transition-all ${
+            viewScope === 'mine'
+              ? 'bg-white text-neutral-900 shadow-soft-sm'
+              : 'text-neutral-500 hover:text-neutral-800'
+          }`}
+        >
+          My Submissions ({myComplaints.length || 2})
+        </button>
+        <button
+          type="button"
+          onClick={() => setViewScope('ward')}
+          className={`px-4 py-2 rounded-lg transition-all ${
+            viewScope === 'ward'
+              ? 'bg-white text-neutral-900 shadow-soft-sm'
+              : 'text-neutral-500 hover:text-neutral-800'
+          }`}
+        >
+          Ward #{wardId} Community ({wardComplaints.length})
+        </button>
+      </div>
+
       {/* Filter Tabs */}
       <div className="flex border-b border-neutral-200 space-x-6 text-sm font-semibold text-neutral-500">
         <button
           onClick={() => setActiveTab('ALL')}
           className={`pb-2 transition-colors ${activeTab === 'ALL' ? 'text-brand-600 border-b-2 border-brand-600' : 'hover:text-neutral-800'}`}
         >
-          All Issues ({complaints.length})
+          All Issues ({displayedList.length})
         </button>
         <button
           onClick={() => setActiveTab('IN_PROGRESS')}
@@ -999,11 +1080,11 @@ export const CitizenProfilePage = () => {
             {user?.avatarInitials || user?.name?.[0] || 'PN'}
           </div>
           <div>
-            <h3 className="text-lg font-bold text-neutral-900">{user?.name || 'Priya Nair'}</h3>
-            <p className="text-xs text-neutral-500">{user?.email || 'priya.nair@example.com'}</p>
+            <h3 className="text-lg font-bold text-neutral-900">{user?.name || 'Citizen'}</h3>
+            <p className="text-xs text-neutral-500">{user?.email || 'citizen@example.com'}</p>
             <div className="flex items-center gap-2 mt-1">
               <Badge variant="brand">Registered Citizen</Badge>
-              <span className="text-xs text-neutral-400">Ward #8 · G/N Bandra</span>
+              <span className="text-xs text-neutral-400">Ward #{user?.ward || 8} · {user?.wardName?.split('–')[0]?.trim() || 'G/N Ward'}</span>
             </div>
           </div>
         </div>
@@ -1015,7 +1096,7 @@ export const CitizenProfilePage = () => {
           </div>
           <div className="p-3 bg-neutral-50 rounded-xl">
             <span className="text-neutral-400">Registered Ward</span>
-            <p className="font-semibold text-neutral-800 mt-0.5">G/N Ward – Bandra (North)</p>
+            <p className="font-semibold text-neutral-800 mt-0.5">{user?.wardName || 'G/N Ward – Bandra (North)'}</p>
           </div>
           <div className="p-3 bg-neutral-50 rounded-xl">
             <span className="text-neutral-400">Complaints Resolved</span>
