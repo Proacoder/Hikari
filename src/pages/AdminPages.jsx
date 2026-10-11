@@ -79,6 +79,7 @@ const WeatherCorrelationChart = ({ data }) => (
 );
 
 import { useLocation } from 'react-router-dom';
+import { MunicipalReportModal } from '../components/admin/MunicipalReportModal';
 
 export const AdminDashboard = () => {
   const location = useLocation();
@@ -88,13 +89,15 @@ export const AdminDashboard = () => {
   const [trends, setTrends] = useState(null);
   const [weather, setWeather] = useState(null);
   const [mapComplaints, setMapComplaints] = useState([]);
+  const [reportModalOpen, setReportModalOpen] = useState(false);
 
   const sectionFromPath = () => {
     const p = location.pathname;
     if (p.endsWith('/wards')) return 'wards';
     if (p.endsWith('/officers')) return 'leaderboard';
     if (p.endsWith('/complaints')) return 'complaints';
-    if (p.endsWith('/reports')) return 'map';
+    if (p.endsWith('/reports')) return 'reports';
+    if (p.endsWith('/analytics')) return 'analytics';
     return 'overview';
   };
 
@@ -153,7 +156,9 @@ export const AdminDashboard = () => {
               <span className="text-xs font-semibold text-amber-600">AQI {weather.aqi}</span>
             </Card>
           )}
-          <Button variant="outline" size="sm" icon={Download}>Export Monthly Report</Button>
+          <Button variant="outline" size="sm" icon={Download} onClick={() => setReportModalOpen(true)}>
+            Export Monthly Report
+          </Button>
         </div>
       </div>
 
@@ -416,6 +421,55 @@ export const AdminDashboard = () => {
         </div>
       )}
 
+      {/* SECTION: Reports */}
+      {activeSection === 'reports' && (
+        <div className="space-y-6">
+          <Card className="p-6 bg-gradient-to-r from-slate-900 to-brand-950 text-white rounded-3xl space-y-4">
+            <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+              <div className="space-y-1">
+                <span className="text-[10px] uppercase font-bold text-amber-400 tracking-wider">Executive Municipal Audit</span>
+                <h3 className="text-xl font-black">Brihanmumbai Monthly Grievance Dossier</h3>
+                <p className="text-xs text-white/70 max-w-lg">
+                  Generate the certified municipal performance dossier with SLA compliance breakdown across all 26 wards, departmental speed metrics, and exportable CSV/print formats.
+                </p>
+              </div>
+              <Button
+                variant="primary"
+                icon={Download}
+                onClick={() => setReportModalOpen(true)}
+                className="whitespace-nowrap shadow-brand"
+              >
+                Open Full Municipal Dossier
+              </Button>
+            </div>
+          </Card>
+
+          <div className="grid sm:grid-cols-3 gap-4">
+            <Card className="p-4 bg-white border-neutral-200 shadow-sm space-y-2">
+              <span className="text-xs font-bold text-neutral-800">CSV Audit Register</span>
+              <p className="text-xs text-neutral-500">Download row-level raw complaint database with timestamps, GPS coordinates, and assigned officers.</p>
+              <Button variant="outline" size="sm" icon={Download} onClick={() => setReportModalOpen(true)} className="w-full justify-center">
+                Download CSV
+              </Button>
+            </Card>
+            <Card className="p-4 bg-white border-neutral-200 shadow-sm space-y-2">
+              <span className="text-xs font-bold text-neutral-800">Printable Executive PDF</span>
+              <p className="text-xs text-neutral-500">Formatted official letterhead document with Municipal Commissioner sign-off blocks ready for print.</p>
+              <Button variant="outline" size="sm" icon={Download} onClick={() => setReportModalOpen(true)} className="w-full justify-center">
+                Preview & Print PDF
+              </Button>
+            </Card>
+            <Card className="p-4 bg-white border-neutral-200 shadow-sm space-y-2">
+              <span className="text-xs font-bold text-neutral-800">Inter-Ward Compliance Scorecard</span>
+              <p className="text-xs text-neutral-500">Comparative SLA metrics between Western, Eastern, and City zone ward engineers.</p>
+              <Button variant="outline" size="sm" icon={Download} onClick={() => setReportModalOpen(true)} className="w-full justify-center">
+                View Scorecard
+              </Button>
+            </Card>
+          </div>
+        </div>
+      )}
+
       {/* SECTION: City Map */}
       {activeSection === 'map' && (
         <div className="space-y-4">
@@ -430,6 +484,14 @@ export const AdminDashboard = () => {
           />
         </div>
       )}
+
+      {/* Municipal Dossier Modal */}
+      <MunicipalReportModal
+        isOpen={reportModalOpen}
+        onClose={() => setReportModalOpen(false)}
+        complaints={mapComplaints}
+        analytics={analytics}
+      />
     </div>
   );
 };

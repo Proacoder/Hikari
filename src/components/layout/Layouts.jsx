@@ -4,7 +4,7 @@ import { useState, useMemo } from 'react';
 import {
   Shield, Home, Map, FileText, Bell, User, BarChart3,
   Users, Building2, Settings, LogOut, Menu, X, ChevronRight,
-  AlertTriangle, TrendingUp, ClipboardList, Layers, Globe, ChevronDown, Star, BadgeCheck
+  AlertTriangle, TrendingUp, ClipboardList, Layers, Globe, ChevronDown, Star, BadgeCheck, Trophy
 } from 'lucide-react';
 import { Navbar } from './Navbar';
 import { Footer } from './Footer';
@@ -167,6 +167,7 @@ const CitizenSidebar = ({ open, onClose }) => {
     { to: '/app/report',        icon: FileText,      label: t('nav.reportIssue', 'Report Issue') },
     { to: '/app/my-complaints', icon: ClipboardList, label: t('nav.myComplaints', 'My Complaints') },
     { to: '/app/map',           icon: Map,           label: t('nav.issueMap', 'Issue Map') },
+    { to: '/app/leaderboard',   icon: Trophy,        label: t('nav.leaderboard', 'Civic Champions') },
     { to: '/app/notifications', icon: Bell,          label: t('nav.notifications', 'Notifications'), badge: unreadCount },
     { to: '/app/profile',       icon: User,          label: t('nav.profile', 'Profile') },
   ];

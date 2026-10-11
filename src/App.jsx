@@ -16,6 +16,8 @@ import { OfficerDashboard } from './pages/OfficerPages';
 import { OfficerLoginPage } from './pages/OfficerLoginPage';
 import { AdminDashboard } from './pages/AdminPages';
 import { NotificationsPage } from './pages/NotificationsPage';
+import { CivicLeaderboardPage } from './pages/citizen/CivicLeaderboardPage';
+import { CivicAiAssistant } from './components/ai/CivicAiAssistant';
 
 // ── Route Guard: requires authentication with specific role ─────────────────
 const RequireAuth = ({ allowedRoles, children }) => {
@@ -109,6 +111,7 @@ export function App() {
                 <Route path="report" element={<ReportIssuePage />} />
                 <Route path="my-complaints" element={<MyComplaintsPage />} />
                 <Route path="map" element={<IssueMapPage />} />
+                <Route path="leaderboard" element={<CivicLeaderboardPage />} />
                 <Route path="notifications" element={<NotificationsPage />} />
                 <Route path="profile" element={<CitizenProfilePage />} />
               </Route>
@@ -149,6 +152,7 @@ export function App() {
               {/* Catch-all redirect */}
               <Route path="*" element={<Navigate to="/" replace />} />
             </Routes>
+            <CivicAiAssistant />
           </BrowserRouter>
         </NotificationProvider>
       </AuthProvider>
