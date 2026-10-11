@@ -16,6 +16,7 @@ import { LeafletMap } from '../components/map/LeafletMap';
 import { getComplaints } from '../api/complaints.api';
 import { MunicipalReportModal } from '../components/admin/MunicipalReportModal';
 import { PredictiveDisasterCenter } from '../components/admin/PredictiveDisasterCenter';
+import { useDebounce } from '../hooks/useDebounce';
 import {
   BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer,
   LineChart, Line, CartesianGrid, Area, AreaChart,
@@ -105,6 +106,9 @@ export const AdminDashboard = () => {
   const [complaintWardFilter, setComplaintWardFilter] = useState('all');
   const [complaintCatFilter, setComplaintCatFilter] = useState('all');
 
+  const debouncedWardSearch = useDebounce(wardSearchQuery, 250);
+  const debouncedComplaintSearch = useDebounce(complaintSearch, 250);
+
   const sectionFromPath = () => {
     const p = location.pathname;
     if (p.endsWith('/wards')) return 'wards';
@@ -174,27 +178,27 @@ export const AdminDashboard = () => {
 
   const filteredWards = useMemo(() => {
     return allWardsData.filter((w) => {
-      const matchesSearch = !wardSearchQuery ||
-        w.name.toLowerCase().includes(wardSearchQuery.toLowerCase()) ||
-        w.area.toLowerCase().includes(wardSearchQuery.toLowerCase());
+      const matchesSearch = !debouncedWardSearch ||
+        w.name.toLowerCase().includes(debouncedWardSearch.toLowerCase()) ||
+        w.area.toLowerCase().includes(debouncedWardSearch.toLowerCase());
       const matchesZone = wardZoneFilter === 'all' || w.zone === wardZoneFilter;
       return matchesSearch && matchesZone;
     });
-  }, [allWardsData, wardSearchQuery, wardZoneFilter]);
+  }, [allWardsData, debouncedWardSearch, wardZoneFilter]);
 
   const filteredCityComplaints = useMemo(() => {
     return mapComplaints.filter((c) => {
-      const matchesSearch = !complaintSearch ||
-        c.title?.toLowerCase().includes(complaintSearch.toLowerCase()) ||
-        c.id?.toLowerCase().includes(complaintSearch.toLowerCase()) ||
-        c.category?.toLowerCase().includes(complaintSearch.toLowerCase()) ||
-        c.createdBy?.name?.toLowerCase().includes(complaintSearch.toLowerCase());
+      const matchesSearch = !debouncedComplaintSearch ||
+        c.title?.toLowerCase().includes(debouncedComplaintSearch.toLowerCase()) ||
+        c.id?.toLowerCase().includes(debouncedComplaintSearch.toLowerCase()) ||
+        c.category?.toLowerCase().includes(debouncedComplaintSearch.toLowerCase()) ||
+        c.createdBy?.name?.toLowerCase().includes(debouncedComplaintSearch.toLowerCase());
       const matchesStatus = complaintStatusFilter === 'all' || c.status === complaintStatusFilter;
       const matchesWard = complaintWardFilter === 'all' || String(c.ward) === String(complaintWardFilter);
       const matchesCat = complaintCatFilter === 'all' || c.category === complaintCatFilter;
       return matchesSearch && matchesStatus && matchesWard && matchesCat;
     });
-  }, [mapComplaints, complaintSearch, complaintStatusFilter, complaintWardFilter, complaintCatFilter]);
+  }, [mapComplaints, debouncedComplaintSearch, complaintStatusFilter, complaintWardFilter, complaintCatFilter]);
 
   // Sort officers by rating descending for leaderboard
   const leaderboard = [...MOCK_OFFICERS].sort((a, b) => b.rating - a.rating);

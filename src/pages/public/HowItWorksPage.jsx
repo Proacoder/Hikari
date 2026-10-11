@@ -34,12 +34,12 @@ export const HowItWorksPage = () => {
           <div className="md:col-span-7 space-y-3">
             <h3 className="text-2xl font-bold text-neutral-900">Pinpoint with Sub-Meter GPS Precision</h3>
             <p className="text-sm text-neutral-600 leading-relaxed">
-              When reporting a pothole, open manhole, or garbage pile, citizens snap a photo or record a voice note. Kaiser AI captures exact GPS coordinates on OpenStreetMap and auto-detects your Mumbai municipal ward (e.g. K/E Ward, Andheri East).
+              When reporting a pothole, open manhole, or garbage pile, citizens upload a photo and describe the issue. Kaiser AI captures exact GPS coordinates on OpenStreetMap and auto-detects your Mumbai municipal ward (e.g. K/E Ward, Andheri East).
             </p>
             <ul className="text-xs text-neutral-500 space-y-1.5 list-disc pl-4">
-              <li>High-resolution photo upload with client-side compression</li>
+              <li>High-resolution photo upload with client-side preview</li>
               <li>Draggable map pin to fine-tune exact street spot</li>
-              <li>Voice note support in English, Marathi, and Hindi</li>
+              <li>Multilingual AI assistant support in English, Marathi, and Hindi</li>
             </ul>
           </div>
         </div>

@@ -11,7 +11,7 @@ import { AuthPage } from './pages/AuthPage';
 import { AboutPage } from './pages/public/AboutPage';
 import { ContactPage } from './pages/public/ContactPage';
 import { HowItWorksPage } from './pages/public/HowItWorksPage';
-import { CitizenDashboard, ReportIssuePage, MyComplaintsPage, IssueMapPage, CitizenNotificationsPage, CitizenProfilePage } from './pages/CitizenPages';
+import { CitizenDashboard, ReportIssuePage, MyComplaintsPage, IssueMapPage, CitizenProfilePage } from './pages/CitizenPages';
 import { OfficerDashboard } from './pages/OfficerPages';
 import { OfficerLoginPage } from './pages/OfficerLoginPage';
 import { AdminDashboard } from './pages/AdminPages';

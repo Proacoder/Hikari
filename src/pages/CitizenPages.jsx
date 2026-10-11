@@ -1053,39 +1053,34 @@ export const IssueMapPage = () => {
   );
 };
 
-// ── Citizen Notifications Page ────────────────────────────────────────────────
-export const CitizenNotificationsPage = () => {
-  return (
-    <div className="max-w-3xl mx-auto space-y-5">
-      <div>
-        <h2 className="text-2xl font-bold text-neutral-900">Notifications</h2>
-        <p className="text-xs text-neutral-500">Live alerts regarding your reported issues and municipal responses.</p>
-      </div>
-
-      <div className="space-y-3">
-        {MOCK_NOTIFICATIONS.map((n) => (
-          <Card key={n.id} className="p-4 bg-white border-neutral-200 flex items-start gap-3 shadow-sm" padding="">
-            <div className="w-9 h-9 rounded-xl bg-brand-50 border border-brand-100 flex items-center justify-center text-brand-600 shrink-0">
-              <Bell size={16} />
-            </div>
-            <div className="flex-1 min-w-0">
-              <div className="flex items-center gap-2">
-                <span className="font-bold text-neutral-900 text-sm">{n.title}</span>
-                {!n.isRead && <span className="w-2 h-2 rounded-full bg-brand-500" />}
-              </div>
-              <p className="text-xs text-neutral-500 mt-0.5">{n.body}</p>
-            </div>
-            <span className="text-[10px] text-neutral-400 shrink-0">Recent</span>
-          </Card>
-        ))}
-      </div>
-    </div>
-  );
-};
 
 // ── Citizen Profile Page ──────────────────────────────────────────────────────
 export const CitizenProfilePage = () => {
   const { user } = useAuth();
+  const [stats, setStats] = useState({ total: 0, resolved: 0, score: 500 });
+
+  useEffect(() => {
+    async function fetchUserStats() {
+      try {
+        const res = await getComplaints();
+        const all = res.data || [];
+        const mine = all.filter(
+          (c) =>
+            (user?.id && c.createdBy?.id === user.id) ||
+            (user?.name && c.createdBy?.name === user.name) ||
+            (user?.email && c.createdBy?.email === user.email)
+        );
+        const resolved = mine.filter((c) => c.status === 'resolved' || c.status === 'Resolved').length;
+        const total = mine.length;
+        const score = Math.min(990, 500 + total * 25 + resolved * 50);
+        setStats({ total, resolved, score });
+      } catch {
+        // Fallback gracefully
+      }
+    }
+    fetchUserStats();
+  }, [user]);
+
   return (
     <div className="max-w-3xl mx-auto space-y-6">
       <div>
@@ -1119,11 +1114,15 @@ export const CitizenProfilePage = () => {
           </div>
           <div className="p-3 bg-neutral-50 rounded-xl">
             <span className="text-neutral-400">Complaints Resolved</span>
-            <p className="font-semibold text-emerald-600 mt-0.5">8 Grievances Fixed</p>
+            <p className="font-semibold text-emerald-600 mt-0.5">
+              {stats.total > 0 ? `${stats.resolved} of ${stats.total} Grievances Fixed` : 'No Grievances Filed Yet'}
+            </p>
           </div>
           <div className="p-3 bg-neutral-50 rounded-xl">
             <span className="text-neutral-400">Civic Reputation Score</span>
-            <p className="font-semibold text-brand-600 mt-0.5">Top 5% Citizen (Score: 840)</p>
+            <p className="font-semibold text-brand-600 mt-0.5">
+              {stats.score >= 700 ? `Top Tier Citizen (Score: ${stats.score})` : `Active Citizen (Score: ${stats.score})`}
+            </p>
           </div>
         </div>
       </Card>
