@@ -1,6 +1,6 @@
 import React from 'react';
-import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
-import { AuthProvider } from './context/AuthContext';
+import { BrowserRouter, Routes, Route, Navigate, useLocation } from 'react-router-dom';
+import { AuthProvider, useAuth } from './context/AuthContext';
 import { PublicLayout, CitizenLayout, OfficerLayout, AdminLayout } from './components/layout/Layouts';
 
 import { LandingPage } from './pages/LandingPage';
@@ -13,6 +13,53 @@ import { OfficerDashboard } from './pages/OfficerPages';
 import { OfficerLoginPage } from './pages/OfficerLoginPage';
 import { AdminDashboard } from './pages/AdminPages';
 
+// ── Route Guard: requires authentication with specific role ─────────────────
+const RequireAuth = ({ allowedRoles, children }) => {
+  const { user, role, isLoading } = useAuth();
+  const location = useLocation();
+
+  if (isLoading) {
+    return (
+      <div className="flex items-center justify-center h-screen bg-neutral-50">
+        <div className="text-center space-y-3">
+          <div className="w-10 h-10 border-3 border-brand-200 border-t-brand-600 rounded-full animate-spin mx-auto" />
+          <p className="text-sm text-neutral-500 font-medium">Verifying session…</p>
+        </div>
+      </div>
+    );
+  }
+
+  // Not logged in — redirect to login
+  if (!user) {
+    return <Navigate to="/auth" state={{ from: location }} replace />;
+  }
+
+  // Check role-based access
+  if (allowedRoles && !allowedRoles.includes(role)) {
+    // Redirect to appropriate dashboard based on their actual role
+    if (role === 'officer') return <Navigate to={`/officer/${user.id}`} replace />;
+    if (role === 'admin') return <Navigate to="/admin" replace />;
+    return <Navigate to="/app" replace />;
+  }
+
+  return children;
+};
+
+// ── Guard: redirect to dashboard if already logged in ───────────────────────
+const RedirectIfAuth = ({ children }) => {
+  const { user, role, isLoading } = useAuth();
+
+  if (isLoading) return children;
+
+  if (user) {
+    if (role === 'officer') return <Navigate to={`/officer/${user.id}`} replace />;
+    if (role === 'admin') return <Navigate to="/admin" replace />;
+    return <Navigate to="/app" replace />;
+  }
+
+  return children;
+};
+
 export function App() {
   return (
     <AuthProvider>
@@ -24,16 +71,20 @@ export function App() {
             <Route path="/how-it-works" element={<HowItWorksPage />} />
             <Route path="/about" element={<AboutPage />} />
             <Route path="/contact" element={<ContactPage />} />
-            <Route path="/auth" element={<AuthPage />} />
-            <Route path="/login" element={<AuthPage />} />
-            <Route path="/register" element={<AuthPage />} />
+            <Route path="/auth" element={<RedirectIfAuth><AuthPage /></RedirectIfAuth>} />
+            <Route path="/login" element={<RedirectIfAuth><AuthPage /></RedirectIfAuth>} />
+            <Route path="/register" element={<RedirectIfAuth><AuthPage /></RedirectIfAuth>} />
           </Route>
 
           {/* Officer Portal Login — standalone (no layout wrapper) */}
           <Route path="/officer-login" element={<OfficerLoginPage />} />
 
-          {/* Citizen App Portal */}
-          <Route path="/app" element={<CitizenLayout />}>
+          {/* Citizen App Portal — requires citizen role */}
+          <Route path="/app" element={
+            <RequireAuth allowedRoles={['citizen']}>
+              <CitizenLayout />
+            </RequireAuth>
+          }>
             <Route index element={<CitizenDashboard />} />
             <Route path="report" element={<ReportIssuePage />} />
             <Route path="my-complaints" element={<MyComplaintsPage />} />
@@ -42,8 +93,12 @@ export function App() {
             <Route path="profile" element={<CitizenProfilePage />} />
           </Route>
 
-          {/* Ward Officer Portal — all 26 officer dashboards and tabs */}
-          <Route path="/officer" element={<OfficerLayout />}>
+          {/* Ward Officer Portal — requires officer role, scoped to own officer ID */}
+          <Route path="/officer" element={
+            <RequireAuth allowedRoles={['officer']}>
+              <OfficerLayout />
+            </RequireAuth>
+          }>
             <Route index element={<OfficerDashboard />} />
             <Route path="ward-overview" element={<OfficerDashboard />} />
             <Route path="performance" element={<OfficerDashboard />} />
@@ -56,8 +111,12 @@ export function App() {
             <Route path=":officerId/profile" element={<OfficerDashboard />} />
           </Route>
 
-          {/* BMC City Admin Console */}
-          <Route path="/admin" element={<AdminLayout />}>
+          {/* BMC City Admin Console — requires admin role */}
+          <Route path="/admin" element={
+            <RequireAuth allowedRoles={['admin']}>
+              <AdminLayout />
+            </RequireAuth>
+          }>
             <Route index element={<AdminDashboard />} />
             <Route path="wards" element={<AdminDashboard />} />
             <Route path="officers" element={<AdminDashboard />} />

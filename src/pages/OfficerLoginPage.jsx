@@ -55,13 +55,24 @@ export const OfficerLoginPage = () => {
 
   const handleLogin = async (e) => {
     e.preventDefault();
-    setLoading(true);
     setError('');
+
+    // Frontend validation
+    if (!password.trim()) {
+      setError('Password is required.');
+      return;
+    }
+    if (password.length < 6) {
+      setError('Password must be at least 6 characters.');
+      return;
+    }
+
+    setLoading(true);
     try {
       await login({ email: selectedOfficer.email, password });
       navigate(`/officer/${selectedOfficer.id}`);
     } catch (err) {
-      setError('Incorrect password. Please try again.');
+      setError(err.message || 'Incorrect password. Please try again.');
     } finally {
       setLoading(false);
     }

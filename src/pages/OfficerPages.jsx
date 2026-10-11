@@ -522,16 +522,9 @@ export const OfficerDashboard = ({ activeTabOverride }) => {
   const location = useLocation();
   const navigate = useNavigate();
 
-  // Find officer: match URL param :officerId, or user session, or default to first officer
-  const officerProfile = useMemo(() => {
-    if (officerId) {
-      const matched = MOCK_OFFICERS.find((o) =>
-        o.id === officerId ||
-        String(o.ward) === officerId ||
-        o.id === `officer-${String(officerId).padStart(3, '0')}`
-      );
-      if (matched) return matched;
-    }
+  // ── ACCESS CONTROL: Officer can only see their own dashboard ──────────────
+  // Resolve the logged-in officer from auth context or localStorage
+  const loggedInOfficer = useMemo(() => {
     if (user?.role === 'officer' && user?.id) {
       const matched = MOCK_OFFICERS.find((o) => o.id === user.id);
       if (matched) return matched;
@@ -541,8 +534,20 @@ export const OfficerDashboard = ({ activeTabOverride }) => {
       const matched = MOCK_OFFICERS.find((o) => o.id === storedId);
       if (matched) return matched;
     }
-    return MOCK_OFFICERS[0];
-  }, [officerId, user]);
+    return null;
+  }, [user]);
+
+  // If a URL param :officerId is present and doesn't match the logged-in
+  // officer, force-redirect to the logged-in officer's own dashboard.
+  useEffect(() => {
+    if (!loggedInOfficer) return;
+    if (officerId && officerId !== loggedInOfficer.id) {
+      navigate(`/officer/${loggedInOfficer.id}`, { replace: true });
+    }
+  }, [officerId, loggedInOfficer, navigate]);
+
+  // The officer profile is always the logged-in officer (never another)
+  const officerProfile = loggedInOfficer || MOCK_OFFICERS[0];
 
   // Determine active tab from route or activeTabOverride
   const activeTab = useMemo(() => {
@@ -596,13 +601,6 @@ export const OfficerDashboard = ({ activeTabOverride }) => {
     else if (tabId === 'performance') navigate(`${basePath}/performance`);
     else if (tabId === 'notifications') navigate(`${basePath}/notifications`);
     else if (tabId === 'profile') navigate(`${basePath}/profile`);
-  };
-
-  // Handle switching to another officer
-  const handleOfficerSwitch = (e) => {
-    const targetId = e.target.value;
-    localStorage.setItem('kaiser_officer_id', targetId);
-    navigate(`/officer/${targetId}`);
   };
 
   const filteredComplaints = useMemo(() =>
@@ -687,24 +685,14 @@ export const OfficerDashboard = ({ activeTabOverride }) => {
           </div>
         </div>
 
-        {/* 26-Officer Switcher Dropdown & Live Weather */}
+        {/* Live Weather & Controls */}
         <div className="flex flex-wrap items-center gap-3">
-          {/* Officer Selector Dropdown */}
+          {/* Officer Identity (read-only — no switcher) */}
           <div className="flex items-center gap-1.5 bg-neutral-50 border border-neutral-200 px-3 py-2 rounded-xl shadow-sm">
             <User size={14} className="text-brand-600 shrink-0" />
             <div className="text-left">
-              <span className="text-[10px] uppercase font-bold text-neutral-400 block leading-tight">Switch Officer (26 Wards)</span>
-              <select
-                value={officerProfile?.id}
-                onChange={handleOfficerSwitch}
-                className="bg-transparent text-xs font-bold text-neutral-800 focus:outline-none cursor-pointer"
-              >
-                {MOCK_OFFICERS.map((o) => (
-                  <option key={o.id} value={o.id}>
-                    #{o.ward} {o.name} ({o.wardName.split('–')[0]?.trim()})
-                  </option>
-                ))}
-              </select>
+              <span className="text-[10px] uppercase font-bold text-neutral-400 block leading-tight">Signed In Officer</span>
+              <span className="text-xs font-bold text-neutral-800">#{officerProfile?.ward} {officerProfile?.name}</span>
             </div>
           </div>
 
@@ -722,9 +710,6 @@ export const OfficerDashboard = ({ activeTabOverride }) => {
             <Button variant="outline" size="sm" onClick={loadWardData} icon={RefreshCw} title="Refresh data">
               Refresh
             </Button>
-            <Link to="/officer-login">
-              <Button variant="ghost" size="sm">Switch Portal</Button>
-            </Link>
           </div>
         </div>
       </div>
