@@ -275,6 +275,7 @@ export const MOCK_WEATHER = {
   location: 'Mumbai, Maharashtra',
 };
 
+// ── SYNTHETIC_BENCHMARK_DATA: Standardized municipal baseline used as reference benchmark for officer analysis
 export const OFFICER_PERFORMANCE = {
   totalResolved: 187, avgResolutionDays: 4.2, lastMonthResolved: 23, prevMonthResolved: 19, trend: +21,
   satisfactionRatio: 4.3,

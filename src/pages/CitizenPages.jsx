@@ -54,6 +54,20 @@ export const CitizenDashboard = () => {
     return MOCK_OFFICERS.find((o) => o.ward === wardId) || MOCK_OFFICERS[0];
   }, [user]);
 
+  const userSubmissions = useMemo(() => {
+    const allStored = getStoredComplaints();
+    return allStored.filter(
+      (c) =>
+        (user?.id && c.createdBy?.id === user.id) ||
+        (user?.name && c.createdBy?.name === user.name) ||
+        (user?.email && c.createdBy?.email === user.email)
+    );
+  }, [user, complaints]);
+
+  const activeSubmissionsCount = userSubmissions.filter((c) => c.status !== 'resolved').length;
+  const inProgressCount = userSubmissions.filter((c) => c.status === 'in_progress' || c.status === 'assigned').length;
+  const resolvedCount = userSubmissions.filter((c) => c.status === 'resolved').length;
+
   useEffect(() => {
     async function load() {
       try {
@@ -170,15 +184,15 @@ export const CitizenDashboard = () => {
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
         <Card className="p-4 bg-white border-neutral-200 border-l-4 border-l-brand-600 space-y-1 shadow-sm" padding="">
           <span className="text-xs font-semibold text-neutral-500 uppercase">{t('citizen.mySubmissions', 'My Submissions')}</span>
-          <div className="text-2xl font-bold text-neutral-900">3 Active</div>
+          <div className="text-2xl font-bold text-neutral-900">{activeSubmissionsCount} Active</div>
         </Card>
         <Card className="p-4 bg-white border-neutral-200 border-l-4 border-l-amber-500 space-y-1 shadow-sm" padding="">
           <span className="text-xs font-semibold text-neutral-500 uppercase">{t('citizen.inProgress', 'In Progress')}</span>
-          <div className="text-2xl font-bold text-amber-600">2 Issues</div>
+          <div className="text-2xl font-bold text-amber-600">{inProgressCount} Issues</div>
         </Card>
         <Card className="p-4 bg-white border-neutral-200 border-l-4 border-l-emerald-500 space-y-1 shadow-sm" padding="">
           <span className="text-xs font-semibold text-neutral-500 uppercase">{t('citizen.resolved', 'Resolved')}</span>
-          <div className="text-2xl font-bold text-emerald-600">8 Fixed</div>
+          <div className="text-2xl font-bold text-emerald-600">{resolvedCount} Fixed</div>
         </Card>
         <Card className="p-4 bg-white border-neutral-200 border-l-4 border-l-sky-500 space-y-1 shadow-sm" padding="">
           <span className="text-xs font-semibold text-neutral-500 uppercase">{t('citizen.wardRanking', 'Wards Covered')}</span>
@@ -407,7 +421,12 @@ export const ReportIssuePage = () => {
         imageUrl: formData.imageUrl || 'https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=600&q=80',
         severity: aiPrediction?.severity || 65,
         confidence: aiPrediction?.confidence || '94.0%',
-        createdBy: { id: user?.id || 'user-001', name: user?.name || 'Citizen' },
+        createdBy: user ? {
+          id: user.id,
+          name: user.name,
+          email: user.email,
+          ward: user.ward || formData.ward,
+        } : { id: 'anonymous', name: 'Citizen' },
       };
 
       const res = await createComplaint(payload);
@@ -853,12 +872,12 @@ export const MyComplaintsPage = () => {
   const wardComplaints = complaints.filter((c) => c.ward === wardId);
   const myComplaints = complaints.filter(
     (c) =>
-      c.createdBy?.id === user?.id ||
-      c.createdBy?.name === user?.name ||
-      (c.ward === wardId && ['cmp-015', 'cmp-016', 'cmp-023', 'cmp-024'].includes(c.id))
+      (user?.id && c.createdBy?.id === user.id) ||
+      (user?.name && c.createdBy?.name === user.name) ||
+      (user?.email && c.createdBy?.email === user.email)
   );
 
-  const displayedList = viewScope === 'mine' ? (myComplaints.length ? myComplaints : wardComplaints.slice(0, 3)) : wardComplaints;
+  const displayedList = viewScope === 'mine' ? myComplaints : wardComplaints;
 
   const filtered = displayedList.filter((c) => {
     if (activeTab === 'IN_PROGRESS') return c.status === 'in_progress' || c.status === 'assigned';
