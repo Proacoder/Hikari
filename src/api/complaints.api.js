@@ -27,7 +27,13 @@ export const getComplaints = async ({ ward, category, status, page = 1, limit = 
   if (MOCK_MODE) {
     await mockDelay();
     let data = [...getStoredComplaints()];
-    if (ward)     data = data.filter((c) => Number(c.ward) === Number(ward));
+    if (ward) {
+      data = data.filter((c) =>
+        Number(c.ward) === Number(ward) ||
+        String(c.ward).toLowerCase() === String(ward).toLowerCase() ||
+        (c.wardName && String(c.wardName).toLowerCase().includes(String(ward).toLowerCase()))
+      );
+    }
     if (category) data = data.filter((c) => c.category === category);
     if (status)   data = data.filter((c) => c.status === status);
     const total = data.length;

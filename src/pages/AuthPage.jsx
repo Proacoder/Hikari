@@ -5,7 +5,7 @@ import { useAuth } from '../context/AuthContext';
 import { Button } from '../components/common/Button';
 import { Input } from '../components/common/Input';
 import { Card } from '../components/common/Card';
-import { DEMO_CITIZENS, MOCK_USERS } from '../utils/mockData';
+import { DEMO_CITIZENS, MOCK_USERS, MUMBAI_WARDS } from '../utils/mockData';
 
 // ── Input sanitization ──────────────────────────────────────────────────────
 const sanitizeInput = (str) => {
@@ -49,7 +49,7 @@ export const AuthPage = () => {
     password: '',
     name: '',
     phone: '',
-    ward: 'K/E (Andheri East)',
+    ward: 8, // Default to Ward 8 (G/N Bandra)
     badgeNumber: ''
   });
   const [loading, setLoading] = useState(false);
@@ -57,7 +57,7 @@ export const AuthPage = () => {
   const [fieldErrors, setFieldErrors] = useState({});
   const [showPassword, setShowPassword] = useState(false);
 
-  const { login } = useAuth();
+  const { login, register } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
   const from = location.state?.from?.pathname;
@@ -108,16 +108,29 @@ export const AuthPage = () => {
     setLoading(true);
 
     try {
-      const result = await login({
-        email: formData.email.trim(),
-        password: formData.password,
-      });
+      if (mode === 'register') {
+        const selectedWard = MUMBAI_WARDS.find(w => w.id === Number(formData.ward)) || MUMBAI_WARDS[7];
+        await register({
+          name: formData.name.trim(),
+          email: formData.email.trim(),
+          password: formData.password,
+          phone: formData.phone.trim() || '+91 98000 00000',
+          ward: selectedWard.id,
+          wardName: `${selectedWard.name} – ${selectedWard.area.split(',')[0]}`,
+        });
+        navigate('/app');
+      } else {
+        const result = await login({
+          email: formData.email.trim(),
+          password: formData.password,
+        });
 
-      // Route based on the user role that was returned and preserve return destination
-      const userRole = result?.data?.user?.role;
-      if (userRole === 'admin') navigate('/admin');
-      else if (userRole === 'officer') navigate(`/officer/${result.data.user.id}`);
-      else navigate(from && from.startsWith('/app') ? from : '/app');
+        // Route based on the user role that was returned and preserve return destination
+        const userRole = result?.data?.user?.role;
+        if (userRole === 'admin') navigate('/admin');
+        else if (userRole === 'officer') navigate(`/officer/${result.data.user.id}`);
+        else navigate(from && from.startsWith('/app') ? from : '/app');
+      }
     } catch (err) {
       setError(err.message || 'Authentication failed. Please check your credentials.');
     } finally {
@@ -196,23 +209,53 @@ export const AuthPage = () => {
 
         <form onSubmit={handleSubmit} className="space-y-4" noValidate>
           {mode === 'register' && (
-            <div className="space-y-1">
-              <Input
-                label="Full Name"
-                type="text"
-                placeholder="e.g. Aarav Sharma"
-                value={formData.name}
-                onChange={(e) => handleInputChange('name', e.target.value)}
-                required
-                maxLength={100}
-                autoComplete="name"
-              />
-              {fieldErrors.name && (
-                <p className="text-red-500 text-[11px] font-medium flex items-center gap-1">
-                  <AlertCircle size={11} /> {fieldErrors.name}
-                </p>
-              )}
-            </div>
+            <>
+              <div className="space-y-1">
+                <Input
+                  label="Full Name"
+                  type="text"
+                  placeholder="e.g. Aarav Sharma"
+                  value={formData.name}
+                  onChange={(e) => handleInputChange('name', e.target.value)}
+                  required
+                  maxLength={100}
+                  autoComplete="name"
+                />
+                {fieldErrors.name && (
+                  <p className="text-red-500 text-[11px] font-medium flex items-center gap-1">
+                    <AlertCircle size={11} /> {fieldErrors.name}
+                  </p>
+                )}
+              </div>
+
+              <div className="space-y-1">
+                <Input
+                  label="Phone Number"
+                  type="tel"
+                  placeholder="+91 98765 43210"
+                  value={formData.phone}
+                  onChange={(e) => handleInputChange('phone', e.target.value)}
+                  maxLength={20}
+                  autoComplete="tel"
+                />
+              </div>
+
+              <div className="space-y-1">
+                <label className="text-xs font-semibold text-neutral-700">Resident Mumbai Ward</label>
+                <select
+                  value={formData.ward}
+                  onChange={(e) => handleInputChange('ward', Number(e.target.value))}
+                  className="w-full px-3.5 py-2.5 bg-white border border-neutral-200 rounded-xl text-neutral-800 text-sm focus:outline-none focus:ring-2 focus:ring-brand-100 focus:border-brand-400 shadow-sm"
+                >
+                  {MUMBAI_WARDS.map((w) => (
+                    <option key={w.id} value={w.id}>
+                      Ward {w.id}: {w.name} ({w.area.split(',')[0]})
+                    </option>
+                  ))}
+                </select>
+                <p className="text-[11px] text-neutral-400">Used to route your local civic complaints and show your ward officer.</p>
+              </div>
+            </>
           )}
 
           <div className="space-y-1">
