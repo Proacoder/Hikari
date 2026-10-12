@@ -39,6 +39,17 @@ function clearAttempts(email) {
   loginAttempts.delete(email.toLowerCase().trim());
 }
 
+// ── Session User Storage Helper ──────────────────────────────────────────────
+export const getCurrentSessionUser = () => {
+  try {
+    const raw = localStorage.getItem('kaiser_user');
+    if (raw) return JSON.parse(raw);
+  } catch (e) {
+    console.warn(e);
+  }
+  return null;
+};
+
 // POST /api/auth/login
 export const login = async ({ email, password }) => {
   if (MOCK_MODE) {
@@ -72,6 +83,7 @@ export const login = async ({ email, password }) => {
       const token = `mock-jwt-officer-${matchedOfficer.id}-token-${Date.now()}`;
       localStorage.setItem('kaiser_token', token);
       localStorage.setItem('kaiser_officer_id', matchedOfficer.id);
+      localStorage.setItem('kaiser_user', JSON.stringify(user));
       return successResponse({ user, token });
     }
 
@@ -81,6 +93,7 @@ export const login = async ({ email, password }) => {
       const user = MOCK_USERS.admin;
       const token = `mock-jwt-admin-token-${Date.now()}`;
       localStorage.setItem('kaiser_token', token);
+      localStorage.setItem('kaiser_user', JSON.stringify(user));
       return successResponse({ user, token });
     }
 
@@ -96,6 +109,7 @@ export const login = async ({ email, password }) => {
       const token = `mock-jwt-citizen-${matchedCitizen.id}-token-${Date.now()}`;
       localStorage.setItem('kaiser_token', token);
       localStorage.setItem('kaiser_citizen_id', matchedCitizen.id);
+      localStorage.setItem('kaiser_user', JSON.stringify(user));
       return successResponse({ user, token });
     }
 
@@ -148,6 +162,7 @@ export const register = async (payload) => {
     const token = `mock-jwt-citizen-${user.id}-token-${Date.now()}`;
     localStorage.setItem('kaiser_token', token);
     localStorage.setItem('kaiser_citizen_id', user.id);
+    localStorage.setItem('kaiser_user', JSON.stringify(user));
     return successResponse({ user, token });
   }
   const res = await apiClient.post('/auth/register', payload);
@@ -160,6 +175,7 @@ export const googleLogin = async (credential) => {
     await mockDelay(700);
     const token = `mock-jwt-citizen-token-google-${Date.now()}`;
     localStorage.setItem('kaiser_token', token);
+    localStorage.setItem('kaiser_user', JSON.stringify(MOCK_USERS.citizen));
     return successResponse({ user: MOCK_USERS.citizen, token });
   }
   const res = await apiClient.post('/auth/google-callback', { credential });
@@ -179,11 +195,17 @@ export const verifyToken = async () => {
       const officer = MOCK_OFFICERS.find((o) => o.id === officerId);
       if (officer) {
         const user = { ...officer, role: 'officer', avatarInitials: officer.avatarInitials || officer.name.split(' ').map(n => n[0]).join('') };
+        localStorage.setItem('kaiser_user', JSON.stringify(user));
         return successResponse({ user });
       }
-      return successResponse({ user: { ...MOCK_USERS.officer, role: 'officer' } });
+      const user = { ...MOCK_USERS.officer, role: 'officer' };
+      localStorage.setItem('kaiser_user', JSON.stringify(user));
+      return successResponse({ user });
     }
-    if (token.includes('admin')) return successResponse({ user: MOCK_USERS.admin });
+    if (token.includes('admin')) {
+      localStorage.setItem('kaiser_user', JSON.stringify(MOCK_USERS.admin));
+      return successResponse({ user: MOCK_USERS.admin });
+    }
 
     // Restore citizen session — match specific citizen
     if (token.includes('citizen')) {
@@ -192,8 +214,12 @@ export const verifyToken = async () => {
       if (citizen) {
         const user = { ...citizen };
         delete user.password;
+        localStorage.setItem('kaiser_user', JSON.stringify(user));
         return successResponse({ user });
       }
+      const savedUser = getCurrentSessionUser();
+      if (savedUser) return successResponse({ user: savedUser });
+      localStorage.setItem('kaiser_user', JSON.stringify(MOCK_USERS.citizen));
       return successResponse({ user: MOCK_USERS.citizen });
     }
 
@@ -208,6 +234,7 @@ export const logout = async () => {
   localStorage.removeItem('kaiser_token');
   localStorage.removeItem('kaiser_officer_id');
   localStorage.removeItem('kaiser_citizen_id');
+  localStorage.removeItem('kaiser_user');
   if (MOCK_MODE) {
     await mockDelay(200);
     return successResponse({ message: 'Logged out' });

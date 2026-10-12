@@ -9,37 +9,8 @@ import { Card } from '../../components/common/Card';
 import { Input } from '../../components/common/Input';
 import { Button } from '../../components/common/Button';
 import { Badge } from '../../components/common/Badge';
-import { MOCK_COMPLAINTS } from '../../utils/mockData';
-
-// ── Complete 26 Municipal Wards Data for Greater Mumbai ──────────────────────
-const ALL_MUMBAI_WARDS = [
-  { id: 1,  code: 'A Ward',   zone: 'Zone 1 (Island City)',     area: 'Colaba, Cuffe Parade, Fort, Nariman Point', ac: 'Shri Jaydeep More', phone: '022-2260-0500', email: 'ac.a@mcgm.gov.in', address: '134, SBS Road, Fort, Mumbai 400001' },
-  { id: 2,  code: 'B Ward',   zone: 'Zone 1 (Island City)',     area: 'Dongri, Mandvi, Sandhurst Road, Umerkhadi', ac: 'Shri Udaykumar Shiroorkar', phone: '022-2373-6622', email: 'ac.b@mcgm.gov.in', address: '121, Ramchandra Bhatt Marg, Babula Tank, Mumbai 400009' },
-  { id: 3,  code: 'C Ward',   zone: 'Zone 1 (Island City)',     area: 'Girgaon, Bhuleshwar, Marine Lines, Kalbadevi', ac: 'Shri Chakrapani Alle', phone: '022-2201-4000', email: 'ac.c@mcgm.gov.in', address: '76, Shrikant Palekar Marg, Chandanwadi, Mumbai 400002' },
-  { id: 4,  code: 'D Ward',   zone: 'Zone 1 (Island City)',     area: 'Malabar Hill, Walkeshwar, Grant Road, Tardeo', ac: 'Shri Sharad Ughade', phone: '022-2386-1426', email: 'ac.d@mcgm.gov.in', address: 'Jobanputra Compound, Nana Chowk, Grant Road, Mumbai 400007' },
-  { id: 5,  code: 'E Ward',   zone: 'Zone 1 (Island City)',     area: 'Byculla, Mazgaon, Mumbai Central, Nagpada', ac: 'Shri Manish Valanju', phone: '022-2308-1471', email: 'ac.e@mcgm.gov.in', address: '10, Ramchandra Bhatt Marg, Byculla, Mumbai 400008' },
-  { id: 6,  code: 'F/S Ward', zone: 'Zone 2 (Island City)',     area: 'Parel, Sewri, Naigaon, Lalbaug, Wadala (South)', ac: 'Smt. Swapnaja Kshirsagar', phone: '022-2413-4560', email: 'ac.fs@mcgm.gov.in', address: 'Jagannath Bhatankar Marg, Parel, Mumbai 400012' },
-  { id: 7,  code: 'F/N Ward', zone: 'Zone 2 (Island City)',     area: 'Matunga, Sion, Wadala (North), King Circle, Antop Hill', ac: 'Shri Gajanan Bellale', phone: '022-2402-4353', email: 'ac.fn@mcgm.gov.in', address: '96, Bhaudaji Road, Matunga East, Mumbai 400019' },
-  { id: 8,  code: 'G/S Ward', zone: 'Zone 2 (Island City)',     area: 'Worli, Prabhadevi, Lower Parel, Mahalaxmi Racecourse', ac: 'Shri Santosh Dhonde', phone: '022-2430-5031', email: 'ac.gs@mcgm.gov.in', address: 'N.M. Joshi Marg, Elphinstone West, Mumbai 400013' },
-  { id: 9,  code: 'G/N Ward', zone: 'Zone 2 (Island City)',     area: 'Dadar (West), Dharavi, Mahim, Shivaji Park', ac: 'Shri Prashant Sapkale', phone: '022-2439-7800', email: 'ac.gn@mcgm.gov.in', address: 'Harishchandra Yelve Marg, Dadar West, Mumbai 400028' },
-  { id: 10, code: 'H/E Ward', zone: 'Zone 3 (Western Suburbs)', area: 'Santacruz (East), Khar (East), Kalina, Vakola, BKC', ac: 'Smt. Alka Sasane', phone: '022-2618-2260', email: 'ac.he@mcgm.gov.in', address: 'TPS-V, Prabhat Colony, Santacruz East, Mumbai 400055' },
-  { id: 11, code: 'H/W Ward', zone: 'Zone 3 (Western Suburbs)', area: 'Bandra (West), Khar (West), Santacruz (West), Carter Road', ac: 'Shri Vinayak Vispute', phone: '022-2642-2311', email: 'ac.hw@mcgm.gov.in', address: 'Saint Martin Road, Bandra West, Mumbai 400050' },
-  { id: 12, code: 'K/E Ward', zone: 'Zone 3 (Western Suburbs)', area: 'Andheri (East), Jogeshwari (East), Vile Parle (East), MIDC, Marol', ac: 'Shri Manish Patel', phone: '022-2684-0103', email: 'ac.ke@mcgm.gov.in', address: 'Gundavali, Azad Road, Andheri East, Mumbai 400069' },
-  { id: 13, code: 'K/W Ward', zone: 'Zone 4 (Western Suburbs)', area: 'Andheri (West), Juhu, Versova, Lokhandwala, Oshiwara', ac: 'Shri Prithviraj Chauhan', phone: '022-2623-9131', email: 'ac.kw@mcgm.gov.in', address: 'Paliram Road, Off S.V. Road, Andheri West, Mumbai 400058' },
-  { id: 14, code: 'P/S Ward', zone: 'Zone 4 (Western Suburbs)', area: 'Goregaon (East & West), Jogeshwari (West), Aarey Colony', ac: 'Shri Rajesh Akre', phone: '022-2872-1152', email: 'ac.ps@mcgm.gov.in', address: 'S.V. Road, Goregaon West, Mumbai 400104' },
-  { id: 15, code: 'P/N Ward', zone: 'Zone 4 (Western Suburbs)', area: 'Malad (East & West), Marve, Aksa, Dindoshi, Kurar', ac: 'Shri Kiran Dighavkar', phone: '022-2882-1666', email: 'ac.pn@mcgm.gov.in', address: 'Liberty Garden, Mamletdarwadi, Malad West, Mumbai 400064' },
-  { id: 16, code: 'R/S Ward', zone: 'Zone 4 (Western Suburbs)', area: 'Kandivali (West), Charkop, Mahavir Nagar, Poisar', ac: 'Smt. Sandhya Nandedkar', phone: '022-2805-6000', email: 'ac.rs@mcgm.gov.in', address: 'M.G. Cross Road No. 2, Kandivali West, Mumbai 400067' },
-  { id: 17, code: 'R/C Ward', zone: 'Zone 7 (Western Suburbs)', area: 'Borivali (West), Gorai, IC Colony, Eksar, Shimpoli', ac: 'Smt. Bhagyashree Kapse', phone: '022-2894-6000', email: 'ac.rc@mcgm.gov.in', address: 'Chandavarkar Road, Borivali West, Mumbai 400092' },
-  { id: 18, code: 'R/N Ward', zone: 'Zone 7 (Western Suburbs)', area: 'Dahisar (East & West), Rawalpada, Ketkipada, Anand Nagar', ac: 'Smt. Mrudula Kulkarni', phone: '022-2893-6000', email: 'ac.rn@mcgm.gov.in', address: 'R.S. Road, Dahisar West, Mumbai 400068' },
-  { id: 19, code: 'L Ward',   zone: 'Zone 5 (Eastern Suburbs)', area: 'Kurla (West), Sakinaka, Chandivali, Asalpha, Chunabhatti', ac: 'Shri Mahadev Shinde', phone: '022-2650-5103', email: 'ac.l@mcgm.gov.in', address: 'L.B.S. Marg, Near Kurla Station, Kurla West, Mumbai 400070' },
-  { id: 20, code: 'M/E Ward', zone: 'Zone 5 (Eastern Suburbs)', area: 'Govandi, Mankhurd, Shivaji Nagar, Trombay, Bainganwadi', ac: 'Shri Mahendra Ubale', phone: '022-2555-8400', email: 'ac.me@mcgm.gov.in', address: 'Deonar Municipal Colony, Govandi West, Mumbai 400043' },
-  { id: 21, code: 'M/W Ward', zone: 'Zone 5 (Eastern Suburbs)', area: 'Chembur, Tilak Nagar, Mahul, Sindhi Society, Pestom Sagar', ac: 'Shri Vishwas Mote', phone: '022-2528-2000', email: 'ac.mw@mcgm.gov.in', address: 'Sharadbhau Acharya Marg, Chembur, Mumbai 400071' },
-  { id: 22, code: 'N Ward',   zone: 'Zone 6 (Eastern Suburbs)', area: 'Ghatkopar (East & West), Vikhroli (West), Pant Nagar', ac: 'Shri Sanjay Sonawane', phone: '022-2501-0161', email: 'ac.n@mcgm.gov.in', address: 'Jawahar Road, Ghatkopar East, Mumbai 400077' },
-  { id: 23, code: 'S Ward',   zone: 'Zone 6 (Eastern Suburbs)', area: 'Bhandup, Powai, Kanjurmarg, IIT Bombay, Hiranandani', ac: 'Shri Ajitkumar Ambi', phone: '022-2594-7510', email: 'ac.s@mcgm.gov.in', address: 'Lal Bahadur Shastri Marg, Bhandup West, Mumbai 400078' },
-  { id: 24, code: 'T Ward',   zone: 'Zone 6 (Eastern Suburbs)', area: 'Mulund (East & West), Nahur, Sarvodaya Nagar', ac: 'Shri Ajay Patne', phone: '022-2564-5289', email: 'ac.t@mcgm.gov.in', address: 'Lala Devidayal Marg, Mulund West, Mumbai 400080' },
-  { id: 25, code: 'RC Ward',  zone: 'Zone 7 (Western Suburbs)', area: 'Borivali (East), Magathane, National Park periphery', ac: 'Shri Sandeep Malvi', phone: '022-2895-4422', email: 'ac.rce@mcgm.gov.in', address: 'Kasturba Cross Road No. 1, Borivali East, Mumbai 400066' },
-  { id: 26, code: 'RS Ward',  zone: 'Zone 4 (Western Suburbs)', area: 'Kandivali (East), Thakur Village, Lokhandwala Township', ac: 'Shri Devidas Kshirsagar', phone: '022-2886-5000', email: 'ac.rse@mcgm.gov.in', address: 'Thakur Complex, Kandivali East, Mumbai 400101' },
-];
+import { MUMBAI_WARDS } from '../../utils/mockData';
+import { getStoredComplaints } from '../../api/complaints.api';
 
 const EMERGENCY_NUMBERS = [
   { title: 'BMC Central Disaster Control', number: '1916', desc: 'Toll-free 24x7 monsoon & civic emergencies', primary: true },
@@ -75,16 +46,16 @@ export const ContactPage = () => {
 
   const zones = ['All', 'Island City', 'Western Suburbs', 'Eastern Suburbs'];
 
-  const filteredWards = ALL_MUMBAI_WARDS.filter((w) => {
+  const filteredWards = MUMBAI_WARDS.filter((w) => {
     const matchesSearch =
-      w.code.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      (w.code || w.name).toLowerCase().includes(searchTerm.toLowerCase()) ||
       w.area.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      w.ac.toLowerCase().includes(searchTerm.toLowerCase());
+      (w.ac || '').toLowerCase().includes(searchTerm.toLowerCase());
     
     if (selectedZone === 'All') return matchesSearch;
-    if (selectedZone === 'Island City') return matchesSearch && w.zone.includes('Island City');
-    if (selectedZone === 'Western Suburbs') return matchesSearch && w.zone.includes('Western Suburbs');
-    if (selectedZone === 'Eastern Suburbs') return matchesSearch && w.zone.includes('Eastern Suburbs');
+    if (selectedZone === 'Island City') return matchesSearch && (w.zone || '').includes('Island City');
+    if (selectedZone === 'Western Suburbs') return matchesSearch && (w.zone || '').includes('Western Suburbs');
+    if (selectedZone === 'Eastern Suburbs') return matchesSearch && (w.zone || '').includes('Eastern Suburbs');
     return matchesSearch;
   });
 
@@ -92,23 +63,15 @@ export const ContactPage = () => {
     e.preventDefault();
     setTrackError(false);
     const cleanId = trackingId.trim().toLowerCase();
-    const found = MOCK_COMPLAINTS.find(c => c.id.toLowerCase() === cleanId);
+    if (!cleanId) return;
+
+    const allComplaints = getStoredComplaints();
+    const found = allComplaints.find((c) => c.id?.toLowerCase() === cleanId);
     if (found) {
       setTrackResult(found);
-    } else if (cleanId.length >= 3) {
-      // Demo simulated ticket if custom input is entered
-      setTrackResult({
-        id: trackingId.toUpperCase(),
-        title: 'Reported Municipal Hazard',
-        category: 'Road Infrastructure',
-        severity: 78,
-        ward: 12,
-        status: 'in_progress',
-        assignedOfficer: { name: 'Suresh Patil (JE - Roads)' },
-        createdAt: new Date().toISOString(),
-        isSimulated: true
-      });
+      setTrackError(false);
     } else {
+      // Genuine error state: ticket not found in registry (no fake simulations)
       setTrackError(true);
       setTrackResult(null);
     }

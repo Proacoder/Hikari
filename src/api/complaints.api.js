@@ -1,5 +1,6 @@
 import { apiClient, MOCK_MODE, mockDelay, successResponse } from './client';
 import { MOCK_COMPLAINTS, MOCK_COMMENTS } from '../utils/mockData';
+import { getCurrentSessionUser } from './auth.api';
 
 const STORAGE_KEY = 'kaiser_complaints_store';
 
@@ -26,7 +27,13 @@ export const getComplaints = async ({ ward, category, status, page = 1, limit = 
   if (MOCK_MODE) {
     await mockDelay();
     let data = [...getStoredComplaints()];
-    if (ward)     data = data.filter((c) => Number(c.ward) === Number(ward));
+    if (ward) {
+      data = data.filter((c) =>
+        Number(c.ward) === Number(ward) ||
+        String(c.ward).toLowerCase() === String(ward).toLowerCase() ||
+        (c.wardName && String(c.wardName).toLowerCase().includes(String(ward).toLowerCase()))
+      );
+    }
     if (category) data = data.filter((c) => c.category === category);
     if (status)   data = data.filter((c) => c.status === status);
     const total = data.length;
@@ -57,21 +64,38 @@ export const createComplaint = async (formData) => {
     const uploadedImage = formData.get
       ? formData.get('imageUrl') || formData.get('image')
       : (formData.imageUrl || formData.image);
-
     const defaultImg = 'https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=600&q=80';
+
+    const lat = Number(formData.get ? (formData.get('latitude') || formData.get('lat')) : (formData.latitude || formData.lat)) || 19.076;
+    const lng = Number(formData.get ? (formData.get('longitude') || formData.get('lng')) : (formData.longitude || formData.lng)) || 72.877;
+    const wardId = Number(formData.get ? formData.get('ward') : formData.ward) || 1;
+    const landmark = formData.get ? formData.get('landmark') : (formData.landmark || '');
 
     const newComplaint = {
       id: `cmp-${Date.now()}`,
       title: formData.get ? formData.get('title') : formData.title,
       description: formData.get ? formData.get('description') : formData.description,
       category: formData.get ? formData.get('category') : formData.category,
-      severity: formData.severity || Math.floor(Math.random() * 40) + 50,
-      latitude: Number(formData.get ? formData.get('lat') || formData.get('latitude') : (formData.latitude || formData.lat)) || 19.076,
-      longitude: Number(formData.get ? formData.get('lng') || formData.get('longitude') : (formData.longitude || formData.lng)) || 72.877,
-      ward: Number(formData.get ? formData.get('ward') : formData.ward) || 1,
-      imageUrl: uploadedImage || defaultImg,
+      severity: Number(formData.severity) || Math.floor(Math.random() * 30) + 55,
+      latitude: lat,
+      longitude: lng,
+      ward: wardId,
+      landmark: landmark,
+      imageUrl: uploadedImage || formData.imageUrl || defaultImg,
       status: 'reported',
-      createdBy: { id: 'user-001', name: 'Priya Nair' },
+      createdBy: (() => {
+        const sessionUser = getCurrentSessionUser();
+        if (formData.createdBy) return formData.createdBy;
+        if (sessionUser) {
+          return {
+            id: sessionUser.id,
+            name: sessionUser.name,
+            email: sessionUser.email,
+            ward: sessionUser.ward || wardId,
+          };
+        }
+        return { id: 'anonymous', name: 'Citizen' };
+      })(),
       assignedOfficer: null,
       upvoteCount: 1,
       commentCount: 0,
@@ -79,7 +103,7 @@ export const createComplaint = async (formData) => {
       resolvedAt: null,
       aiAnalysis: {
         categoryDetected: formData.get ? formData.get('category') : formData.category,
-        confidence: 0.94,
+        confidence: formData.confidence ? parseFloat(formData.confidence) / 100 : 0.94,
         aqiAtLocation: 112,
         weatherCondition: 'Partly cloudy',
       },
@@ -142,11 +166,18 @@ export const getMapData = async (filters = {}) => {
 };
 
 // GET /api/complaints/my-complaints
-export const getMyComplaints = async () => {
+export const getMyComplaints = async (customUserId) => {
   if (MOCK_MODE) {
     await mockDelay();
     const complaints = getStoredComplaints();
-    return successResponse(complaints.filter((c) => c.createdBy?.id === 'user-001'));
+    const sessionUser = getCurrentSessionUser();
+    const targetId = customUserId || sessionUser?.id;
+    if (!targetId) {
+      return successResponse([]);
+    }
+    return successResponse(
+      complaints.filter((c) => c.createdBy?.id === targetId || (sessionUser?.email && c.createdBy?.email === sessionUser.email))
+    );
   }
   const res = await apiClient.get('/complaints/my-complaints');
   return res.data;
@@ -170,9 +201,15 @@ export const getTopComplaintsByWard = async (ward) => {
 export const upvoteComplaint = async (id) => {
   if (MOCK_MODE) {
     await mockDelay(300);
-    const c = MOCK_COMPLAINTS.find((x) => x.id === id);
-    if (c) c.upvoteCount += 1;
-    return successResponse({ upvoteCount: c?.upvoteCount });
+    const complaints = getStoredComplaints();
+    const c = complaints.find((x) => x.id === id);
+    if (c) {
+      c.upvoteCount = (c.upvoteCount || 0) + 1;
+      saveStoredComplaints(complaints);
+      const m = MOCK_COMPLAINTS.find((x) => x.id === id);
+      if (m) m.upvoteCount = c.upvoteCount;
+    }
+    return successResponse({ upvoteCount: c?.upvoteCount || 0 });
   }
   const res = await apiClient.post(`/complaints/${id}/upvote`);
   return res.data;
@@ -182,9 +219,15 @@ export const upvoteComplaint = async (id) => {
 export const removeUpvote = async (id) => {
   if (MOCK_MODE) {
     await mockDelay(300);
-    const c = MOCK_COMPLAINTS.find((x) => x.id === id);
-    if (c && c.upvoteCount > 0) c.upvoteCount -= 1;
-    return successResponse({ upvoteCount: c?.upvoteCount });
+    const complaints = getStoredComplaints();
+    const c = complaints.find((x) => x.id === id);
+    if (c && c.upvoteCount > 0) {
+      c.upvoteCount -= 1;
+      saveStoredComplaints(complaints);
+      const m = MOCK_COMPLAINTS.find((x) => x.id === id);
+      if (m) m.upvoteCount = c.upvoteCount;
+    }
+    return successResponse({ upvoteCount: c?.upvoteCount || 0 });
   }
   const res = await apiClient.delete(`/complaints/${id}/upvote`);
   return res.data;
@@ -201,12 +244,19 @@ export const getComments = async (id) => {
 };
 
 // POST /api/complaints/:id/comments
-export const addComment = async (id, { text }) => {
+export const addComment = async (id, { text, author }) => {
   if (MOCK_MODE) {
     await mockDelay(500);
+    const sessionUser = getCurrentSessionUser();
+    const authorObj = author || (sessionUser ? {
+      id: sessionUser.id,
+      name: sessionUser.name,
+      role: sessionUser.role || 'citizen',
+    } : { id: 'anonymous', name: 'Citizen', role: 'citizen' });
+
     const newComment = {
       id: `comm-${Date.now()}`,
-      author: { id: 'user-001', name: 'Priya Nair', role: 'citizen' },
+      author: authorObj,
       text,
       createdAt: new Date().toISOString(),
     };
@@ -214,6 +264,6 @@ export const addComment = async (id, { text }) => {
     MOCK_COMMENTS[id].push(newComment);
     return successResponse(newComment);
   }
-  const res = await apiClient.post(`/complaints/${id}/comments`, { text });
+  const res = await apiClient.post(`/complaints/${id}/comments`, { text, author });
   return res.data;
 };

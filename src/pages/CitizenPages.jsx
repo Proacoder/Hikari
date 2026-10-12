@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef, useMemo, useCallback } from 'react';
 import { Link } from 'react-router-dom';
+import toast from 'react-hot-toast';
 import {
   AlertTriangle, MapPin, Camera, Mic, Sparkles, Clock, CheckCircle2,
   ThumbsUp, MessageSquare, Shield, Upload, Navigation, Filter,
@@ -8,31 +9,17 @@ import {
 } from 'lucide-react';
 import { getComplaints, createComplaint, getMapData, getStoredComplaints } from '../api/complaints.api';
 import { getWeatherAQI } from '../api/weather.api';
-import { ComplaintCard, StatusBadge, SeverityBadge, CategoryIcon } from '../components/complaints/ComplaintComponents';
+import { MUMBAI_WARDS, MOCK_OFFICERS, CATEGORIES, MOCK_NOTIFICATIONS } from '../utils/mockData';
+import { findClosestWard, reverseGeocodeCoordinates, analyzeComplaintDynamic } from '../utils/geoUtils';
+import { useLanguage } from '../context/LanguageContext';
+import { useNotifications } from '../context/NotificationContext';
+import { useAuth } from '../context/AuthContext';
+import { ComplaintCard } from '../components/complaints/ComplaintComponents';
 import { Button } from '../components/common/Button';
 import { Card } from '../components/common/Card';
 import { Badge } from '../components/common/Badge';
 import { Input } from '../components/common/Input';
 import { LeafletMap } from '../components/map/LeafletMap';
-import { MUMBAI_WARDS, MOCK_OFFICERS, CATEGORIES, MOCK_NOTIFICATIONS } from '../utils/mockData';
-import { useAuth } from '../context/AuthContext';
-
-// ── Distance & Ward Classifier Helper ─────────────────────────────────────────
-function findNearestWard(lat, lng) {
-  let nearest = MUMBAI_WARDS[0];
-  let minDistance = Infinity;
-
-  for (const w of MUMBAI_WARDS) {
-    const dLat = (w.lat - lat) * 111;
-    const dLng = (w.lng - lng) * 111 * Math.cos(lat * Math.PI / 180);
-    const dist = Math.sqrt(dLat * dLat + dLng * dLng);
-    if (dist < minDistance) {
-      minDistance = dist;
-      nearest = w;
-    }
-  }
-  return { ward: nearest, distanceKm: minDistance.toFixed(2) };
-}
 
 // Preset samples for quick image upload testing
 const SAMPLE_EVIDENCE = [
@@ -55,6 +42,7 @@ const LOCATION_PRESETS = [
 
 // ── Citizen Dashboard ────────────────────────────────────────────────────────
 export const CitizenDashboard = () => {
+  const { t } = useLanguage();
   const { user } = useAuth();
   const [complaints, setComplaints] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -65,6 +53,20 @@ export const CitizenDashboard = () => {
     const wardId = user?.ward || 8;
     return MOCK_OFFICERS.find((o) => o.ward === wardId) || MOCK_OFFICERS[0];
   }, [user]);
+
+  const userSubmissions = useMemo(() => {
+    const allStored = getStoredComplaints();
+    return allStored.filter(
+      (c) =>
+        (user?.id && c.createdBy?.id === user.id) ||
+        (user?.name && c.createdBy?.name === user.name) ||
+        (user?.email && c.createdBy?.email === user.email)
+    );
+  }, [user, complaints]);
+
+  const activeSubmissionsCount = userSubmissions.filter((c) => c.status !== 'resolved').length;
+  const inProgressCount = userSubmissions.filter((c) => c.status === 'in_progress' || c.status === 'assigned').length;
+  const resolvedCount = userSubmissions.filter((c) => c.status === 'resolved').length;
 
   useEffect(() => {
     async function load() {
@@ -92,20 +94,22 @@ export const CitizenDashboard = () => {
           <div className="inline-flex items-center gap-1.5 px-3 py-1 bg-white/15 backdrop-blur-sm rounded-full text-xs font-semibold text-brand-100">
             <Sparkles size={13} className="text-amber-300" /> Kaiser AI Citizen Portal · {user?.wardName?.split('–')[0]?.trim() || 'Ward #8'}
           </div>
-          <h2 className="text-2xl sm:text-3xl font-bold">Welcome back, {user?.name || 'Citizen'}!</h2>
+          <h2 className="text-2xl sm:text-3xl font-bold">
+            {user ? `Welcome back, ${user.name}!` : t('citizen.seeIssuePrompt', 'See a civic issue in Mumbai?')}
+          </h2>
           <p className="text-sm text-brand-100 max-w-lg leading-relaxed">
-            Report civic issues in {user?.wardName || 'Mumbai'}. Kaiser AI auto-routes your reports directly to <strong>{assignedOfficer.name}</strong> ({assignedOfficer.department}).
+            {t('citizen.seeIssueSub', 'Upload a photo & detect your live GPS location. Kaiser AI automatically routes your report to the designated Ward Officer among all 26 Mumbai wards.')}
           </p>
         </div>
         <div className="flex flex-col sm:flex-row gap-3">
           <Link to="/app/report">
-            <Button variant="white" size="lg" icon={AlertTriangle} className="shadow-lg whitespace-nowrap">
-              Report Issue Now
+            <Button variant="secondary" size="lg" icon={AlertTriangle} className="shadow-lg whitespace-nowrap bg-white text-brand-700 hover:bg-neutral-100">
+              {t('nav.reportIssue', 'Report Issue Now')}
             </Button>
           </Link>
-          <Link to="/app/map">
-            <Button variant="outline-light" size="lg" icon={MapPin} className="whitespace-nowrap">
-              View Ward Map
+          <Link to="/officer-login">
+            <Button variant="outline" size="lg" icon={Shield} className="whitespace-nowrap border-white/30 text-white hover:bg-white/10">
+              Officer Login
             </Button>
           </Link>
         </div>
@@ -179,19 +183,19 @@ export const CitizenDashboard = () => {
       {/* Overview Stats Cards */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
         <Card className="p-4 bg-white border-neutral-200 border-l-4 border-l-brand-600 space-y-1 shadow-sm" padding="">
-          <span className="text-xs font-semibold text-neutral-500 uppercase">My Submissions</span>
-          <div className="text-2xl font-bold text-neutral-900">3 Active</div>
+          <span className="text-xs font-semibold text-neutral-500 uppercase">{t('citizen.mySubmissions', 'My Submissions')}</span>
+          <div className="text-2xl font-bold text-neutral-900">{activeSubmissionsCount} Active</div>
         </Card>
         <Card className="p-4 bg-white border-neutral-200 border-l-4 border-l-amber-500 space-y-1 shadow-sm" padding="">
-          <span className="text-xs font-semibold text-neutral-500 uppercase">In Progress</span>
-          <div className="text-2xl font-bold text-amber-600">2 Issues</div>
+          <span className="text-xs font-semibold text-neutral-500 uppercase">{t('citizen.inProgress', 'In Progress')}</span>
+          <div className="text-2xl font-bold text-amber-600">{inProgressCount} Issues</div>
         </Card>
         <Card className="p-4 bg-white border-neutral-200 border-l-4 border-l-emerald-500 space-y-1 shadow-sm" padding="">
-          <span className="text-xs font-semibold text-neutral-500 uppercase">Resolved</span>
-          <div className="text-2xl font-bold text-emerald-600">8 Fixed</div>
+          <span className="text-xs font-semibold text-neutral-500 uppercase">{t('citizen.resolved', 'Resolved')}</span>
+          <div className="text-2xl font-bold text-emerald-600">{resolvedCount} Fixed</div>
         </Card>
         <Card className="p-4 bg-white border-neutral-200 border-l-4 border-l-sky-500 space-y-1 shadow-sm" padding="">
-          <span className="text-xs font-semibold text-neutral-500 uppercase">Wards Covered</span>
+          <span className="text-xs font-semibold text-neutral-500 uppercase">{t('citizen.wardRanking', 'Wards Covered')}</span>
           <div className="text-2xl font-bold text-sky-700">26 Wards Active</div>
         </Card>
       </div>
@@ -199,9 +203,9 @@ export const CitizenDashboard = () => {
       {/* Recent Ward Activity Feed */}
       <div className="space-y-4">
         <div className="flex items-center justify-between">
-          <h3 className="text-lg font-bold text-neutral-900">Recent Complaints in Your Neighborhood</h3>
+          <h3 className="text-lg font-bold text-neutral-900">{t('citizen.recentNeighborhood', 'Recent Complaints in Your Neighborhood')}</h3>
           <Link to="/app/my-complaints" className="text-xs font-semibold text-brand-600 hover:underline">
-            View My Complaints →
+            {t('citizen.viewAll', 'View My Complaints →')}
           </Link>
         </div>
 
@@ -215,91 +219,161 @@ export const CitizenDashboard = () => {
   );
 };
 
-// ── Report Issue Form with Live Location & Image Upload ───────────────────────
+// ── Report Issue Form with Live GPS, Interactive Pin Map & Image Upload ───────
 export const ReportIssuePage = () => {
   const { user } = useAuth();
+  const { t, translateCategory } = useLanguage();
+  const { dispatchNotification } = useNotifications();
   const fileInputRef = useRef(null);
+
+  const defaultWard = user?.ward || 12;
+  const initialWardObj = MUMBAI_WARDS.find((w) => w.id === defaultWard) || MUMBAI_WARDS[0];
 
   const [formData, setFormData] = useState({
     title: '',
     description: '',
     category: 'Pothole',
     landmark: '',
-    ward: user?.ward || 8,
-    latitude: user?.ward === 12 ? 19.1152 : 19.0596,
-    longitude: user?.ward === 12 ? 72.8680 : 72.8296,
+    ward: defaultWard,
+    latitude: initialWardObj.lat,
+    longitude: initialWardObj.lng,
     imageUrl: '',
     imageName: '',
   });
 
+  const [isDetectingGps, setIsDetectingGps] = useState(false);
   const [locationStatus, setLocationStatus] = useState(null); // 'locating' | 'success' | 'error'
   const [locationMessage, setLocationMessage] = useState('');
-  const [nearestWardInfo, setNearestWardInfo] = useState(null);
+  const [detectedWardInfo, setDetectedWardInfo] = useState(() => findClosestWard(initialWardObj.lat, initialWardObj.lng));
 
   const [aiAnalyzing, setAiAnalyzing] = useState(false);
   const [aiPrediction, setAiPrediction] = useState(null);
-  const [submitted, setSubmitted] = useState(false);
-  const [createdGrievance, setCreatedGrievance] = useState(null);
+  const [submitting, setSubmitting] = useState(false);
+  const [submittedTicket, setSubmittedTicket] = useState(null);
 
-  // Automatically classify into ward whenever latitude & longitude change
+  // Automatically update closest ward when latitude & longitude change
   useEffect(() => {
     if (formData.latitude && formData.longitude) {
-      const { ward, distanceKm } = findNearestWard(formData.latitude, formData.longitude);
-      setNearestWardInfo({ ...ward, distanceKm });
-      setFormData(prev => ({ ...prev, ward: ward.id }));
+      const closest = findClosestWard(formData.latitude, formData.longitude);
+      setDetectedWardInfo(closest);
+      setFormData((prev) => ({ ...prev, ward: closest.ward.id }));
     }
   }, [formData.latitude, formData.longitude]);
 
+  // Dynamic AI categorization
+  const runAiAnalysis = useCallback((hint) => {
+    if (!formData.description && !formData.title && !hint) return;
+    setAiAnalyzing(true);
+
+    setTimeout(() => {
+      const result = analyzeComplaintDynamic(formData.title || hint, formData.description || hint);
+      if (result) {
+        setAiPrediction(result);
+        setFormData((prev) => ({
+          ...prev,
+          category: result.category,
+        }));
+      }
+      setAiAnalyzing(false);
+    }, 600);
+  }, [formData.title, formData.description]);
+
   // Handle GPS Live Location
-  const handleDetectLiveLocation = () => {
+  const handleDetectLocation = () => {
     if (!navigator.geolocation) {
+      toast.error('Geolocation is not supported by your browser.');
       setLocationStatus('error');
       setLocationMessage('Geolocation is not supported by your browser.');
       return;
     }
 
+    setIsDetectingGps(true);
     setLocationStatus('locating');
     setLocationMessage('Acquiring real-time GPS coordinates…');
+    const toastId = toast.loading(t('citizen.detectingGps', 'Fetching GPS coordinates from device...'));
 
     navigator.geolocation.getCurrentPosition(
-      (pos) => {
-        const lat = +(pos.coords.latitude.toFixed(5));
-        const lng = +(pos.coords.longitude.toFixed(5));
-        const { ward, distanceKm } = findNearestWard(lat, lng);
+      async (pos) => {
+        const lat = parseFloat(pos.coords.latitude.toFixed(6));
+        const lng = parseFloat(pos.coords.longitude.toFixed(6));
 
-        setFormData(prev => ({
+        const closest = findClosestWard(lat, lng);
+        setDetectedWardInfo(closest);
+
+        setFormData((prev) => ({
           ...prev,
           latitude: lat,
           longitude: lng,
-          ward: ward.id,
-          landmark: prev.landmark || `Near ${ward.area} (Live GPS: ${lat}, ${lng})`,
+          ward: closest.ward.id,
         }));
 
-        setNearestWardInfo({ ...ward, distanceKm });
+        // Reverse geocoding via OpenStreetMap Nominatim
+        const address = await reverseGeocodeCoordinates(lat, lng);
+        if (address) {
+          setFormData((prev) => ({
+            ...prev,
+            landmark: address,
+          }));
+        }
+
+        setIsDetectingGps(false);
         setLocationStatus('success');
-        setLocationMessage(`Live location detected (${lat}° N, ${lng}° E) · Auto-classified to ${ward.name}`);
+        setLocationMessage(`Live location detected (${lat}° N, ${lng}° E) · Auto-classified to ${closest.ward.name}`);
+        toast.success(
+          `${t('citizen.gpsSuccess', 'Location detected!')} ${closest.ward.name} (${closest.distanceKm} km away)`,
+          { id: toastId }
+        );
       },
-      (err) => {
+      (error) => {
+        setIsDetectingGps(false);
         setLocationStatus('error');
-        setLocationMessage(`GPS permission denied or timeout (${err.message}). Pick a Mumbai preset location below!`);
+        setLocationMessage(`GPS permission denied or timeout (${error.message}). Pick a Mumbai preset location below!`);
+        toast.error(
+          t('citizen.gpsError', 'Could not access device GPS. Click on the map to set location.'),
+          { id: toastId }
+        );
       },
-      { enableHighAccuracy: true, timeout: 8000, maximumAge: 0 }
+      { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 }
     );
   };
 
   // Preset location selection
   const handleSelectPreset = (p) => {
-    const { ward, distanceKm } = findNearestWard(p.lat, p.lng);
-    setFormData(prev => ({
+    const closest = findClosestWard(p.lat, p.lng);
+    setFormData((prev) => ({
       ...prev,
       latitude: p.lat,
       longitude: p.lng,
-      ward: ward.id,
+      ward: closest.ward.id,
       landmark: p.landmark,
     }));
-    setNearestWardInfo({ ...ward, distanceKm });
+    setDetectedWardInfo(closest);
     setLocationStatus('success');
-    setLocationMessage(`Location set to ${p.label} · Auto-classified to ${ward.name}`);
+    setLocationMessage(`Location set to ${p.label} · Auto-classified to ${closest.ward.name}`);
+  };
+
+  // Map pin position change handler (drag or click on Leaflet map)
+  const handleMapPositionChange = async ({ lat, lng }) => {
+    const roundedLat = parseFloat(lat.toFixed(6));
+    const roundedLng = parseFloat(lng.toFixed(6));
+
+    const closest = findClosestWard(roundedLat, roundedLng);
+    setDetectedWardInfo(closest);
+
+    setFormData((prev) => ({
+      ...prev,
+      latitude: roundedLat,
+      longitude: roundedLng,
+      ward: closest.ward.id,
+    }));
+
+    const street = await reverseGeocodeCoordinates(roundedLat, roundedLng);
+    if (street) {
+      setFormData((prev) => ({
+        ...prev,
+        landmark: prev.landmark ? prev.landmark : street,
+      }));
+    }
   };
 
   // Handle file image upload
@@ -309,19 +383,19 @@ export const ReportIssuePage = () => {
 
     const reader = new FileReader();
     reader.onload = () => {
-      setFormData(prev => ({
+      setFormData((prev) => ({
         ...prev,
         imageUrl: reader.result,
         imageName: file.name,
       }));
-      runAiAnalysis(prev => prev.title || file.name.replace(/\.[^/.]+$/, ''));
+      runAiAnalysis(file.name.replace(/\.[^/.]+$/, ''));
     };
     reader.readAsDataURL(file);
   };
 
   // Select sample evidence photo
   const handleSelectSample = (sample) => {
-    setFormData(prev => ({
+    setFormData((prev) => ({
       ...prev,
       imageUrl: sample.url,
       imageName: `${sample.label}.jpg`,
@@ -331,23 +405,10 @@ export const ReportIssuePage = () => {
     runAiAnalysis(sample.title);
   };
 
-  const runAiAnalysis = (titleHint) => {
-    setAiAnalyzing(true);
-    setTimeout(() => {
-      const cat = formData.category || 'Pothole';
-      setAiPrediction({
-        category: cat,
-        severity: cat === 'Water Leakage' ? 92 : cat === 'Drainage' ? 88 : 82,
-        confidence: '98.4%',
-        assignedDept: cat === 'Sanitation' ? 'Solid Waste Management' : cat === 'Water Leakage' ? 'Hydraulic Engineer Dept' : 'Roads & Infrastructure',
-        slaHours: 24,
-      });
-      setAiAnalyzing(false);
-    }, 900);
-  };
-
+  // Submit Complaint
   const handleSubmit = async (e) => {
     e.preventDefault();
+    setSubmitting(true);
     try {
       const payload = {
         title: formData.title || 'Civic Issue Grievance',
@@ -358,49 +419,88 @@ export const ReportIssuePage = () => {
         ward: formData.ward,
         landmark: formData.landmark,
         imageUrl: formData.imageUrl || 'https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=600&q=80',
-        severity: aiPrediction?.severity || 78,
-        createdBy: { id: user?.id || 'user-001', name: user?.name || 'Citizen' },
+        severity: aiPrediction?.severity || 65,
+        confidence: aiPrediction?.confidence || '94.0%',
+        createdBy: user ? {
+          id: user.id,
+          name: user.name,
+          email: user.email,
+          ward: user.ward || formData.ward,
+        } : { id: 'anonymous', name: 'Citizen' },
       };
 
       const res = await createComplaint(payload);
-      setCreatedGrievance(res.data);
-      setSubmitted(true);
+      const created = res.data;
+      setSubmittedTicket(created);
+
+      // Dispatch real notification to Notification Center
+      const currentWard = MUMBAI_WARDS.find((w) => w.id === formData.ward) || detectedWardInfo.ward;
+      await dispatchNotification({
+        title: `Grievance Registered: ${formData.category}`,
+        body: `Ticket #${created.id} was dispatched to ${currentWard.name} (${currentWard.area}). Target SLA: ${aiPrediction?.slaHours || 24}h.`,
+        type: 'status_update',
+        complaintId: created.id,
+      });
+
+      toast.success(t('citizen.successHeading', 'Grievance Registered Successfully!'));
     } catch (err) {
       console.error(err);
+      toast.error('Failed to submit grievance. Please try again.');
+    } finally {
+      setSubmitting(false);
     }
   };
 
-  // Find assigned officer for the currently classified ward
-  const assignedOfficer = MOCK_OFFICERS.find(o => o.ward === formData.ward) || MOCK_OFFICERS[0];
+  // Reset form
+  const handleReset = () => {
+    setSubmittedTicket(null);
+    setAiPrediction(null);
+    setFormData({
+      title: '',
+      description: '',
+      category: 'Pothole',
+      landmark: '',
+      ward: defaultWard,
+      latitude: initialWardObj.lat,
+      longitude: initialWardObj.lng,
+      imageUrl: '',
+      imageName: '',
+    });
+  };
 
-  if (submitted && createdGrievance) {
+  // Find assigned officer for the currently classified ward
+  const assignedOfficer = MOCK_OFFICERS.find((o) => o.ward === formData.ward) || MOCK_OFFICERS[0];
+
+  // Success view
+  if (submittedTicket) {
+    const assignedWard = MUMBAI_WARDS.find((w) => w.id === submittedTicket.ward) || detectedWardInfo.ward;
     return (
-      <div className="max-w-2xl mx-auto py-8 space-y-6">
+      <div className="max-w-2xl mx-auto py-8 space-y-6 animate-fade-in">
         <div className="bg-white border border-neutral-200 rounded-2xl p-6 sm:p-8 text-center space-y-4 shadow-soft-lg">
           <div className="w-16 h-16 bg-emerald-100 text-emerald-600 rounded-2xl flex items-center justify-center mx-auto shadow-sm">
             <CheckCircle2 size={36} />
           </div>
 
           <div>
-            <h2 className="text-2xl font-bold text-neutral-900">Grievance Registered Successfully!</h2>
-            <p className="text-xs text-neutral-500 mt-1">Ticket ID: <strong className="font-mono text-neutral-800">{createdGrievance.id}</strong></p>
+            <h2 className="text-2xl font-bold text-neutral-900">{t('citizen.successHeading', 'Grievance Registered Successfully!')}</h2>
+            <p className="text-xs text-neutral-500 mt-1">Ticket ID: <strong className="font-mono text-neutral-800">{submittedTicket.id}</strong></p>
           </div>
 
           {/* Grievance Summary Card */}
           <div className="p-4 bg-neutral-50 border border-neutral-200 rounded-xl text-left text-xs space-y-3">
             <div className="flex items-start gap-4">
-              {createdGrievance.imageUrl && (
-                <div className="w-20 h-20 rounded-xl overflow-hidden bg-neutral-200 shrink-0 border border-neutral-200">
-                  <img src={createdGrievance.imageUrl} alt="Grievance evidence" className="w-full h-full object-cover" />
+              {submittedTicket.imageUrl && (
+                <div className="w-20 h-20 rounded-xl overflow-hidden bg-neutral-200 shrink-0 border border-neutral-200 shadow-sm">
+                  <img src={submittedTicket.imageUrl} alt="Grievance evidence" className="w-full h-full object-cover" />
                 </div>
               )}
               <div className="flex-1 min-w-0">
-                <span className="font-semibold text-neutral-900 text-sm block truncate">{createdGrievance.title}</span>
-                <p className="text-neutral-500 text-[11px] line-clamp-2 mt-0.5">{createdGrievance.description}</p>
+                <span className="font-semibold text-neutral-900 text-sm block truncate">{submittedTicket.title}</span>
+                <p className="text-neutral-500 text-[11px] line-clamp-2 mt-0.5">{submittedTicket.description}</p>
                 <div className="flex items-center gap-2 mt-2">
-                  <Badge variant="brand">{createdGrievance.category}</Badge>
-                  <Badge variant="amber">Severity {createdGrievance.severity}/100</Badge>
-                  <span className="text-[11px] text-neutral-400">Ward #{createdGrievance.ward}</span>
+                  <Badge variant="brand">{translateCategory(submittedTicket.category)}</Badge>
+                  <Badge variant="amber">Severity {submittedTicket.severity}/100</Badge>
+                  <span className="text-[11px] text-neutral-400">Ward #{submittedTicket.ward}</span>
                 </div>
               </div>
             </div>
@@ -413,7 +513,7 @@ export const ReportIssuePage = () => {
                 </div>
                 <div>
                   <div className="font-bold text-neutral-900 text-sm">{assignedOfficer.name}</div>
-                  <div className="text-[11px] text-neutral-500">{assignedOfficer.wardName} · {assignedOfficer.department}</div>
+                  <div className="text-[11px] text-neutral-500">{assignedWard.name} ({assignedWard.area}) · {assignedOfficer.department}</div>
                 </div>
               </div>
               <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-semibold bg-emerald-50 text-emerald-700 border border-emerald-200">
@@ -423,31 +523,18 @@ export const ReportIssuePage = () => {
           </div>
 
           <div className="pt-2 flex flex-col sm:flex-row justify-center gap-3">
-            <Link to="/app/my-complaints" className="w-full sm:w-auto">
+            <Link to={`/officer/${assignedOfficer.id}`} className="w-full sm:w-auto">
               <Button variant="primary" className="w-full justify-center">
-                Track in My Complaints
+                Open {assignedOfficer.name}'s Dashboard →
               </Button>
             </Link>
-            <Button
-              variant="ghost"
-              className="w-full sm:w-auto"
-              onClick={() => {
-                setSubmitted(false);
-                setCreatedGrievance(null);
-                setFormData({
-                  title: '',
-                  description: '',
-                  category: 'Pothole',
-                  landmark: '',
-                  ward: 8,
-                  latitude: 19.0596,
-                  longitude: 72.8296,
-                  imageUrl: '',
-                  imageName: '',
-                });
-              }}
-            >
-              Report Another
+            <Link to="/app/my-complaints" className="w-full sm:w-auto">
+              <Button variant="outline" className="w-full justify-center">
+                {t('citizen.trackStatus', 'Track in My Complaints')}
+              </Button>
+            </Link>
+            <Button variant="ghost" className="w-full sm:w-auto" onClick={handleReset}>
+              {t('citizen.reportAnother', 'Report Another Issue')}
             </Button>
           </div>
         </div>
@@ -455,12 +542,14 @@ export const ReportIssuePage = () => {
     );
   }
 
+  const currentWardObj = MUMBAI_WARDS.find((w) => w.id === formData.ward) || detectedWardInfo.ward;
+
   return (
     <div className="max-w-3xl mx-auto space-y-6">
       <div>
-        <h2 className="text-2xl font-bold text-neutral-900">Report Civic Grievance</h2>
+        <h2 className="text-2xl font-bold text-neutral-900">{t('citizen.reportHeading', 'Report Civic Issue')}</h2>
         <p className="text-xs text-neutral-500">
-          Capture live GPS location and attach photo evidence. Kaiser AI auto-routes to the designated Municipal Ward Officer.
+          {t('citizen.reportSub', 'Provide details or let Kaiser AI auto-detect category, urgency & coordinates.')}
         </p>
       </div>
 
@@ -481,12 +570,12 @@ export const ReportIssuePage = () => {
               </div>
               <button
                 type="button"
-                onClick={handleDetectLiveLocation}
-                disabled={locationStatus === 'locating'}
+                onClick={handleDetectLocation}
+                disabled={isDetectingGps}
                 className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-brand-600 hover:bg-brand-700 text-white rounded-xl text-xs font-semibold shadow-sm transition-colors disabled:opacity-50"
               >
-                <Crosshair size={13} className={locationStatus === 'locating' ? 'animate-spin' : ''} />
-                {locationStatus === 'locating' ? 'Detecting GPS…' : 'Use Live GPS'}
+                <Crosshair size={13} className={isDetectingGps ? 'animate-spin' : ''} />
+                {isDetectingGps ? t('citizen.detectingGps', 'Detecting GPS…') : t('citizen.detectGps', 'Use Live GPS')}
               </button>
             </div>
 
@@ -504,14 +593,37 @@ export const ReportIssuePage = () => {
               </div>
             )}
 
+            {/* Interactive Leaflet Mini Map Picker */}
+            <div className="space-y-1.5 pt-1">
+              <div className="flex items-center justify-between">
+                <label className="text-xs font-bold text-neutral-800 flex items-center gap-1.5">
+                  <MapPin size={14} className="text-brand-600" />
+                  <span>{t('citizen.pinLocation', 'Pinpoint Location on Map')}</span>
+                </label>
+                <span className="text-[11px] text-neutral-400">
+                  {t('citizen.pinHint', 'Click or drag pin to update coordinate')}
+                </span>
+              </div>
+              <div className="rounded-2xl overflow-hidden border border-neutral-200 shadow-soft-sm relative">
+                <LeafletMap
+                  pickerMode={true}
+                  center={[formData.latitude, formData.longitude]}
+                  zoom={14}
+                  selectedPosition={{ lat: formData.latitude, lng: formData.longitude }}
+                  onPositionChange={handleMapPositionChange}
+                  height="220px"
+                />
+              </div>
+            </div>
+
             {/* Classified Ward Badge Banner */}
-            {nearestWardInfo && (
+            {detectedWardInfo && (
               <div className="p-3 bg-white border border-neutral-200 rounded-xl flex items-center justify-between flex-wrap gap-2">
                 <div>
                   <span className="text-[10px] uppercase font-bold text-neutral-400">Classified Ward</span>
                   <div className="font-bold text-neutral-900 text-sm flex items-center gap-2">
-                    <span>{nearestWardInfo.name}</span>
-                    <span className="text-xs font-normal text-neutral-500">({nearestWardInfo.area})</span>
+                    <span>{currentWardObj.name}</span>
+                    <span className="text-xs font-normal text-neutral-500">({currentWardObj.area})</span>
                   </div>
                 </div>
                 <div className="text-right">
@@ -540,26 +652,28 @@ export const ReportIssuePage = () => {
 
             <div className="grid sm:grid-cols-2 gap-3 pt-1">
               <Input
-                label="Location Landmark / Street"
-                placeholder="e.g. Opposite Metro Station Exit 2"
+                label={t('citizen.landmarkLabel', 'Location Landmark / Street')}
+                placeholder={t('citizen.landmarkPlaceholder', 'e.g. Opposite Metro Station Exit 2')}
                 value={formData.landmark}
                 onChange={(e) => setFormData({ ...formData, landmark: e.target.value })}
                 required
               />
               <div className="space-y-1">
-                <label className="text-xs font-semibold text-neutral-700">Municipal Ward (26 Wards)</label>
+                <div className="flex items-center justify-between">
+                  <label className="text-xs font-semibold text-neutral-700">{t('citizen.wardLabel', 'Municipal Ward')}</label>
+                  <span className="text-[10px] text-brand-600 font-medium">26 BMC Wards</span>
+                </div>
                 <select
                   value={formData.ward}
                   onChange={(e) => {
                     const wid = Number(e.target.value);
-                    const ward = MUMBAI_WARDS.find(w => w.id === wid);
+                    const ward = MUMBAI_WARDS.find((w) => w.id === wid);
                     setFormData({
                       ...formData,
                       ward: wid,
                       latitude: ward?.lat || formData.latitude,
                       longitude: ward?.lng || formData.longitude,
                     });
-                    if (ward) setNearestWardInfo({ ...ward, distanceKm: 0 });
                   }}
                   className="w-full rounded-xl border border-neutral-200 p-2.5 text-xs font-medium text-neutral-800 bg-white focus:ring-2 focus:ring-brand-500/20"
                 >
@@ -603,7 +717,7 @@ export const ReportIssuePage = () => {
                     </span>
                     <span className="text-[11px] text-neutral-400 truncate">{formData.imageName || 'evidence.jpg'}</span>
                   </div>
-                  <p className="text-xs text-neutral-600">Image ready for dispatch. Officer of {nearestWardInfo?.name || 'this ward'} will inspect this photo.</p>
+                  <p className="text-xs text-neutral-600">Image ready for dispatch. Officer of {currentWardObj.name} will inspect this photo.</p>
                   <div className="mt-2 flex gap-2">
                     <button
                       type="button"
@@ -614,7 +728,7 @@ export const ReportIssuePage = () => {
                     </button>
                     <button
                       type="button"
-                      onClick={() => setFormData(prev => ({ ...prev, imageUrl: '', imageName: '' }))}
+                      onClick={() => setFormData((prev) => ({ ...prev, imageUrl: '', imageName: '' }))}
                       className="text-[11px] font-semibold text-red-500 hover:underline"
                     >
                       Remove
@@ -658,8 +772,8 @@ export const ReportIssuePage = () => {
 
           {/* ── Section 3: Title & Description ── */}
           <Input
-            label="Issue Title / Summary"
-            placeholder="e.g. Dangerous pothole near Western Express Highway junction"
+            label={t('citizen.titleLabel', 'Issue Title / Summary')}
+            placeholder={t('citizen.titlePlaceholder', 'e.g. Dangerous pothole near Western Express Highway junction')}
             value={formData.title}
             onChange={(e) => setFormData({ ...formData, title: e.target.value })}
             onBlur={() => runAiAnalysis(formData.title)}
@@ -667,11 +781,11 @@ export const ReportIssuePage = () => {
           />
 
           <div className="space-y-1">
-            <label className="text-xs font-semibold text-neutral-700">Detailed Description</label>
+            <label className="text-xs font-semibold text-neutral-700">{t('citizen.descLabel', 'Detailed Description')}</label>
             <textarea
               rows={3}
               className="w-full rounded-xl border border-neutral-200 p-3 text-xs focus:ring-2 focus:ring-brand-500/20 focus:border-brand-500 bg-white"
-              placeholder="Describe what you see, specific landmark, depth or hazard level..."
+              placeholder={t('citizen.descPlaceholder', 'Describe what you see, specific landmark, depth or hazard level...')}
               value={formData.description}
               onChange={(e) => setFormData({ ...formData, description: e.target.value })}
               onBlur={() => runAiAnalysis(formData.description)}
@@ -679,7 +793,7 @@ export const ReportIssuePage = () => {
           </div>
 
           <div className="space-y-1">
-            <label className="text-xs font-semibold text-neutral-700">Issue Category</label>
+            <label className="text-xs font-semibold text-neutral-700">{t('citizen.categoryLabel', 'Issue Category')}</label>
             <select
               value={formData.category}
               onChange={(e) => {
@@ -688,37 +802,49 @@ export const ReportIssuePage = () => {
               }}
               className="w-full rounded-xl border border-neutral-200 p-2.5 text-xs font-medium text-neutral-700 bg-white focus:ring-2 focus:ring-brand-500/20"
             >
-              {CATEGORIES.map((c) => (
-                <option key={c} value={c}>{c}</option>
+              {CATEGORIES.map((cat) => (
+                <option key={cat} value={cat}>
+                  {translateCategory(cat)}
+                </option>
               ))}
             </select>
           </div>
 
-          {/* AI Analysis Card Preview */}
+          {/* AI Analysis Preview */}
           {aiAnalyzing && (
-            <div className="p-4 bg-brand-50 rounded-xl flex items-center gap-3 text-xs text-brand-700 animate-pulse">
-              <Sparkles size={18} className="text-brand-600" />
-              <span>Kaiser AI is analyzing grievance text, image, and location coordinates…</span>
+            <div className="p-4 bg-brand-50 rounded-xl flex items-center gap-3 text-xs text-brand-700 animate-pulse border border-brand-100">
+              <Sparkles size={18} className="text-brand-600 shrink-0" />
+              <span>Analyzing grievance description and context for automatic categorization...</span>
             </div>
           )}
 
           {aiPrediction && !aiAnalyzing && (
-            <div className="p-4 bg-emerald-50 border border-emerald-200 rounded-xl space-y-2 text-xs">
+            <div className="p-4 bg-emerald-50/70 border border-emerald-200 rounded-xl space-y-2 text-xs animate-fade-in">
               <div className="flex items-center justify-between font-bold text-emerald-800">
-                <span className="flex items-center gap-1.5"><Sparkles size={14} /> AI Recommendation</span>
-                <span>Confidence: {aiPrediction.confidence}</span>
+                <span className="flex items-center gap-1.5">
+                  <Sparkles size={14} className="text-emerald-600" />
+                  AI Triage & Urgency Evaluation
+                </span>
+                <span className="bg-emerald-100 text-emerald-800 px-2 py-0.5 rounded text-[11px]">
+                  Confidence: {aiPrediction.confidence}
+                </span>
               </div>
               <div className="grid grid-cols-2 gap-2 text-neutral-700 pt-1">
-                <div>Category: <strong>{aiPrediction.category}</strong></div>
-                <div>Assigned Dept: <strong>{aiPrediction.assignedDept}</strong></div>
-                <div>Urgency Score: <strong>{aiPrediction.severity}/100</strong></div>
+                <div>Detected: <strong>{translateCategory(aiPrediction.category)}</strong></div>
+                <div>Routing: <strong>{aiPrediction.assignedDept}</strong></div>
+                <div>Urgency Score: <strong className="text-red-600">{aiPrediction.severity}/100</strong></div>
                 <div>Target SLA: <strong>{aiPrediction.slaHours} Hours</strong></div>
               </div>
             </div>
           )}
 
-          <Button type="submit" variant="primary" className="w-full justify-center py-3 text-sm font-semibold shadow-md">
-            Submit Grievance to {assignedOfficer.name} ({nearestWardInfo?.name || 'BMC'})
+          <Button
+            type="submit"
+            variant="primary"
+            disabled={submitting}
+            className="w-full justify-center py-3 text-sm font-bold shadow-brand"
+          >
+            {submitting ? t('citizen.submittingBtn', 'Submitting to BMC Ward Officer...') : `Submit Grievance to ${assignedOfficer.name} (${currentWardObj.name})`}
           </Button>
         </form>
       </Card>
@@ -728,6 +854,7 @@ export const ReportIssuePage = () => {
 
 // ── My Complaints Page ────────────────────────────────────────────────────────
 export const MyComplaintsPage = () => {
+  const { t } = useLanguage();
   const { user } = useAuth();
   const [complaints, setComplaints] = useState([]);
   const [activeTab, setActiveTab] = useState('ALL');
@@ -745,12 +872,12 @@ export const MyComplaintsPage = () => {
   const wardComplaints = complaints.filter((c) => c.ward === wardId);
   const myComplaints = complaints.filter(
     (c) =>
-      c.createdBy?.id === user?.id ||
-      c.createdBy?.name === user?.name ||
-      (c.ward === wardId && ['cmp-015', 'cmp-016', 'cmp-023', 'cmp-024'].includes(c.id))
+      (user?.id && c.createdBy?.id === user.id) ||
+      (user?.name && c.createdBy?.name === user.name) ||
+      (user?.email && c.createdBy?.email === user.email)
   );
 
-  const displayedList = viewScope === 'mine' ? (myComplaints.length ? myComplaints : wardComplaints.slice(0, 3)) : wardComplaints;
+  const displayedList = viewScope === 'mine' ? myComplaints : wardComplaints;
 
   const filtered = displayedList.filter((c) => {
     if (activeTab === 'IN_PROGRESS') return c.status === 'in_progress' || c.status === 'assigned';
@@ -767,11 +894,13 @@ export const MyComplaintsPage = () => {
               {user?.wardName?.split('–')[0]?.trim() || 'Ward #8'} Citizen Console
             </span>
           </div>
-          <h2 className="text-2xl font-bold text-neutral-900">Grievance Tracking</h2>
+          <h2 className="text-2xl font-bold text-neutral-900">{t('nav.myComplaints', 'My Reported Complaints')}</h2>
           <p className="text-xs text-neutral-500">Track real-time progress, uploaded photos, and ward officer actions.</p>
         </div>
         <Link to="/app/report">
-          <Button variant="primary" size="sm" icon={AlertTriangle}>New Report</Button>
+          <Button variant="primary" size="sm" icon={AlertTriangle}>
+            {t('nav.reportIssue', 'New Report')}
+          </Button>
         </Link>
       </div>
 
@@ -813,18 +942,18 @@ export const MyComplaintsPage = () => {
           onClick={() => setActiveTab('IN_PROGRESS')}
           className={`pb-2 transition-colors ${activeTab === 'IN_PROGRESS' ? 'text-brand-600 border-b-2 border-brand-600' : 'hover:text-neutral-800'}`}
         >
-          In Progress
+          {t('citizen.inProgress', 'In Progress')}
         </button>
         <button
           onClick={() => setActiveTab('RESOLVED')}
           className={`pb-2 transition-colors ${activeTab === 'RESOLVED' ? 'text-brand-600 border-b-2 border-brand-600' : 'hover:text-neutral-800'}`}
         >
-          Resolved
+          {t('citizen.resolved', 'Resolved')}
         </button>
       </div>
 
       <div className="grid md:grid-cols-2 gap-4">
-        {filtered.map(c => (
+        {filtered.map((c) => (
           <ComplaintCard key={c.id} complaint={c} />
         ))}
       </div>
@@ -834,6 +963,7 @@ export const MyComplaintsPage = () => {
 
 // ── Interactive Issue Map Page with Real Leaflet ──────────────────────────────
 export const IssueMapPage = () => {
+  const { t, translateCategory } = useLanguage();
   const [mapComplaints, setMapComplaints] = useState([]);
   const [selectedCategory, setSelectedCategory] = useState('All');
   const [loading, setLoading] = useState(true);
@@ -854,17 +984,18 @@ export const IssueMapPage = () => {
 
   const filteredComplaints = selectedCategory === 'All'
     ? mapComplaints
-    : mapComplaints.filter(c => c.category === selectedCategory);
+    : mapComplaints.filter((c) => c.category === selectedCategory);
 
   const categories = ['All', 'Pothole', 'Garbage', 'Drainage', 'Streetlight', 'Water Leakage'];
-  const totalOpen = mapComplaints.filter(c => c.status !== 'resolved').length;
-  const totalCritical = mapComplaints.filter(c => c.severity >= 80).length;
+
+  const totalOpen = mapComplaints.filter((c) => c.status !== 'resolved').length;
+  const totalCritical = mapComplaints.filter((c) => c.severity >= 80).length;
 
   return (
     <div className="space-y-4 max-w-6xl mx-auto">
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
         <div>
-          <h2 className="text-2xl font-bold text-neutral-900">Mumbai Interactive Ward Map</h2>
+          <h2 className="text-2xl font-bold text-neutral-900">{t('nav.issueMap', 'Mumbai Interactive Ward Map')}</h2>
           <p className="text-xs text-neutral-500">Visual geospatial map of all 26 Mumbai wards with active citizen reports.</p>
         </div>
         <div className="flex items-center gap-2">
@@ -876,7 +1007,7 @@ export const IssueMapPage = () => {
 
       {/* Category Filter Bar */}
       <div className="flex flex-wrap items-center gap-2">
-        {categories.map(cat => (
+        {categories.map((cat) => (
           <button
             key={cat}
             onClick={() => setSelectedCategory(cat)}
@@ -886,7 +1017,7 @@ export const IssueMapPage = () => {
                 : 'bg-white text-neutral-600 border-neutral-200 hover:border-brand-300 hover:text-brand-700'
             }`}
           >
-            {cat}
+            {cat === 'All' ? 'All' : translateCategory(cat)}
           </button>
         ))}
         <span className="text-xs text-neutral-400 ml-2">
@@ -913,7 +1044,7 @@ export const IssueMapPage = () => {
           </div>
           <Link to="/app/report">
             <Button variant="primary" size="sm" icon={MapPin}>
-              Report at My GPS Location
+              {t('citizen.detectGps', 'Report at My GPS Location')}
             </Button>
           </Link>
         </div>
@@ -922,39 +1053,34 @@ export const IssueMapPage = () => {
   );
 };
 
-// ── Citizen Notifications Page ────────────────────────────────────────────────
-export const CitizenNotificationsPage = () => {
-  return (
-    <div className="max-w-3xl mx-auto space-y-5">
-      <div>
-        <h2 className="text-2xl font-bold text-neutral-900">Notifications</h2>
-        <p className="text-xs text-neutral-500">Live alerts regarding your reported issues and municipal responses.</p>
-      </div>
-
-      <div className="space-y-3">
-        {MOCK_NOTIFICATIONS.map((n) => (
-          <Card key={n.id} className="p-4 bg-white border-neutral-200 flex items-start gap-3 shadow-sm" padding="">
-            <div className="w-9 h-9 rounded-xl bg-brand-50 border border-brand-100 flex items-center justify-center text-brand-600 shrink-0">
-              <Bell size={16} />
-            </div>
-            <div className="flex-1 min-w-0">
-              <div className="flex items-center gap-2">
-                <span className="font-bold text-neutral-900 text-sm">{n.title}</span>
-                {!n.isRead && <span className="w-2 h-2 rounded-full bg-brand-500" />}
-              </div>
-              <p className="text-xs text-neutral-500 mt-0.5">{n.body}</p>
-            </div>
-            <span className="text-[10px] text-neutral-400 shrink-0">Recent</span>
-          </Card>
-        ))}
-      </div>
-    </div>
-  );
-};
 
 // ── Citizen Profile Page ──────────────────────────────────────────────────────
 export const CitizenProfilePage = () => {
   const { user } = useAuth();
+  const [stats, setStats] = useState({ total: 0, resolved: 0, score: 500 });
+
+  useEffect(() => {
+    async function fetchUserStats() {
+      try {
+        const res = await getComplaints();
+        const all = res.data || [];
+        const mine = all.filter(
+          (c) =>
+            (user?.id && c.createdBy?.id === user.id) ||
+            (user?.name && c.createdBy?.name === user.name) ||
+            (user?.email && c.createdBy?.email === user.email)
+        );
+        const resolved = mine.filter((c) => c.status === 'resolved' || c.status === 'Resolved').length;
+        const total = mine.length;
+        const score = Math.min(990, 500 + total * 25 + resolved * 50);
+        setStats({ total, resolved, score });
+      } catch {
+        // Fallback gracefully
+      }
+    }
+    fetchUserStats();
+  }, [user]);
+
   return (
     <div className="max-w-3xl mx-auto space-y-6">
       <div>
@@ -988,11 +1114,15 @@ export const CitizenProfilePage = () => {
           </div>
           <div className="p-3 bg-neutral-50 rounded-xl">
             <span className="text-neutral-400">Complaints Resolved</span>
-            <p className="font-semibold text-emerald-600 mt-0.5">8 Grievances Fixed</p>
+            <p className="font-semibold text-emerald-600 mt-0.5">
+              {stats.total > 0 ? `${stats.resolved} of ${stats.total} Grievances Fixed` : 'No Grievances Filed Yet'}
+            </p>
           </div>
           <div className="p-3 bg-neutral-50 rounded-xl">
             <span className="text-neutral-400">Civic Reputation Score</span>
-            <p className="font-semibold text-brand-600 mt-0.5">Top 5% Citizen (Score: 840)</p>
+            <p className="font-semibold text-brand-600 mt-0.5">
+              {stats.score >= 700 ? `Top Tier Citizen (Score: ${stats.score})` : `Active Citizen (Score: ${stats.score})`}
+            </p>
           </div>
         </div>
       </Card>
