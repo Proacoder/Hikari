@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useRef } from 'react';
 import {
   FileText, Download, Printer, X, CheckCircle2, AlertTriangle,
   Building2, Calendar, ShieldCheck, BarChart3, TrendingUp, Layers
@@ -11,6 +11,7 @@ import toast from 'react-hot-toast';
 export const MunicipalReportModal = ({ isOpen, onClose, complaints = [], analytics = {} }) => {
   const [selectedWard, setSelectedWard] = useState('ALL');
   const [reportMonth, setReportMonth] = useState('October 2026');
+  const reportRef = useRef(null);
 
   if (!isOpen) return null;
 
@@ -24,30 +25,157 @@ export const MunicipalReportModal = ({ isOpen, onClose, complaints = [], analyti
   const resolutionRate = ((totalResolved / (totalReported || 1)) * 100).toFixed(1);
   const criticalCount = filtered.filter((c) => (c.severity || 0) >= 80).length || 6;
 
-  // Download CSV
+  // Download CSV using Blob (reliable for special characters)
   const handleExportCSV = () => {
     try {
-      const headers = ['Ticket ID,Title,Category,Ward,Severity,Status,Upvotes,Created Date'];
-      const rows = (filtered.length ? filtered : complaints).map((c) =>
-        `"${c.id}","${(c.title || '').replace(/"/g, '""')}","${c.category}",${c.ward},${c.severity || 50},"${c.status}",${c.upvoteCount || 0},"${c.createdAt || new Date().toISOString()}"`
+      const dataToExport = filtered.length ? filtered : complaints;
+      if (!dataToExport.length) {
+        toast.error('No complaint data available to export.');
+        return;
+      }
+      const headers = 'Ticket ID,Title,Category,Ward,Severity,Status,Upvotes,Created Date';
+      const rows = dataToExport.map((c) =>
+        `"${c.id || ''}","${(c.title || '').replace(/"/g, '""')}","${c.category || ''}","Ward #${c.ward || ''}",${c.severity || 50},"${c.status || ''}",${c.upvoteCount || 0},"${c.createdAt || new Date().toISOString()}"`
       );
-      const csvContent = 'data:text/csv;charset=utf-8,' + [headers, ...rows].join('\n');
-      const encodedUri = encodeURI(csvContent);
+      const csvString = [headers, ...rows].join('\n');
+      const blob = new Blob(['\uFEFF' + csvString], { type: 'text/csv;charset=utf-8;' });
+      const url = URL.createObjectURL(blob);
       const link = document.createElement('a');
-      link.setAttribute('href', encodedUri);
-      link.setAttribute('download', `BMC_Municipal_Report_${reportMonth.replace(' ', '_')}.csv`);
+      link.href = url;
+      link.download = `BMC_Municipal_Report_${reportMonth.replace(' ', '_')}.csv`;
       document.body.appendChild(link);
       link.click();
       document.body.removeChild(link);
+      URL.revokeObjectURL(url);
       toast.success('Municipal CSV data exported successfully!');
     } catch (e) {
+      console.error('CSV export error:', e);
       toast.error('Failed to export CSV.');
     }
   };
 
-  // Print Report
+  // Print / Save as PDF
   const handlePrint = () => {
-    window.print();
+    const printContent = reportRef.current;
+    if (!printContent) {
+      toast.error('Report content not found.');
+      return;
+    }
+    const printWindow = window.open('', '_blank', 'width=900,height=700');
+    if (!printWindow) {
+      toast.error('Please allow pop-ups to print the report.');
+      return;
+    }
+    printWindow.document.write(`
+      <!DOCTYPE html>
+      <html>
+      <head>
+        <title>BMC Municipal Grievance Dossier - ${reportMonth}</title>
+        <style>
+          *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+          body { font-family: 'Segoe UI', system-ui, -apple-system, sans-serif; color: #1e293b; padding: 32px; line-height: 1.5; font-size: 12px; }
+          h1 { font-size: 20px; font-weight: 900; letter-spacing: -0.5px; }
+          h4 { font-size: 13px; font-weight: 700; border-left: 4px solid #16a34a; padding-left: 8px; margin: 24px 0 12px; }
+          table { width: 100%; border-collapse: collapse; margin-bottom: 16px; }
+          th { background: #f1f5f9; font-size: 10px; text-transform: uppercase; font-weight: 700; color: #64748b; text-align: left; padding: 8px 12px; border-bottom: 2px solid #e2e8f0; }
+          td { padding: 8px 12px; border-bottom: 1px solid #e2e8f0; font-size: 11px; }
+          .metric-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; margin: 16px 0; }
+          .metric-box { padding: 12px; border: 1px solid #e2e8f0; border-radius: 8px; }
+          .metric-box .label { font-size: 9px; text-transform: uppercase; font-weight: 700; color: #64748b; }
+          .metric-box .value { font-size: 22px; font-weight: 900; margin-top: 4px; }
+          .metric-box .sub { font-size: 10px; font-weight: 600; }
+          .header-block { border-bottom: 2px solid #1e293b; padding-bottom: 16px; text-align: center; margin-bottom: 20px; }
+          .header-block .sub-text { font-family: monospace; font-size: 10px; color: #94a3b8; text-transform: uppercase; letter-spacing: 2px; }
+          .footer { margin-top: 40px; padding-top: 16px; border-top: 1px solid #cbd5e1; display: flex; justify-content: space-between; font-size: 11px; }
+          .sla-badge { display: inline-block; padding: 2px 8px; border-radius: 20px; font-size: 10px; font-weight: 700; }
+          .sla-green { background: #ecfdf5; color: #15803d; }
+          .sla-amber { background: #fefce8; color: #a16207; }
+          .status-badge { display: inline-block; padding: 2px 8px; border-radius: 20px; font-size: 10px; font-weight: 700; }
+          .status-resolved { background: #ecfdf5; color: #15803d; }
+          .status-pending { background: #fefce8; color: #a16207; }
+          @media print { body { padding: 16px; } }
+        </style>
+      </head>
+      <body>
+        <div class="header-block">
+          <div class="sub-text">Government of Maharashtra · Urban Development Dept</div>
+          <h1>BRIHANMUMBAI MUNICIPAL CORPORATION</h1>
+          <div style="font-size: 11px; font-weight: 600; color: #475569;">Civic Infrastructure & Public Grievance Redressal Command Center · Kaiser AI Platform</div>
+          <div style="font-family: monospace; font-size: 10px; color: #94a3b8; margin-top: 4px;">Ref No: BMC-KAIZER-GRV-${Date.now().toString().slice(-6)} · Generated on ${new Date().toLocaleDateString('en-IN', { dateStyle: 'long' })} · Audit Period: ${reportMonth}</div>
+        </div>
+
+        <div class="metric-grid">
+          <div class="metric-box">
+            <div class="label">Total Logged Grievances</div>
+            <div class="value">${totalReported}</div>
+            <div class="sub" style="color: #16a34a;">100% Geo-tagged via GPS</div>
+          </div>
+          <div class="metric-box">
+            <div class="label" style="color: #15803d;">Resolved Cases</div>
+            <div class="value" style="color: #15803d;">${totalResolved}</div>
+            <div class="sub" style="color: #16a34a;">${resolutionRate}% Resolution Rate</div>
+          </div>
+          <div class="metric-box">
+            <div class="label" style="color: #a16207;">Average Redressal SLA</div>
+            <div class="value" style="color: #a16207;">2.1 Days</div>
+            <div class="sub" style="color: #d97706;">Within 72h Mandate</div>
+          </div>
+          <div class="metric-box">
+            <div class="label" style="color: #dc2626;">Critical Severity (>80)</div>
+            <div class="value" style="color: #dc2626;">${criticalCount}</div>
+            <div class="sub" style="color: #ef4444;">Immediate Dispatch</div>
+          </div>
+        </div>
+
+        <h4>1. Departmental Grievance Distribution & SLA Compliance</h4>
+        <table>
+          <thead><tr><th>Department</th><th>Lead Ward Engineer</th><th>Active Issues</th><th>Resolved</th><th>SLA Compliance</th></tr></thead>
+          <tbody>
+            <tr><td><strong>Roads & Traffic (Potholes / Asphalt)</strong></td><td>Er. Sandeep Patil (K/E Ward)</td><td>18</td><td>15</td><td><span class="sla-badge sla-green">93.2% On-Time</span></td></tr>
+            <tr><td><strong>Solid Waste Management (Garbage / Debris)</strong></td><td>Dr. Neha Kulkarni (G/N Ward)</td><td>14</td><td>12</td><td><span class="sla-badge sla-green">91.4% On-Time</span></td></tr>
+            <tr><td><strong>Hydraulic Engineering (Pipelines & Leaks)</strong></td><td>Er. Mahesh Shinde (H/W Ward)</td><td>9</td><td>7</td><td><span class="sla-badge sla-amber">84.6% Moderate</span></td></tr>
+            <tr><td><strong>Storm Water Drains (Monsoon Desilting)</strong></td><td>Er. Rajesh Pawar (F/N Ward)</td><td>7</td><td>6</td><td><span class="sla-badge sla-green">95.0% On-Time</span></td></tr>
+          </tbody>
+        </table>
+
+        <h4>2. Verified Public Grievances Log (Top Active Cases)</h4>
+        <table>
+          <thead><tr><th>ID</th><th>Issue Title</th><th>Category</th><th>Ward</th><th>Severity</th><th>Status</th></tr></thead>
+          <tbody>
+            ${(filtered.length ? filtered : complaints).slice(0, 10).map((c) => `
+              <tr>
+                <td style="font-family: monospace; font-weight: 700; color: #16a34a;">${c.id}</td>
+                <td><strong>${c.title || 'Civic Issue'}</strong></td>
+                <td>${c.category || 'N/A'}</td>
+                <td style="font-family: monospace;">Ward #${c.ward || 'N/A'}</td>
+                <td style="font-weight: 700; color: #dc2626;">${c.severity || 60}/100</td>
+                <td><span class="status-badge ${c.status === 'resolved' ? 'status-resolved' : 'status-pending'}">${c.status || 'reported'}</span></td>
+              </tr>
+            `).join('')}
+          </tbody>
+        </table>
+
+        <div class="footer">
+          <div>
+            <div style="font-weight: 700;">Verified by Kaiser AI Municipal Triaging Core</div>
+            <div style="font-size: 10px; color: #94a3b8;">Automated Audit & Compliance Verification Signature</div>
+          </div>
+          <div style="text-align: right;">
+            <div style="border-bottom: 1px solid #94a3b8; width: 160px; padding-bottom: 4px; margin-bottom: 4px; font-family: monospace; font-size: 10px; color: #94a3b8; text-align: center;">DIGITALLY CERTIFIED</div>
+            <div style="font-weight: 700;">Municipal Commissioner</div>
+            <div style="font-size: 10px; color: #94a3b8;">Greater Mumbai Municipal Corporation</div>
+          </div>
+        </div>
+      </body>
+      </html>
+    `);
+    printWindow.document.close();
+    printWindow.onload = () => {
+      setTimeout(() => {
+        printWindow.print();
+      }, 300);
+    };
+    toast.success('Print dialog opened. Use "Save as PDF" to download.');
   };
 
   return (
@@ -106,7 +234,7 @@ export const MunicipalReportModal = ({ isOpen, onClose, complaints = [], analyti
         </div>
 
         {/* Printable Document Body */}
-        <div className="p-6 sm:p-8 flex-1 overflow-y-auto space-y-6 bg-white print:p-0 print:m-0">
+        <div ref={reportRef} className="p-6 sm:p-8 flex-1 overflow-y-auto space-y-6 bg-white print:p-0 print:m-0">
           {/* Official Letterhead */}
           <div className="border-b-2 border-neutral-800 pb-5 text-center space-y-1">
             <div className="font-mono text-[10px] tracking-widest text-neutral-500 uppercase">

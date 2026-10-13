@@ -357,7 +357,7 @@ export const ContactPage = () => {
                         onChange={(e) => setFormData({ ...formData, ward: e.target.value })}
                         className="w-full rounded-xl border border-neutral-200 p-2.5 text-xs bg-white focus:ring-2 focus:ring-brand-500/20 focus:border-brand-500"
                       >
-                        {ALL_MUMBAI_WARDS.map((w) => (
+                        {MUMBAI_WARDS.map((w) => (
                           <option key={w.id} value={`${w.code} – ${w.area.split(',')[0]}`}>
                             {w.code} ({w.area.split(',')[0]})
                           </option>
@@ -538,7 +538,7 @@ export const ContactPage = () => {
                   : 'bg-white border border-neutral-200 text-neutral-600 hover:bg-neutral-50'
               }`}
             >
-              {zone} {zone === 'All' ? `(${ALL_MUMBAI_WARDS.length})` : ''}
+              {zone} {zone === 'All' ? `(${MUMBAI_WARDS.length})` : ''}
             </button>
           ))}
           <span className="ml-auto text-xs text-neutral-400 font-medium hidden sm:block">
