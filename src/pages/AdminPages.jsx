@@ -16,6 +16,7 @@ import { LeafletMap } from '../components/map/LeafletMap';
 import { getComplaints } from '../api/complaints.api';
 import { MunicipalReportModal } from '../components/admin/MunicipalReportModal';
 import { PredictiveDisasterCenter } from '../components/admin/PredictiveDisasterCenter';
+import { SkeletonKpiCard } from '../components/common/Skeleton';
 import { useDebounce } from '../hooks/useDebounce';
 import {
   BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer,
@@ -93,6 +94,7 @@ const WeatherCorrelationChart = ({ data }) => (
 export const AdminDashboard = () => {
   const location = useLocation();
   const [analytics, setAnalytics] = useState(null);
+  const [loading, setLoading] = useState(true);
   const [categoryData, setCategoryData] = useState([]);
   const [wardData, setWardData] = useState([]);
   const [trends, setTrends] = useState(null);
@@ -145,6 +147,8 @@ export const AdminDashboard = () => {
         setMapComplaints(complaintsRes.data || []);
       } catch (err) {
         console.error(err);
+      } finally {
+        setLoading(false);
       }
     }
     load();
@@ -233,35 +237,46 @@ export const AdminDashboard = () => {
 
       {/* Overview Cards */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-        <Card className="p-4 space-y-1">
-          <span className="text-xs font-semibold text-neutral-500 uppercase">Total Complaints</span>
-          <div className="text-3xl font-extrabold text-neutral-900">
-            {analytics?.totalComplaints ? analytics.totalComplaints.toLocaleString() : '14,290'}
-          </div>
-          <div className="text-[11px] text-emerald-600 font-semibold">+{analytics?.monthlyGrowth || 12.4}% vs last month</div>
-        </Card>
+        {loading ? (
+          <>
+            <SkeletonKpiCard />
+            <SkeletonKpiCard />
+            <SkeletonKpiCard />
+            <SkeletonKpiCard />
+          </>
+        ) : (
+          <>
+            <Card className="p-4 space-y-1">
+              <span className="text-xs font-semibold text-neutral-500 uppercase">Total Complaints</span>
+              <div className="text-3xl font-extrabold text-neutral-900">
+                {analytics?.totalComplaints ? analytics.totalComplaints.toLocaleString() : '14,290'}
+              </div>
+              <div className="text-[11px] text-emerald-600 font-semibold">+{analytics?.monthlyGrowth || 12.4}% vs last month</div>
+            </Card>
 
-        <Card className="p-4 space-y-1">
-          <span className="text-xs font-semibold text-neutral-500 uppercase">Resolution Rate</span>
-          <div className="text-3xl font-extrabold text-emerald-600">
-            {analytics?.resolutionRate ? `${analytics.resolutionRate}%` : '91.4%'}
-          </div>
-          <div className="text-[11px] text-neutral-400">Target: &gt; 90%</div>
-        </Card>
+            <Card className="p-4 space-y-1">
+              <span className="text-xs font-semibold text-neutral-500 uppercase">Resolution Rate</span>
+              <div className="text-3xl font-extrabold text-emerald-600">
+                {analytics?.resolutionRate ? `${analytics.resolutionRate}%` : '91.4%'}
+              </div>
+              <div className="text-[11px] text-neutral-400">Target: &gt; 90%</div>
+            </Card>
 
-        <Card className="p-4 space-y-1">
-          <span className="text-xs font-semibold text-neutral-500 uppercase">Average SLA Time</span>
-          <div className="text-3xl font-extrabold text-sky-600">
-            {analytics?.avgResolutionDays ? `${(analytics.avgResolutionDays * 24).toFixed(1)}h` : '18.4h'}
-          </div>
-          <div className="text-[11px] text-emerald-600 font-semibold">-2.1h optimization</div>
-        </Card>
+            <Card className="p-4 space-y-1">
+              <span className="text-xs font-semibold text-neutral-500 uppercase">Average SLA Time</span>
+              <div className="text-3xl font-extrabold text-sky-600">
+                {analytics?.avgResolutionDays ? `${(analytics.avgResolutionDays * 24).toFixed(1)}h` : '18.4h'}
+              </div>
+              <div className="text-[11px] text-emerald-600 font-semibold">-2.1h optimization</div>
+            </Card>
 
-        <Card className="p-4 space-y-1">
-          <span className="text-xs font-semibold text-neutral-500 uppercase">Active Officers</span>
-          <div className="text-3xl font-extrabold text-brand-600">{analytics?.activeOfficers || 84}</div>
-          <div className="text-[11px] text-neutral-400">Across 26 wards</div>
-        </Card>
+            <Card className="p-4 space-y-1">
+              <span className="text-xs font-semibold text-neutral-500 uppercase">Active Officers</span>
+              <div className="text-3xl font-extrabold text-brand-600">{analytics?.activeOfficers || 84}</div>
+              <div className="text-[11px] text-neutral-400">Across 26 wards</div>
+            </Card>
+          </>
+        )}
       </div>
 
       {/* Section Tabs */}

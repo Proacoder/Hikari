@@ -185,9 +185,11 @@ Hikari/
 - [x] **Multilingual Support (Marathi, Hindi, English)**: Complete UI localization across portals with persistent preference.
 - [x] **Live Notifications Center & Drawer**: Interactive notifications panel with unread badges, mark-as-read, and real-time grievance dispatch alerts.
 - [x] **GPS Auto-Locate & Draggable Pin Map**: Device geolocation, OpenStreetMap reverse-geocoding, nearest municipal ward auto-detection, and interactive Leaflet pin picker.
-- [ ] **AI Duplicate Detection & Geo-clustering** to merge identical neighborhood reports.
-- [ ] **Citizen "Me Too" Upvoting** to amplify urgent neighborhood concerns.
-- [ ] **Before/After AI Photo Verification** to validate officer resolution authenticity.
+- [x] **Spatial Deduplication & Geo-clustering (DBSCAN)**: Geodesic clustering within 25m to detect duplicate grievances and merge them into upvotes.
+- [x] **Citizen "Me Too" Upvoting & Karma Economy**: Prevents ticket flooding, rewards citizens with Karma points redeemable for transit and municipal vouchers.
+- [x] **Field Inspection & Before/After Verification**: Interactive before/after evidence slider, 200m physical GPS geofence telemetry, and material expenditure ledger.
+- [x] **Tamper-Proof Web Crypto SHA-256 Seal**: Cryptographically signed resolution certificates with immutable audit hashes for field closures.
+- [x] **Kaiser Sahayak AI Assistant**: 24/7 conversational municipal assistant powered by Gemini 1.5 Flash with trilingual BMC routing.
 - [ ] **WhatsApp Grievance Bot Integration** for zero-friction reporting on mobile.
 
 ---

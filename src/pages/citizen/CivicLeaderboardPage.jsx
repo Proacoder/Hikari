@@ -14,12 +14,29 @@ import toast from 'react-hot-toast';
 export const CivicLeaderboardPage = () => {
   const { user } = useAuth();
   const { t } = useLanguage();
-  const [activeTab, setActiveTab] = useState('citizens'); // 'citizens' | 'wards' | 'rewards'
+  const [activeTab, setActiveTab] = useState('citizens'); // 'citizens' | 'wards' | 'badges' | 'rewards' | 'vouchers'
 
-  // User karma stats
-  const karmaPoints = 840;
-  const rank = 42;
-  const currentTier = 'BMC Civic Champion';
+  // User karma stats stored persistently
+  const [karmaPoints, setKarmaPoints] = useState(() => {
+    try {
+      const stored = localStorage.getItem('kaiser_citizen_karma');
+      return stored !== null ? Number(stored) : 840;
+    } catch {
+      return 840;
+    }
+  });
+
+  const [claimedVouchers, setClaimedVouchers] = useState(() => {
+    try {
+      const stored = localStorage.getItem('kaiser_claimed_vouchers');
+      return stored ? JSON.parse(stored) : [];
+    } catch {
+      return [];
+    }
+  });
+
+  const rank = karmaPoints > 1500 ? 5 : karmaPoints > 800 ? 42 : 118;
+  const currentTier = karmaPoints > 1500 ? 'Mayor’s Vanguard' : karmaPoints > 600 ? 'BMC Civic Champion' : 'Civic Contributor';
 
   // Badges data
   const badges = [
@@ -62,7 +79,35 @@ export const CivicLeaderboardPage = () => {
 
   const handleRedeem = (reward) => {
     if (karmaPoints >= reward.cost) {
-      toast.success(`Redeemed "${reward.title}"! Voucher code sent to registered email.`, { duration: 4000 });
+      const remaining = karmaPoints - reward.cost;
+      setKarmaPoints(remaining);
+      try {
+        localStorage.setItem('kaiser_citizen_karma', String(remaining));
+      } catch (e) {
+        console.warn(e);
+      }
+
+      const newVoucher = {
+        id: `VCH-${Date.now().toString(36).toUpperCase()}-${Math.floor(100 + Math.random() * 900)}`,
+        title: reward.title,
+        cost: reward.cost,
+        icon: reward.icon,
+        desc: reward.desc,
+        code: `BMC-${reward.id.toUpperCase()}-${Math.random().toString(36).substring(2, 7).toUpperCase()}`,
+        claimedAt: new Date().toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' }),
+        validUntil: new Date(Date.now() + 30 * 86400000).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' }),
+      };
+
+      const updated = [newVoucher, ...claimedVouchers];
+      setClaimedVouchers(updated);
+      try {
+        localStorage.setItem('kaiser_claimed_vouchers', JSON.stringify(updated));
+      } catch (e) {
+        console.warn(e);
+      }
+
+      toast.success(`Redeemed "${reward.title}"! Voucher Code: ${newVoucher.code} (${reward.cost} pts deducted)`, { duration: 5000 });
+      setActiveTab('vouchers');
     } else {
       toast.error(`Need ${reward.cost - karmaPoints} more Karma Points to redeem this reward.`);
     }
@@ -137,6 +182,15 @@ export const CivicLeaderboardPage = () => {
           }`}
         >
           <Gift size={16} /> Civic Rewards Store
+        </button>
+        <button
+          type="button"
+          onClick={() => setActiveTab('vouchers')}
+          className={`pb-3 transition-colors flex items-center gap-2 ${
+            activeTab === 'vouchers' ? 'text-brand-600 border-b-2 border-brand-600' : 'hover:text-neutral-800'
+          }`}
+        >
+          <CheckCircle2 size={16} /> My Vouchers ({claimedVouchers.length})
         </button>
       </div>
 
@@ -320,6 +374,67 @@ export const CivicLeaderboardPage = () => {
               </Card>
             ))}
           </div>
+        </div>
+      )}
+
+      {/* Tab 5: My Claimed Vouchers */}
+      {activeTab === 'vouchers' && (
+        <div className="space-y-4">
+          <div className="p-4 bg-emerald-50/80 border border-emerald-200 rounded-2xl text-xs text-emerald-900 flex items-center justify-between flex-wrap gap-2">
+            <span className="flex items-center gap-1.5 font-medium">
+              <CheckCircle2 size={16} className="text-emerald-600" />
+              <strong>Municipal Pass Ledger:</strong> Present these digital codes at BMC ward desks, metro stations, or municipal lots for instant redemption.
+            </span>
+            <span className="font-mono font-bold text-emerald-800">{claimedVouchers.length} Claimed Vouchers</span>
+          </div>
+
+          {claimedVouchers.length === 0 ? (
+            <Card className="p-12 text-center bg-white border-neutral-200">
+              <Gift size={36} className="mx-auto text-neutral-300 mb-3" />
+              <h4 className="font-bold text-neutral-900 text-sm">No vouchers claimed yet</h4>
+              <p className="text-xs text-neutral-500 mt-1 mb-4">Redeem your civic karma points for parking vouchers, metro transit credit, or property rebates.</p>
+              <Button variant="primary" size="sm" onClick={() => setActiveTab('rewards')}>
+                Browse Rewards Store →
+              </Button>
+            </Card>
+          ) : (
+            <div className="grid sm:grid-cols-2 gap-4">
+              {claimedVouchers.map((v) => (
+                <Card key={v.id} className="p-5 bg-white border-neutral-200 shadow-sm space-y-3">
+                  <div className="flex items-start justify-between">
+                    <div className="flex items-center gap-3">
+                      <div className="w-10 h-10 rounded-xl bg-emerald-50 flex items-center justify-center text-xl shadow-inner">
+                        {v.icon}
+                      </div>
+                      <div>
+                        <h4 className="font-bold text-neutral-900 text-sm">{v.title}</h4>
+                        <span className="text-[10px] text-neutral-400">Claimed {v.claimedAt} · Valid until {v.validUntil}</span>
+                      </div>
+                    </div>
+                    <Badge variant="success" size="sm">Active</Badge>
+                  </div>
+                  <p className="text-xs text-neutral-600">{v.desc}</p>
+                  <div className="p-2.5 bg-neutral-50 border border-neutral-200 rounded-xl flex items-center justify-between">
+                    <div>
+                      <span className="text-[10px] uppercase font-bold text-neutral-400 block tracking-wider">Pass Code</span>
+                      <span className="font-mono font-black text-sm text-brand-700">{v.code}</span>
+                    </div>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => {
+                        navigator.clipboard.writeText(v.code);
+                        toast.success('Voucher code copied to clipboard!');
+                      }}
+                      className="text-xs py-1"
+                    >
+                      Copy Code
+                    </Button>
+                  </div>
+                </Card>
+              ))}
+            </div>
+          )}
         </div>
       )}
     </div>

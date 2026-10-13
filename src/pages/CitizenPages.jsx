@@ -3,13 +3,13 @@ import { Link } from 'react-router-dom';
 import toast from 'react-hot-toast';
 import {
   AlertTriangle, MapPin, Camera, Mic, Sparkles, Clock, CheckCircle2,
-  ThumbsUp, MessageSquare, Shield, Upload, Navigation, Filter,
-  CloudRain, Wind, Thermometer, Eye, TrendingUp, BarChart3,
-  Crosshair, Image as ImageIcon, X, ArrowRight, User, Bell, Award, Check
+  Shield, Navigation, CloudRain, Wind, Thermometer, Eye,
+  Crosshair, Check
 } from 'lucide-react';
-import { getComplaints, createComplaint, getMapData, getStoredComplaints } from '../api/complaints.api';
+import { getComplaints, createComplaint, getMapData, getStoredComplaints, saveStoredComplaints } from '../api/complaints.api';
 import { getWeatherAQI } from '../api/weather.api';
-import { MUMBAI_WARDS, MOCK_OFFICERS, CATEGORIES, MOCK_NOTIFICATIONS } from '../utils/mockData';
+import { detectDefectWithYOLO, checkDuplicateWithDBSCAN } from '../api/ml.api';
+import { MUMBAI_WARDS, MOCK_OFFICERS, CATEGORIES } from '../utils/mockData';
 import { findClosestWard, reverseGeocodeCoordinates, analyzeComplaintDynamic } from '../utils/geoUtils';
 import { useLanguage } from '../context/LanguageContext';
 import { useNotifications } from '../context/NotificationContext';
@@ -20,6 +20,7 @@ import { Card } from '../components/common/Card';
 import { Badge } from '../components/common/Badge';
 import { Input } from '../components/common/Input';
 import { LeafletMap } from '../components/map/LeafletMap';
+import { Skeleton, SkeletonCard } from '../components/common/Skeleton';
 
 // Preset samples for quick image upload testing
 const SAMPLE_EVIDENCE = [
@@ -62,7 +63,7 @@ export const CitizenDashboard = () => {
         (user?.name && c.createdBy?.name === user.name) ||
         (user?.email && c.createdBy?.email === user.email)
     );
-  }, [user, complaints]);
+  }, [user]);
 
   const activeSubmissionsCount = userSubmissions.filter((c) => c.status !== 'resolved').length;
   const inProgressCount = userSubmissions.filter((c) => c.status === 'in_progress' || c.status === 'assigned').length;
@@ -204,12 +205,18 @@ export const CitizenDashboard = () => {
             {t('citizen.viewAll', 'View My Complaints →')}
           </Link>
         </div>
-
-        <div className="grid md:grid-cols-2 gap-4">
-          {complaints.slice(0, 4).map((c) => (
-            <ComplaintCard key={c.id} complaint={c} />
-          ))}
-        </div>
+        {loading ? (
+          <div className="grid md:grid-cols-2 gap-4">
+            <SkeletonCard />
+            <SkeletonCard />
+          </div>
+        ) : (
+          <div className="grid md:grid-cols-2 gap-4">
+            {complaints.slice(0, 4).map((c) => (
+              <ComplaintCard key={c.id} complaint={c} />
+            ))}
+          </div>
+        )}
       </div>
     </div>
   );
@@ -244,6 +251,7 @@ export const ReportIssuePage = () => {
 
   const [aiAnalyzing, setAiAnalyzing] = useState(false);
   const [aiPrediction, setAiPrediction] = useState(null);
+  const [showAnnotatedOverlay, setShowAnnotatedOverlay] = useState(true);
   const [submitting, setSubmitting] = useState(false);
   const [submittedTicket, setSubmittedTicket] = useState(null);
 
@@ -372,25 +380,50 @@ export const ReportIssuePage = () => {
     }
   };
 
-  // Handle file image upload
+  // Handle file image upload with local YOLOv8 Defect Detector
   const handleFileUpload = (e) => {
     const file = e.target.files?.[0];
     if (!file) return;
 
     const reader = new FileReader();
-    reader.onload = () => {
+    reader.onload = async () => {
+      const base64Data = reader.result;
       setFormData((prev) => ({
         ...prev,
-        imageUrl: reader.result,
+        imageUrl: base64Data,
         imageName: file.name,
       }));
-      runAiAnalysis(file.name.replace(/\.[^/.]+$/, ''));
+
+      // Send to local YOLOv8 service
+      setAiAnalyzing(true);
+      const yolo = await detectDefectWithYOLO(file, file.name.replace(/\.[^/.]+$/, ''));
+      if (yolo && yolo.success) {
+        setAiPrediction({
+          category: yolo.category,
+          confidence: yolo.confidence,
+          severity: yolo.severity,
+          slaHours: yolo.sla_hours,
+          assignedDept: yolo.assigned_department,
+          detections: yolo.detections,
+          annotatedImage: yolo.annotated_image,
+          source: 'YOLOv8 Computer Vision',
+        });
+        setFormData((prev) => ({
+          ...prev,
+          category: yolo.category,
+        }));
+        toast.success(`YOLOv8 Detected: ${yolo.category} (${yolo.confidence})`, { icon: '🎯' });
+        setAiAnalyzing(false);
+      } else {
+        // Fallback to text heuristic
+        runAiAnalysis(file.name.replace(/\.[^/.]+$/, ''));
+      }
     };
     reader.readAsDataURL(file);
   };
 
-  // Select sample evidence photo
-  const handleSelectSample = (sample) => {
+  // Select sample evidence photo with YOLOv8 Defect Detection
+  const handleSelectSample = async (sample) => {
     setFormData((prev) => ({
       ...prev,
       imageUrl: sample.url,
@@ -399,13 +432,95 @@ export const ReportIssuePage = () => {
       category: sample.cat,
     }));
     runAiAnalysis(sample.title);
+
+    // Run YOLOv8 on sample photo URL
+    setAiAnalyzing(true);
+    const yolo = await detectDefectWithYOLO(sample.url, sample.title);
+    if (yolo && yolo.success) {
+      setAiPrediction({
+        category: yolo.category,
+        confidence: yolo.confidence,
+        severity: yolo.severity,
+        slaHours: yolo.sla_hours,
+        assignedDept: yolo.assigned_department,
+        detections: yolo.detections,
+        annotatedImage: yolo.annotated_image,
+        source: 'YOLOv8 Computer Vision',
+      });
+      setFormData((prev) => ({
+        ...prev,
+        category: yolo.category,
+      }));
+      toast.success(`YOLOv8 Detected: ${yolo.category} (${yolo.confidence})`, { icon: '🎯' });
+    }
+    setAiAnalyzing(false);
   };
 
-  // Submit Complaint
+  // Submit Complaint with DBSCAN Deduplication
   const handleSubmit = async (e) => {
     e.preventDefault();
     setSubmitting(true);
     try {
+      // 1. Run local DBSCAN geodesic clustering for duplicate detection
+      const allExisting = getStoredComplaints();
+      const dupCheck = await checkDuplicateWithDBSCAN(
+        {
+          latitude: formData.latitude,
+          longitude: formData.longitude,
+          category: formData.category,
+          title: formData.title,
+        },
+        allExisting.map((c) => ({
+          id: c.id,
+          latitude: c.latitude,
+          longitude: c.longitude,
+          category: c.category,
+          title: c.title,
+          status: c.status,
+        })),
+        25.0
+      );
+
+      if (dupCheck && dupCheck.is_duplicate) {
+        const parent = allExisting.find((c) => c.id === dupCheck.parent_complaint_id);
+        if (parent) {
+          // Increment priority and attach citizen report
+          parent.upvoteCount = (parent.upvoteCount || 0) + 1;
+          if (!parent.mergedReports) parent.mergedReports = [];
+          parent.mergedReports.push({
+            reportedAt: new Date().toISOString(),
+            by: user?.name || 'Citizen',
+            landmark: formData.landmark || 'Nearby Street',
+            imageUrl: (aiPrediction?.annotatedImage) || formData.imageUrl,
+          });
+
+          saveStoredComplaints(allExisting);
+
+          // Award +25 karma points for helping prevent municipal duplicate queues
+          try {
+            const currentKarma = Number(localStorage.getItem('kaiser_citizen_karma') || 840) + 25;
+            localStorage.setItem('kaiser_citizen_karma', String(currentKarma));
+          } catch {}
+
+          setSubmittedTicket({
+            ...parent,
+            isMergedDuplicate: true,
+            distanceMeters: dupCheck.distance_meters,
+          });
+
+          await dispatchNotification({
+            title: `Report Consolidated: #${parent.id} Upvoted`,
+            body: `Matched active defect #${parent.id} (${dupCheck.distance_meters}m away). Community priority escalated! (+25 Karma Points)`,
+            type: 'upvote',
+            complaintId: parent.id,
+          });
+
+          toast.success(`DBSCAN Match: Merged into active Ticket #${parent.id} (+25 Karma Points)!`, { icon: '🔄', duration: 5000 });
+          setSubmitting(false);
+          return;
+        }
+      }
+
       const payload = {
         title: formData.title || 'Civic Issue Grievance',
         description: formData.description || 'Reported civic infrastructure defect in Mumbai ward.',
@@ -414,9 +529,10 @@ export const ReportIssuePage = () => {
         longitude: formData.longitude,
         ward: formData.ward,
         landmark: formData.landmark,
-        imageUrl: formData.imageUrl || 'https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=600&q=80',
+        imageUrl: (aiPrediction?.annotatedImage) || formData.imageUrl || 'https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=600&q=80',
         severity: aiPrediction?.severity || 65,
         confidence: aiPrediction?.confidence || '94.0%',
+        duplicateLinkedTo: dupCheck?.is_duplicate ? dupCheck.parent_complaint_id : null,
         createdBy: user ? {
           id: user.id,
           name: user.name,
@@ -433,7 +549,7 @@ export const ReportIssuePage = () => {
       const currentWard = MUMBAI_WARDS.find((w) => w.id === formData.ward) || detectedWardInfo.ward;
       await dispatchNotification({
         title: `Grievance Registered: ${formData.category}`,
-        body: `Ticket #${created.id} was dispatched to ${currentWard.name} (${currentWard.area}). Target SLA: ${aiPrediction?.slaHours || 24}h.`,
+        body: `Ticket #${created.id} was dispatched to ${currentWard.name} (${currentWard.area}). Target SLA: ${aiPrediction?.slaHours || 24}h.${dupCheck?.is_duplicate ? ` (DBSCAN Clustered with #${dupCheck.parent_complaint_id})` : ''}`,
         type: 'status_update',
         complaintId: created.id,
       });
@@ -478,8 +594,19 @@ export const ReportIssuePage = () => {
           </div>
 
           <div>
-            <h2 className="text-2xl font-bold text-neutral-900">{t('citizen.successHeading', 'Grievance Registered Successfully!')}</h2>
-            <p className="text-xs text-neutral-500 mt-1">Ticket ID: <strong className="font-mono text-neutral-800">{submittedTicket.id}</strong></p>
+            <h2 className="text-2xl font-bold text-neutral-900">
+              {submittedTicket.isMergedDuplicate
+                ? 'DBSCAN Geodesic Match: Report Merged & Upvoted!'
+                : t('citizen.successHeading', 'Grievance Registered Successfully!')}
+            </h2>
+            <p className="text-xs text-neutral-500 mt-1">
+              Active Investigation Ticket ID: <strong className="font-mono text-neutral-800">#{submittedTicket.id}</strong>
+            </p>
+            {submittedTicket.isMergedDuplicate && (
+              <div className="mt-2 inline-flex items-center gap-1.5 px-3 py-1 bg-amber-50 border border-amber-200 text-amber-800 rounded-full text-xs font-semibold">
+                <span>🔄 Clustered with issue {submittedTicket.distanceMeters}m away · Priority boosted (+25 Karma Points)</span>
+              </div>
+            )}
           </div>
 
           {/* Grievance Summary Card */}
@@ -701,20 +828,39 @@ export const ReportIssuePage = () => {
             />
 
             {formData.imageUrl ? (
-              /* Image Preview Box */
-              <div className="relative border-2 border-brand-200 bg-brand-50/20 rounded-2xl p-4 flex items-center gap-4">
-                <div className="w-24 h-24 rounded-xl overflow-hidden bg-neutral-200 shrink-0 border border-neutral-200 shadow-sm">
-                  <img src={formData.imageUrl} alt="Uploaded evidence" className="w-full h-full object-cover" />
+              /* Image Preview Box with YOLOv8 Overlay Toggle */
+              <div className="relative border-2 border-brand-200 bg-brand-50/20 rounded-2xl p-4 flex flex-col sm:flex-row items-start sm:items-center gap-4">
+                <div className="relative w-28 h-28 rounded-xl overflow-hidden bg-neutral-900 shrink-0 border border-neutral-300 shadow-md group">
+                  <img
+                    src={showAnnotatedOverlay && aiPrediction?.annotatedImage ? aiPrediction.annotatedImage : formData.imageUrl}
+                    alt="Uploaded evidence"
+                    className="w-full h-full object-cover transition-transform group-hover:scale-105"
+                  />
+                  {showAnnotatedOverlay && aiPrediction?.annotatedImage && (
+                    <span className="absolute bottom-1 right-1 px-1.5 py-0.5 rounded text-[9px] font-mono font-bold bg-black/75 text-emerald-300 border border-emerald-500/30">
+                      YOLOv8 BBox
+                    </span>
+                  )}
                 </div>
                 <div className="flex-1 min-w-0">
-                  <div className="flex items-center gap-1.5 mb-1">
+                  <div className="flex flex-wrap items-center gap-1.5 mb-1">
                     <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-semibold bg-emerald-50 text-emerald-700 border border-emerald-200">
                       <Check size={11} /> Photo Attached
                     </span>
                     <span className="text-[11px] text-neutral-400 truncate">{formData.imageName || 'evidence.jpg'}</span>
                   </div>
                   <p className="text-xs text-neutral-600">Image ready for dispatch. Officer of {currentWardObj.name} will inspect this photo.</p>
-                  <div className="mt-2 flex gap-2">
+                  <div className="mt-2.5 flex flex-wrap items-center gap-2">
+                    {aiPrediction?.annotatedImage && (
+                      <button
+                        type="button"
+                        onClick={() => setShowAnnotatedOverlay(!showAnnotatedOverlay)}
+                        className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg text-[11px] font-semibold bg-brand-600 hover:bg-brand-700 text-white shadow-sm transition-all"
+                      >
+                        <Crosshair size={12} />
+                        {showAnnotatedOverlay ? 'Show Original Photo' : 'Show YOLOv8 BBoxes'}
+                      </button>
+                    )}
                     <button
                       type="button"
                       onClick={() => fileInputRef.current?.click()}
@@ -724,7 +870,10 @@ export const ReportIssuePage = () => {
                     </button>
                     <button
                       type="button"
-                      onClick={() => setFormData((prev) => ({ ...prev, imageUrl: '', imageName: '' }))}
+                      onClick={() => {
+                        setFormData((prev) => ({ ...prev, imageUrl: '', imageName: '' }));
+                        setAiPrediction(null);
+                      }}
                       className="text-[11px] font-semibold text-red-500 hover:underline"
                     >
                       Remove
@@ -810,7 +959,7 @@ export const ReportIssuePage = () => {
           {aiAnalyzing && (
             <div className="p-4 bg-brand-50 rounded-xl flex items-center gap-3 text-xs text-brand-700 animate-pulse border border-brand-100">
               <Sparkles size={18} className="text-brand-600 shrink-0" />
-              <span>Analyzing grievance description and context for automatic categorization...</span>
+              <span>Scanning image & description with local YOLOv8 & NLP engine...</span>
             </div>
           )}
 
@@ -820,6 +969,11 @@ export const ReportIssuePage = () => {
                 <span className="flex items-center gap-1.5">
                   <Sparkles size={14} className="text-emerald-600" />
                   AI Triage & Urgency Evaluation
+                  {aiPrediction.source && (
+                    <span className="ml-1.5 px-2 py-0.5 rounded-full text-[10px] bg-brand-600 text-white font-mono uppercase">
+                      {aiPrediction.source}
+                    </span>
+                  )}
                 </span>
                 <span className="bg-emerald-100 text-emerald-800 px-2 py-0.5 rounded text-[11px]">
                   Confidence: {aiPrediction.confidence}
@@ -831,6 +985,12 @@ export const ReportIssuePage = () => {
                 <div>Urgency Score: <strong className="text-red-600">{aiPrediction.severity}/100</strong></div>
                 <div>Target SLA: <strong>{aiPrediction.slaHours} Hours</strong></div>
               </div>
+              {aiPrediction.detections && aiPrediction.detections.length > 0 && (
+                <div className="pt-2 border-t border-emerald-200/60 flex items-center justify-between text-[11px] text-emerald-900">
+                  <span>Detected Object Boxes: <strong>{aiPrediction.detections.length} region(s) identified</strong></span>
+                  <span className="text-emerald-700 font-medium">BBox coordinates sealed</span>
+                </div>
+              )}
             </div>
           )}
 
@@ -853,13 +1013,18 @@ export const MyComplaintsPage = () => {
   const { t } = useLanguage();
   const { user } = useAuth();
   const [complaints, setComplaints] = useState([]);
+  const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState('ALL');
   const [viewScope, setViewScope] = useState('mine'); // 'mine' | 'ward'
 
   useEffect(() => {
     async function load() {
-      const res = await getComplaints();
-      setComplaints(res.data || []);
+      try {
+        const res = await getComplaints();
+        setComplaints(res.data || []);
+      } finally {
+        setLoading(false);
+      }
     }
     load();
   }, []);
@@ -948,11 +1113,24 @@ export const MyComplaintsPage = () => {
         </button>
       </div>
 
-      <div className="grid md:grid-cols-2 gap-4">
-        {filtered.map((c) => (
-          <ComplaintCard key={c.id} complaint={c} />
-        ))}
-      </div>
+      {loading ? (
+        <div className="grid md:grid-cols-2 gap-4">
+          <SkeletonCard />
+          <SkeletonCard />
+          <SkeletonCard />
+          <SkeletonCard />
+        </div>
+      ) : filtered.length === 0 ? (
+        <div className="text-center py-12 bg-white rounded-2xl border border-neutral-200">
+          <p className="text-sm text-neutral-500 font-medium">No complaints found in this category.</p>
+        </div>
+      ) : (
+        <div className="grid md:grid-cols-2 gap-4">
+          {filtered.map((c) => (
+            <ComplaintCard key={c.id} complaint={c} />
+          ))}
+        </div>
+      )}
     </div>
   );
 };
@@ -1023,11 +1201,15 @@ export const IssueMapPage = () => {
 
       {/* Map Container */}
       <div className="relative">
-        <LeafletMap
-          complaints={filteredComplaints}
-          height="550px"
-          zoom={12}
-        />
+        {loading ? (
+          <Skeleton className="w-full h-[550px] rounded-2xl" />
+        ) : (
+          <LeafletMap
+            complaints={filteredComplaints}
+            height="550px"
+            zoom={12}
+          />
+        )}
 
         {/* Floating Legend */}
         <div className="absolute bottom-4 left-4 right-4 z-[1000] bg-white/95 backdrop-blur-md p-4 rounded-xl shadow-soft-xl border border-neutral-200/80 flex flex-wrap items-center justify-between gap-4">

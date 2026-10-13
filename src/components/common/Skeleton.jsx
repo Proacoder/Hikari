@@ -2,7 +2,7 @@
 import { classNames } from '../../utils/formatters';
 
 export const Skeleton = ({ className = '', ...props }) => (
-  <div className={classNames('skeleton', className)} {...props} />
+  <div className={classNames('animate-pulse bg-neutral-200/80 rounded-md', className)} {...props} />
 );
 
 export const SkeletonCard = () => (

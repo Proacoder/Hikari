@@ -1,23 +1,23 @@
 import React, { useState, useEffect, useMemo, useCallback } from 'react';
-import { useParams, useLocation, useNavigate, Link } from 'react-router-dom';
+import { useParams, useLocation, useNavigate } from 'react-router-dom';
 import {
   Clock, AlertTriangle, CheckCircle2, Shield, Search,
-  TrendingUp, MapPin, FileText, Activity, Award, Star,
-  Thermometer, Bell, User, RefreshCw, Eye,
-  ThumbsUp, MessageSquare, Calendar, Building2,
+  TrendingUp, FileText, Activity, Award, Star,
+  Thermometer, User, RefreshCw, Eye,
+  ThumbsUp, Calendar, Building2,
   Phone, Mail, BadgeCheck, Target,
-  ArrowUp, ArrowDown, Minus, ChevronRight,
-  Image as ImageIcon, X, ZoomIn, Check, Sparkles
+  Image as ImageIcon, X, ZoomIn, Sparkles
 } from 'lucide-react';
 import { getComplaints, updateComplaint } from '../api/complaints.api';
 import { getWeatherAQI } from '../api/weather.api';
 import { MUMBAI_WARDS, MOCK_OFFICERS, OFFICER_PERFORMANCE } from '../utils/mockData';
-import { StatusBadge, SeverityBadge, CategoryIcon } from '../components/complaints/ComplaintComponents';
+import { StatusBadge, SeverityBadge } from '../components/complaints/ComplaintComponents';
 import { Button } from '../components/common/Button';
 import { Card } from '../components/common/Card';
 import { Badge } from '../components/common/Badge';
 import { Modal } from '../components/common/Modal';
 import { LeafletMap } from '../components/map/LeafletMap';
+import { SkeletonKpiCard, SkeletonRow } from '../components/common/Skeleton';
 import { useAuth } from '../context/AuthContext';
 import { FieldInspectionModal } from '../components/officer/FieldInspectionModal';
 import {
@@ -64,7 +64,7 @@ const CategoryDonut = ({ data }) => (
     <PieChart>
       <Pie data={data} cx="50%" cy="50%" innerRadius={50} outerRadius={80}
         paddingAngle={3} dataKey="value" nameKey="name"
-        label={({ name, percent }) => `${(percent * 100).toFixed(0)}%`}
+        label={({ percent }) => `${(percent * 100).toFixed(0)}%`}
         labelLine={false} style={{ fontSize: 10 }}>
         {data.map((entry, i) => <Cell key={i} fill={entry.fill} />)}
       </Pie>
@@ -726,11 +726,21 @@ export const OfficerDashboard = ({ activeTabOverride }) => {
   const grad = DEPT_GRADIENT[officerProfile?.department] || 'from-brand-500 to-blue-600';
 
   if (loading) return (
-    <div className="flex items-center justify-center h-64">
-      <div className="text-center space-y-3">
-        <div className="w-10 h-10 border-3 border-brand-200 border-t-brand-600 rounded-full animate-spin mx-auto" />
-        <p className="text-sm text-neutral-500 font-medium">Loading ward grievances for {officerProfile?.name}…</p>
+    <div className="space-y-6 max-w-7xl mx-auto">
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+        <SkeletonKpiCard />
+        <SkeletonKpiCard />
+        <SkeletonKpiCard />
+        <SkeletonKpiCard />
       </div>
+      <Card className="p-6 bg-white border-neutral-200 shadow-sm" padding="">
+        <div className="space-y-4">
+          <SkeletonRow />
+          <SkeletonRow />
+          <SkeletonRow />
+          <SkeletonRow />
+        </div>
+      </Card>
     </div>
   );
 

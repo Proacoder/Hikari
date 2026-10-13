@@ -8,6 +8,7 @@ import { useLanguage } from '../../context/LanguageContext';
 import { useNotifications } from '../../context/NotificationContext';
 import { useAuth } from '../../context/AuthContext';
 import { getStoredComplaints, createComplaint } from '../../api/complaints.api';
+import { queryAssistantChat } from '../../api/ml.api';
 import { MUMBAI_WARDS, MOCK_OFFICERS } from '../../utils/mockData';
 import { findClosestWard, analyzeComplaintDynamic } from '../../utils/geoUtils';
 import toast from 'react-hot-toast';
@@ -224,6 +225,29 @@ Would you like me to register this ticket immediately for **${closest.ward.name}
       };
     }
 
+    // Check 5: Query Live Multilingual AI Intelligence Service (Gemini 1.5 Flash / Civic Assistant Engine)
+    try {
+      const mlChat = await queryAssistantChat(queryText, language, user?.ward || 8);
+      if (mlChat && mlChat.reply) {
+        setIsTyping(false);
+        return {
+          id: `msg-${Date.now()}`,
+          sender: 'ai',
+          text: mlChat.reply,
+          sourceBadge: mlChat.source || 'Kaiser AI Assistant',
+          chips: [
+            '🚨 Report an Issue',
+            '🔍 Track Complaint #cmp-001',
+            '📍 Find My Ward Officer',
+            '📞 Emergency Contacts',
+          ],
+          timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+        };
+      }
+    } catch (err) {
+      // Fallback to client response below
+    }
+
     // Default Fallback
     setIsTyping(false);
     return {
@@ -424,6 +448,12 @@ You can track its progress anytime here or in the **My Complaints** portal.`,
                     }`}
                   >
                     {m.text}
+                    {m.sourceBadge && (
+                      <div className="mt-2 pt-1.5 border-t border-neutral-100 flex items-center gap-1 text-[10px] text-brand-600 font-semibold font-mono">
+                        <Sparkles size={11} className="text-amber-500" />
+                        <span>{m.sourceBadge}</span>
+                      </div>
+                    )}
                   </div>
 
                   {/* Render Ticket Card if present */}

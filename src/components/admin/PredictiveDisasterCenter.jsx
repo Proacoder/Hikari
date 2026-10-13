@@ -5,11 +5,13 @@ import {
   RefreshCw, Zap, Bell, Navigation, Siren, Building2
 } from 'lucide-react';
 import toast from 'react-hot-toast';
+import { predictMonsoonRiskML } from '../../api/ml.api';
 
 export const PredictiveDisasterCenter = () => {
   const [simulationActive, setSimulationActive] = useState(false);
   const [mobilizing, setMobilizing] = useState(false);
   const [deployedTeams, setDeployedTeams] = useState(8);
+  const [mlInference, setMlInference] = useState(null);
 
   // Ward vulnerability states
   const wards = [
@@ -38,12 +40,19 @@ export const PredictiveDisasterCenter = () => {
     }, 1000);
   };
 
-  const toggleSimulation = () => {
+  const toggleSimulation = async () => {
     const nextState = !simulationActive;
     setSimulationActive(nextState);
     if (nextState) {
       toast.error('Simulation: Extreme Cloudburst Event (100mm/hr) Triggered on Model!');
+      // Call local ML endpoint for Hindmata Ward F/N
+      const res = await predictMonsoonRiskML('F/N', 100.0, 4.8, 3.9);
+      if (res) {
+        setMlInference(res);
+        toast(`ML Model Alert: ${res.alert_level} (${res.protocol})`, { icon: '🌊', duration: 5000 });
+      }
     } else {
+      setMlInference(null);
       toast.success('Model returned to Live Sensor Baseline.');
     }
   };

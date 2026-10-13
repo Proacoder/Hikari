@@ -70,21 +70,49 @@ export const ContactPage = () => {
     if (found) {
       setTrackResult(found);
       setTrackError(false);
-    } else {
-      // Genuine error state: ticket not found in registry (no fake simulations)
-      setTrackError(true);
-      setTrackResult(null);
+      return;
     }
+
+    try {
+      const allInquiries = JSON.parse(localStorage.getItem('kaiser_inquiries_store') || '[]');
+      const foundInquiry = allInquiries.find((i) => i.refNumber?.toLowerCase() === cleanId);
+      if (foundInquiry) {
+        setTrackResult({
+          id: foundInquiry.refNumber,
+          title: `Escalation: ${foundInquiry.category}`,
+          category: foundInquiry.category,
+          status: 'in_progress',
+          createdAt: foundInquiry.timestamp,
+          wardName: foundInquiry.ward,
+          severity: foundInquiry.urgency === 'High' ? 85 : 60,
+          description: foundInquiry.message,
+        });
+        setTrackError(false);
+        return;
+      }
+    } catch {}
+
+    setTrackError(true);
+    setTrackResult(null);
   };
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    const refNum = `KSR-2025-${Math.floor(1000 + Math.random() * 9000)}`;
-    setSubmittedData({
+    const refNum = `KSR-2026-${Math.floor(1000 + Math.random() * 9000)}`;
+    const newInquiry = {
       refNumber: refNum,
       ...formData,
+      status: 'Escalation Under Review',
       timestamp: new Date().toLocaleString('en-IN', { timeZone: 'Asia/Kolkata' })
-    });
+    };
+    setSubmittedData(newInquiry);
+
+    try {
+      const existing = JSON.parse(localStorage.getItem('kaiser_inquiries_store') || '[]');
+      localStorage.setItem('kaiser_inquiries_store', JSON.stringify([newInquiry, ...existing]));
+    } catch (err) {
+      console.warn(err);
+    }
   };
 
   const handleCopyRef = () => {
