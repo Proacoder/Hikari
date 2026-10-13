@@ -107,11 +107,7 @@ export const CitizenDashboard = () => {
               {t('nav.reportIssue', 'Report Issue Now')}
             </Button>
           </Link>
-          <Link to="/officer-login">
-            <Button variant="outline" size="lg" icon={Shield} className="whitespace-nowrap border-white/30 text-white hover:bg-white/10">
-              Officer Login
-            </Button>
-          </Link>
+
         </div>
       </div>
 
