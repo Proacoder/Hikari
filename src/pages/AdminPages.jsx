@@ -145,7 +145,7 @@ export const AdminDashboard = () => {
         setWeather(weatherRes.data || null);
         setMapComplaints(complaintsRes.data || []);
       } catch (err) {
-        console.error(err);
+        console.error('Failed to load admin dashboard data:', err);
       } finally {
         setLoading(false);
       }

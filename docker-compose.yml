@@ -1,0 +1,54 @@
+services:
+  # ── Kaiser AI Unified Web & ML Platform ─────────────────────────────────────
+  web:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: kaiser_ai_platform
+    ports:
+      - "5000:5000"
+    environment:
+      - PORT=5000
+      - DATABASE_URL=postgresql://kaiser_user:kaiser_secure_pass@db:5432/kaiser_civic
+      - REDIS_URL=redis://redis:6379/0
+      - YOLO_WEIGHTS=/app/backend/yolov8n.pt
+      - JWT_SECRET=kaiser_jwt_secret_key_2026_mumbai_civic
+    volumes:
+      - grievance_uploads:/app/backend/uploads
+    depends_on:
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_started
+    restart: unless-stopped
+
+  # ── PostgreSQL with PostGIS Spatial Extensions ──────────────────────────────
+  db:
+    image: postgis/postgis:16-3.4
+    container_name: kaiser_postgis_db
+    ports:
+      - "5432:5432"
+    environment:
+      - POSTGRES_USER=kaiser_user
+      - POSTGRES_PASSWORD=kaiser_secure_pass
+      - POSTGRES_DB=kaiser_civic
+    volumes:
+      - postgis_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U kaiser_user -d kaiser_civic"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+    restart: unless-stopped
+
+  # ── Redis Cache & Queue ─────────────────────────────────────────────────────
+  redis:
+    image: redis:7-alpine
+    container_name: kaiser_redis
+    ports:
+      - "6379:6379"
+    restart: unless-stopped
+
+volumes:
+  postgis_data:
+  grievance_uploads:

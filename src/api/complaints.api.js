@@ -60,23 +60,34 @@ export const getComplaintById = async (id) => {
 // POST /api/complaints (multipart or json)
 export const createComplaint = async (formData) => {
   if (MOCK_MODE) {
-    await mockDelay(600);
-    const uploadedImage = formData.get
-      ? formData.get('imageUrl') || formData.get('image')
-      : (formData.imageUrl || formData.image);
+    await mockDelay();
+    const uploadedImage = (typeof formData.get === 'function' && (formData.get('imageUrl') || formData.get('image')))
+      || (formData.imageUrl || formData.image);
     const defaultImg = 'https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=600&q=80';
 
-    const lat = Number(formData.get ? (formData.get('latitude') || formData.get('lat')) : (formData.latitude || formData.lat)) || 19.076;
-    const lng = Number(formData.get ? (formData.get('longitude') || formData.get('lng')) : (formData.longitude || formData.lng)) || 72.877;
-    const wardId = Number(formData.get ? formData.get('ward') : formData.ward) || 1;
-    const landmark = formData.get ? formData.get('landmark') : (formData.landmark || '');
+    const lat = (typeof formData.get === 'function'
+      ? Number(formData.get('latitude') || formData.get('lat'))
+      : (formData.latitude || formData.lat)) || 19.076;
+    const lng = (typeof formData.get === 'function'
+      ? Number(formData.get('longitude') || formData.get('lng'))
+      : (formData.longitude || formData.lng)) || 72.877;
+    const wardId = (typeof formData.get === 'function'
+      ? Number(formData.get('ward'))
+      : formData.ward) || 1;
+    const landmark = (typeof formData.get === 'function' && formData.get('landmark'))
+      || (formData.landmark || '');
 
     const newComplaint = {
       id: `cmp-${Date.now()}`,
-      title: formData.get ? formData.get('title') : formData.title,
-      description: formData.get ? formData.get('description') : formData.description,
-      category: formData.get ? formData.get('category') : formData.category,
-      severity: Number(formData.severity) || Math.floor(Math.random() * 30) + 55,
+      title: (typeof formData.get === 'function' && formData.get('title'))
+        || formData.title,
+      description: (typeof formData.get === 'function' && formData.get('description'))
+        || formData.description,
+      category: (typeof formData.get === 'function' && formData.get('category'))
+        || formData.category,
+      severity: (typeof formData.get === 'function' && formData.get('severity'))
+        ? Number(formData.get('severity'))
+        : (Number(formData.severity) || Math.floor(Math.random() * 30) + 55),
       latitude: lat,
       longitude: lng,
       ward: wardId,
@@ -102,8 +113,13 @@ export const createComplaint = async (formData) => {
       createdAt: new Date().toISOString(),
       resolvedAt: null,
       aiAnalysis: {
-        categoryDetected: formData.get ? formData.get('category') : formData.category,
-        confidence: formData.confidence ? parseFloat(formData.confidence) / 100 : 0.94,
+        categoryDetected: (typeof formData.get === 'function' && formData.get('category'))
+          || formData.category,
+        confidence: formData.confidence
+          ? (parseFloat(formData.confidence) > 1
+            ? parseFloat(formData.confidence) / 100
+            : parseFloat(formData.confidence))
+          : 0.94,
         aqiAtLocation: 112,
         weatherCondition: 'Partly cloudy',
       },
@@ -135,6 +151,7 @@ export const updateComplaint = async (id, payload) => {
       if (mIdx >= 0) Object.assign(MOCK_COMPLAINTS[mIdx], payload);
       return successResponse(currentList[idx]);
     }
+    // If complaint not found in storage, still return success but don't modify MOCK_COMPLAINTS
     return successResponse({ id, ...payload });
   }
   const res = await apiClient.patch(`/complaints/${id}`, payload);
@@ -144,7 +161,7 @@ export const updateComplaint = async (id, payload) => {
 // GET /api/complaints/map
 export const getMapData = async (filters = {}) => {
   if (MOCK_MODE) {
-    await mockDelay(500);
+    await mockDelay();
     const complaints = getStoredComplaints();
     return successResponse(
       complaints.map((c) => ({
@@ -168,7 +185,7 @@ export const getMapData = async (filters = {}) => {
 // POST /api/complaints/:id/upvote
 export const upvoteComplaint = async (id) => {
   if (MOCK_MODE) {
-    await mockDelay(300);
+    await mockDelay();
     const complaints = getStoredComplaints();
     const c = complaints.find((x) => x.id === id);
     if (c) {
@@ -186,7 +203,7 @@ export const upvoteComplaint = async (id) => {
 // GET /api/complaints/:id/comments
 export const getComments = async (id) => {
   if (MOCK_MODE) {
-    await mockDelay(400);
+    await mockDelay();
     return successResponse(MOCK_COMMENTS[id] || []);
   }
   const res = await apiClient.get(`/complaints/${id}/comments`);
@@ -196,7 +213,7 @@ export const getComments = async (id) => {
 // POST /api/complaints/:id/comments
 export const addComment = async (id, { text, author }) => {
   if (MOCK_MODE) {
-    await mockDelay(500);
+    await mockDelay();
     const sessionUser = getCurrentSessionUser();
     const authorObj = author || (sessionUser ? {
       id: sessionUser.id,

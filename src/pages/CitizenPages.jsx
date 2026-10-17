@@ -4,7 +4,7 @@ import toast from 'react-hot-toast';
 import {
   AlertTriangle, MapPin, Camera, Sparkles, CheckCircle2,
   Navigation, CloudRain, Wind, Thermometer, Eye,
-  Crosshair, MessageSquare, ChevronRight
+  Crosshair
 } from 'lucide-react';
 import { getComplaints, createComplaint, getMapData, getStoredComplaints, saveStoredComplaints } from '../api/complaints.api';
 import { getWeatherAQI } from '../api/weather.api';
@@ -76,7 +76,7 @@ export const CitizenDashboard = () => {
         setComplaints(res.data || []);
         setWeather(weatherRes.data || null);
       } catch (err) {
-        console.error(err);
+        console.error('Failed to load dashboard data:', err);
       } finally {
         setLoading(false);
       }
@@ -534,7 +534,7 @@ export const ReportIssuePage = () => {
 
       toast.success(t('citizen.successHeading', 'Grievance Registered Successfully!'));
     } catch (err) {
-      console.error(err);
+      console.error('Failed to submit complaint:', err);
       toast.error('Failed to submit grievance. Please try again.');
     } finally {
       setSubmitting(false);
@@ -654,27 +654,6 @@ export const ReportIssuePage = () => {
         </p>
       </div>
 
-      {/* BMC WhatsApp Quick Helpline Banner */}
-      <div className="p-4 bg-gradient-to-r from-emerald-50 via-teal-50 to-emerald-50 border border-emerald-200/90 rounded-2xl flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 shadow-xs">
-        <div className="flex items-center gap-3">
-          <div className="w-10 h-10 rounded-xl bg-emerald-600 text-white flex items-center justify-center shrink-0 shadow-sm">
-            <MessageSquare size={19} />
-          </div>
-          <div>
-            <span className="text-xs font-bold text-emerald-950 block">Prefer reporting via WhatsApp?</span>
-            <p className="text-[11px] text-emerald-700 leading-snug">Official BMC Aaple Sarkar Chatbot (+91 91677 22222) handles instant photo & GPS grievance registration directly from WhatsApp.</p>
-          </div>
-        </div>
-        <a
-          href="https://wa.me/919167722222?text=Hi%20BMC%20Kaiser%20AI%2C%20I%20want%20to%20report%20a%20civic%20grievance%20in%20Mumbai."
-          target="_blank"
-          rel="noopener noreferrer"
-          className="shrink-0 px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-xs font-bold shadow-xs transition-colors cursor-pointer flex items-center gap-1.5"
-        >
-          <span>Chat on WhatsApp</span>
-          <ChevronRight size={13} />
-        </a>
-      </div>
 
       <Card className="p-6 space-y-6 shadow-soft-md bg-white border-neutral-200" padding="">
         <form onSubmit={handleSubmit} className="space-y-5">
@@ -1121,7 +1100,7 @@ export const IssueMapPage = () => {
         const res = await getMapData();
         setMapComplaints(res.data || []);
       } catch (err) {
-        console.error(err);
+        console.error('Failed to load map data:', err);
       } finally {
         setLoading(false);
       }

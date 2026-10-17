@@ -6,7 +6,7 @@ let _notifications = Array.isArray(MOCK_NOTIFICATIONS) ? [...MOCK_NOTIFICATIONS]
 // GET /api/notifications
 export const getNotifications = async () => {
   if (MOCK_MODE) {
-    await mockDelay(250);
+    await mockDelay();
     return successResponse([..._notifications]);
   }
   const res = await apiClient.get('/notifications');
@@ -16,7 +16,7 @@ export const getNotifications = async () => {
 // PATCH /api/notifications/:id/read
 export const markAsRead = async (id) => {
   if (MOCK_MODE) {
-    await mockDelay(150);
+    await mockDelay();
     const n = _notifications.find((x) => x.id === id);
     if (n) n.isRead = true;
     return successResponse(n);
@@ -28,7 +28,7 @@ export const markAsRead = async (id) => {
 // PATCH /api/notifications/read-all
 export const markAllAsRead = async () => {
   if (MOCK_MODE) {
-    await mockDelay(200);
+    await mockDelay();
     _notifications.forEach((n) => (n.isRead = true));
     return successResponse({ message: 'All notifications marked as read' });
   }
@@ -39,7 +39,7 @@ export const markAllAsRead = async () => {
 // POST /api/notifications (Dispatch a new notification locally or to server)
 export const createNotification = async (payload) => {
   if (MOCK_MODE) {
-    await mockDelay(100);
+    await mockDelay();
     const newNotif = {
       id: `notif-${Date.now()}-${Math.floor(Math.random() * 1000)}`,
       type: payload.type || 'status_update',
@@ -59,7 +59,7 @@ export const createNotification = async (payload) => {
 // DELETE /api/notifications/:id
 export const deleteNotification = async (id) => {
   if (MOCK_MODE) {
-    await mockDelay(150);
+    await mockDelay();
     _notifications = _notifications.filter((n) => n.id !== id);
     return successResponse({ success: true, id });
   }

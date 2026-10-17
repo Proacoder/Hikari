@@ -25,10 +25,22 @@ dist-ssr
 
 # Python & ML
 .venv/
+venv/
+**/venv/
+**/.venv/
 **/__pycache__/
 *.pyc
 *.pt
 *.onnx
 ml_service/.venv/
 ml_service/models/*.pt
+
+# Database & local data
+*.db
+*.sqlite
+*.sqlite3
+
+# Temporary / Extracted directories
+Hikari-main/
+
 

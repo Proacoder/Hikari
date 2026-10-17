@@ -289,15 +289,15 @@ const ComplaintRow = ({ item, onView, onInspect }) => (
 // ── Profile Tab ────────────────────────────────────────────────────────────────
 const ProfileTab = ({ officer }) => {
   if (!officer) return null;
-  const deptCls = {
+  const deptCls = officer && officer.department ? {
     'Roads & Infrastructure': 'bg-amber-50 text-amber-700 border-amber-200',
     'Sanitation':             'bg-emerald-50 text-emerald-700 border-emerald-200',
     'Water Supply':           'bg-sky-50 text-sky-700 border-sky-200',
     'Electrical':             'bg-yellow-50 text-yellow-700 border-yellow-200',
     'Building & Permits':     'bg-purple-50 text-purple-700 border-purple-200',
-  }[officer.department] || 'bg-neutral-100 text-neutral-600 border-neutral-200';
+  }[officer.department] || 'bg-neutral-100 text-neutral-600 border-neutral-200' : 'bg-neutral-100 text-neutral-600 border-neutral-200';
 
-  const grad = DEPT_GRADIENT[officer.department] || 'from-brand-500 to-blue-600';
+  const grad = officer && officer.department ? DEPT_GRADIENT[officer.department] : 'from-brand-500 to-blue-600';
 
   return (
     <div className="space-y-5">

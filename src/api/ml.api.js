@@ -1,9 +1,9 @@
 /**
- * Kaiser AI Local ML Service Client (FastAPI on http://localhost:5001)
+ * Kaiser AI Unified ML Service Client (FastAPI on http://localhost:5000)
  * Integrates YOLOv8 defect detection, DBSCAN spatial deduplication, and monsoon risk forecasting.
  */
 
-const ML_SERVICE_URL = import.meta.env.VITE_ML_SERVICE_URL || 'http://localhost:5001/api/ml';
+const ML_SERVICE_URL = import.meta.env.VITE_ML_SERVICE_URL || 'http://localhost:5000/api/ml';
 
 
 /**

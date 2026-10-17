@@ -78,7 +78,12 @@ export const login = async ({ email, password }) => {
   }
 
   const res = await apiClient.post('/auth/login', { email, password });
-  if (res.data.data?.token) localStorage.setItem('kaiser_token', res.data.data.token);
+  if (res.data.data?.token) {
+    localStorage.setItem('kaiser_token', res.data.data.token);
+    if (res.data.data?.user) {
+      localStorage.setItem('kaiser_user', JSON.stringify(res.data.data.user));
+    }
+  }
   return res.data;
 };
 
@@ -125,6 +130,12 @@ export const register = async (payload) => {
     return successResponse({ user, token });
   }
   const res = await apiClient.post('/auth/register', payload);
+  if (res.data.data?.token) {
+    localStorage.setItem('kaiser_token', res.data.data.token);
+    if (res.data.data?.user) {
+      localStorage.setItem('kaiser_user', JSON.stringify(res.data.data.user));
+    }
+  }
   return res.data;
 };
 
@@ -173,6 +184,9 @@ export const verifyToken = async () => {
     return successResponse({ user: MOCK_USERS.citizen });
   }
   const res = await apiClient.get('/auth/verify');
+  if (res.data.data?.user) {
+    localStorage.setItem('kaiser_user', JSON.stringify(res.data.data.user));
+  }
   return res.data;
 };
 
@@ -183,7 +197,7 @@ export const logout = async () => {
   localStorage.removeItem('kaiser_citizen_id');
   localStorage.removeItem('kaiser_user');
   if (MOCK_MODE) {
-    await mockDelay(200);
+    await mockDelay();
     return successResponse({ message: 'Logged out' });
   }
   const res = await apiClient.post('/auth/logout');

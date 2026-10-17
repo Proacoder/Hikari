@@ -94,51 +94,53 @@ graph TD
 
 ## 🚀 Quick Start
 
-### Prerequisites
-- **Node.js**: v18.0.0 or higher
-- **npm** or **pnpm** / **yarn**
-
-### 1. Clone & Install
+### Option A: Unified Docker Deployment (Recommended)
+Launch the complete platform with PostgreSQL 16 + PostGIS, Redis, Python FastAPI, YOLOv8 vision engine, and compiled React SPA in one command:
 ```bash
-# Clone the repository
-git clone https://github.com/your-username/hikari.git
-cd hikari
+docker compose up -d --build
+```
+- Web Application & API: `http://localhost:5000`
+- API Documentation (Swagger): `http://localhost:5000/docs`
+- PostGIS Database: `localhost:5432`
 
-# Install dependencies
+---
+
+### Option B: Local Development
+
+#### 1. Frontend Setup
+```bash
 npm install
-```
-
-### 2. Environment Configuration
-Create a `.env` file in the root directory (refer to `.env.example`):
-```env
-VITE_API_URL=http://localhost:5000/api
-VITE_WEATHER_API_KEY=your_openweather_key
-VITE_GOOGLE_CLIENT_ID=your_google_oauth_client_id
-```
-
-### 3. Run Development Server
-```bash
 npm run dev
 ```
-The app will spin up locally at `http://localhost:5173`.
+Spins up the Vite development server at `http://localhost:5173`.
 
-### 4. Build for Production
+#### 2. Unified Python FastAPI & AI Backend
 ```bash
-npm run build
-npm run preview
+# Install backend dependencies
+pip install -r backend/requirements.txt
+
+# Run unified backend (Auth + Grievance + Wards + YOLOv8 + PostGIS/SQLite)
+python backend/app.py
+```
+Backend runs on `http://localhost:5000`.
+
+#### 3. Run Automated End-to-End Validation
+```bash
+python backend/test_e2e.py
 ```
 
 ---
 
 ## 🔑 Default Demo Credentials
 
-For quick local evaluation without setting up an external backend database, use the pre-configured role presets on the **[Sign In](/login)** page:
+For quick local evaluation without setting up an external backend database, use the pre-configured role presets:
 
 | Role | Preset Email | Password | Assigned Scope |
 | :--- | :--- | :--- | :--- |
-| **Citizen** | `citizen@kaiser.gov.in` | `password123` | Individual Submissions & Ward 1 |
-| **Ward Officer** | `officer@kaiser.gov.in` | `password123` | K/E Ward (Andheri East) Queue |
-| **BMC Administrator** | `admin@kaiser.gov.in` | `password123` | City-Wide Access (All 26 Wards) |
+| **Citizen** | `priya.nair@example.com` | `Citizen@123` | Individual Submissions & Ward 8 |
+| **Citizen 2** | `aarav.sharma@example.com` | `Citizen@456` | Individual Submissions & Ward 12 |
+| **Ward Officer** | `suresh.patil@bmc.gov.in` | `BandraN@2024` | G/N Ward (Bandra North) Field Desk |
+| **BMC Administrator** | `r.mehta@bmc.gov.in` | `Admin@2024` | Municipal Commissioner (All 26 Wards) |
 
 *(You can also click the quick-fill role tabs directly on the `/login` screen)*
 

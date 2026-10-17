@@ -32,6 +32,10 @@ apiClient.interceptors.response.use(
     if (err.response?.status === 401) {
       window.dispatchEvent(new CustomEvent('kaiser:unauthorized'));
     }
+    const backendMessage = err.response?.data?.detail || err.response?.data?.message || err.response?.data?.error;
+    if (backendMessage) {
+      err.message = typeof backendMessage === 'string' ? backendMessage : JSON.stringify(backendMessage);
+    }
     return Promise.reject(err);
   }
 );

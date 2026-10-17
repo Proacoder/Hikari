@@ -106,16 +106,26 @@ export const LeafletMap = ({
       mapInstanceRef.current = map;
 
       // Handle map clicks in picker mode
+      let clickHandler = null;
       if (pickerMode && onPositionChange) {
-        map.on('click', (e) => {
+        clickHandler = (e) => {
           const { lat, lng } = e.latlng;
           onPositionChange({ lat, lng });
-        });
+        };
+        map.on('click', clickHandler);
       }
+
+      // Store click handler for cleanup
+      mapInstanceRef.current._pickerClickHandler = clickHandler;
     }
 
     return () => {
       if (mapInstanceRef.current) {
+        // Remove picker mode click handler if it exists
+        if (mapInstanceRef.current._pickerClickHandler) {
+          mapInstanceRef.current.off('click', mapInstanceRef.current._pickerClickHandler);
+          mapInstanceRef.current._pickerClickHandler = null;
+        }
         mapInstanceRef.current.remove();
         mapInstanceRef.current = null;
       }
@@ -170,7 +180,7 @@ export const LeafletMap = ({
         `;
 
         marker.bindPopup(popupContent, { maxWidth: 280, className: 'kaiser-map-popup' });
-        
+
         if (onComplaintClick) {
           marker.on('click', () => onComplaintClick(c));
         }
