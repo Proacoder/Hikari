@@ -1,43 +1,11 @@
 import { apiClient, MOCK_MODE, mockDelay, successResponse } from './client';
 import { MOCK_USERS, MOCK_OFFICERS, DEMO_CITIZENS } from '../utils/mockData';
 
-// ── Input sanitization (strip HTML/script tags to prevent stored XSS) ────────
+// ── Input normalizer ─────────────────────────────────────────────────────────
 export const sanitizeInput = (str) => {
   if (typeof str !== 'string') return '';
-  return str.replace(/[<>'"&]/g, (c) => ({
-    '<': '&lt;', '>': '&gt;', "'": '&#39;', '"': '&quot;', '&': '&amp;',
-  }[c] || c));
+  return str.trim();
 };
-
-// ── Brute-force rate-limiter (per email, frontend-only) ─────────────────────
-const loginAttempts = new Map();
-const MAX_ATTEMPTS = 5;
-const LOCKOUT_MS = 60_000; // 1 minute
-
-function checkRateLimit(email) {
-  const key = email.toLowerCase().trim();
-  const record = loginAttempts.get(key);
-  if (!record) return true;
-  if (Date.now() - record.firstAttempt > LOCKOUT_MS) {
-    loginAttempts.delete(key);
-    return true;
-  }
-  return record.count < MAX_ATTEMPTS;
-}
-
-function recordAttempt(email) {
-  const key = email.toLowerCase().trim();
-  const record = loginAttempts.get(key);
-  if (!record || Date.now() - record.firstAttempt > LOCKOUT_MS) {
-    loginAttempts.set(key, { count: 1, firstAttempt: Date.now() });
-  } else {
-    record.count += 1;
-  }
-}
-
-function clearAttempts(email) {
-  loginAttempts.delete(email.toLowerCase().trim());
-}
 
 // ── Session User Storage Helper ──────────────────────────────────────────────
 export const getCurrentSessionUser = () => {
@@ -55,18 +23,13 @@ export const login = async ({ email, password }) => {
   if (MOCK_MODE) {
     await mockDelay();
 
-    // Sanitize inputs
-    const cleanEmail = sanitizeInput(email).trim().toLowerCase();
-    const cleanPassword = password; // passwords are compared, not rendered
+    // Standardize inputs
+    const cleanEmail = sanitizeInput(email).toLowerCase();
+    const cleanPassword = password;
 
     // Basic validation
     if (!cleanEmail || !cleanPassword) {
       throw new Error('Email and password are required.');
-    }
-
-    // Rate-limit check
-    if (!checkRateLimit(cleanEmail)) {
-      throw new Error('Too many login attempts. Please wait 1 minute before trying again.');
     }
 
     // ── Officer login: match by email + password ─────────────────────────
@@ -74,7 +37,6 @@ export const login = async ({ email, password }) => {
       (o) => o.email.toLowerCase() === cleanEmail && o.password === cleanPassword
     );
     if (matchedOfficer) {
-      clearAttempts(cleanEmail);
       const user = {
         ...matchedOfficer,
         role: 'officer',
@@ -89,7 +51,6 @@ export const login = async ({ email, password }) => {
 
     // ── Admin login ───────────────────────────────────────────────────────
     if (cleanEmail === MOCK_USERS.admin.email.toLowerCase() && cleanPassword === MOCK_USERS.admin.password) {
-      clearAttempts(cleanEmail);
       const user = MOCK_USERS.admin;
       const token = `mock-jwt-admin-token-${Date.now()}`;
       localStorage.setItem('kaiser_token', token);
@@ -103,7 +64,6 @@ export const login = async ({ email, password }) => {
       (c) => c.email.toLowerCase() === cleanEmail && c.password === cleanPassword
     );
     if (matchedCitizen) {
-      clearAttempts(cleanEmail);
       const user = { ...matchedCitizen };
       delete user.password; // Never send password in response
       const token = `mock-jwt-citizen-${matchedCitizen.id}-token-${Date.now()}`;
@@ -114,7 +74,6 @@ export const login = async ({ email, password }) => {
     }
 
     // ── No match: invalid credentials ────────────────────────────────────
-    recordAttempt(cleanEmail);
     throw new Error('Invalid email or password. Please check your credentials and try again.');
   }
 
@@ -126,7 +85,7 @@ export const login = async ({ email, password }) => {
 // POST /api/auth/register
 export const register = async (payload) => {
   if (MOCK_MODE) {
-    await mockDelay(800);
+    await mockDelay();
 
     // Validate required fields
     const cleanName = sanitizeInput(payload.name).trim();
@@ -173,7 +132,7 @@ export const register = async (payload) => {
 // GET /api/auth/verify
 export const verifyToken = async () => {
   if (MOCK_MODE) {
-    await mockDelay(400);
+    await mockDelay();
     const token = localStorage.getItem('kaiser_token');
     if (!token) throw new Error('No token');
 

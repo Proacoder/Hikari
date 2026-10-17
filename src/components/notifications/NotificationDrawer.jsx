@@ -1,30 +1,10 @@
 import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
-import {
-  Bell, X, Check, CheckCheck, Trash2, ExternalLink,
-  AlertTriangle, CheckCircle2, MessageSquare, ThumbsUp, UserCheck
-} from 'lucide-react';
+import { Bell, X, CheckCheck, ExternalLink } from 'lucide-react';
 import { useNotifications } from '../../context/NotificationContext';
 import { useLanguage } from '../../context/LanguageContext';
-import { formatRelative } from '../../utils/formatters';
 import { classNames } from '../../utils/formatters';
-
-const getNotificationIcon = (type) => {
-  switch (type) {
-    case 'resolved':
-      return <CheckCircle2 size={16} className="text-emerald-600" />;
-    case 'comment':
-      return <MessageSquare size={16} className="text-sky-600" />;
-    case 'upvote':
-      return <ThumbsUp size={16} className="text-amber-600" />;
-    case 'assigned':
-      return <UserCheck size={16} className="text-indigo-600" />;
-    case 'alert':
-      return <AlertTriangle size={16} className="text-rose-600" />;
-    default:
-      return <Bell size={16} className="text-brand-600" />;
-  }
-};
+import { NotificationItem } from './NotificationItem';
 
 export const NotificationDrawer = () => {
   const {
@@ -144,80 +124,33 @@ export const NotificationDrawer = () => {
               </div>
             ) : (
               filteredNotifications.map((notif) => (
-                <div
+                <NotificationItem
                   key={notif.id}
-                  className={classNames(
-                    'p-3.5 rounded-xl border transition-all text-xs space-y-2 relative group',
-                    notif.isRead
-                      ? 'bg-white border-neutral-100 hover:border-neutral-200'
-                      : 'bg-brand-50/40 border-brand-100 shadow-soft-xs'
-                  )}
-                >
-                  <div className="flex items-start justify-between gap-2">
-                    <div className="flex items-start gap-2.5">
-                      <div className="w-7 h-7 rounded-lg bg-neutral-100 flex items-center justify-center shrink-0 mt-0.5">
-                        {getNotificationIcon(notif.type)}
-                      </div>
-                      <div className="space-y-0.5">
-                        <div className="flex items-center gap-2">
-                          <h4 className={classNames('text-xs font-semibold text-neutral-900', !notif.isRead && 'font-bold')}>
-                            {notif.title}
-                          </h4>
-                          {!notif.isRead && (
-                            <span className="w-1.5 h-1.5 rounded-full bg-brand-600 shrink-0" />
-                          )}
-                        </div>
-                        <p className="text-neutral-600 leading-relaxed text-[11px]">
-                          {notif.body}
-                        </p>
-                      </div>
-                    </div>
-
-                    {/* Quick action buttons */}
-                    <div className="flex items-center gap-1 opacity-80 group-hover:opacity-100 transition-opacity">
-                      {!notif.isRead && (
-                        <button
-                          onClick={() => markRead(notif.id)}
-                          title="Mark as read"
-                          className="p-1 rounded-md text-neutral-400 hover:text-brand-600 hover:bg-neutral-100 transition-colors"
-                        >
-                          <Check size={14} />
-                        </button>
-                      )}
-                      <button
-                        onClick={() => deleteNotif(notif.id)}
-                        title="Delete notification"
-                        className="p-1 rounded-md text-neutral-400 hover:text-red-600 hover:bg-red-50 transition-colors"
-                      >
-                        <Trash2 size={13} />
-                      </button>
-                    </div>
-                  </div>
-
-                  <div className="flex items-center justify-between text-[10px] text-neutral-400 pt-1 border-t border-neutral-100/60">
-                    <span>{notif.createdAt ? formatRelative(notif.createdAt) : t('notif.justNow', 'Just now')}</span>
-                    {notif.complaintId && (
-                      <Link
-                        to={`/app/my-complaints`}
-                        onClick={() => {
-                          markRead(notif.id);
-                          setIsDrawerOpen(false);
-                        }}
-                        className="font-medium text-brand-600 hover:underline flex items-center gap-0.5"
-                      >
-                        <span>{t('notif.viewComplaint', 'View Grievance')}</span>
-                        <ExternalLink size={10} />
-                      </Link>
-                    )}
-                  </div>
-                </div>
+                  item={notif}
+                  isCompact={true}
+                  onMarkRead={markRead}
+                  onDelete={deleteNotif}
+                  onGrievanceClick={(item) => {
+                    markRead(item.id);
+                    setIsDrawerOpen(false);
+                  }}
+                  viewGrievanceLabel={t('notif.viewComplaint', 'View Grievance')}
+                  justNowLabel={t('notif.justNow', 'Just now')}
+                />
               ))
             )}
           </div>
 
           {/* Drawer Footer */}
           <div className="p-3 border-t border-neutral-100 bg-neutral-50/50 flex items-center justify-between text-xs text-neutral-500">
-            <span className="text-[11px]">Kaiser AI Notification Stream</span>
+            <Link
+              to="/app/notifications"
+              onClick={() => setIsDrawerOpen(false)}
+              className="text-xs font-semibold text-brand-600 hover:text-brand-800 flex items-center gap-1 transition-colors"
+            >
+              <span>{t('notif.fullCenter', 'Open Full Notifications Center')}</span>
+              <ExternalLink size={12} />
+            </Link>
             <button
               onClick={() => setIsDrawerOpen(false)}
               className="text-xs font-semibold text-neutral-700 hover:text-neutral-900"

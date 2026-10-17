@@ -145,15 +145,10 @@ function App() {
                   </RequireAuth>
                 }>
                   <Route index element={<OfficerDashboard />} />
-                  <Route path="ward-overview" element={<OfficerDashboard />} />
-                  <Route path="performance" element={<OfficerDashboard />} />
                   <Route path="notifications" element={<NotificationsPage />} />
-                  <Route path="profile" element={<OfficerDashboard />} />
-                  <Route path=":officerId" element={<OfficerDashboard />} />
-                  <Route path=":officerId/ward-overview" element={<OfficerDashboard />} />
-                  <Route path=":officerId/performance" element={<OfficerDashboard />} />
                   <Route path=":officerId/notifications" element={<NotificationsPage />} />
-                  <Route path=":officerId/profile" element={<OfficerDashboard />} />
+                  <Route path=":officerId/*" element={<OfficerDashboard />} />
+                  <Route path="*" element={<OfficerDashboard />} />
                 </Route>
 
                 {/* BMC City Admin Console — requires admin role */}

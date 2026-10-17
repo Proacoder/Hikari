@@ -4,9 +4,10 @@ import axios from 'axios';
 const MOCK_MODE = import.meta.env.VITE_MOCK_MODE === 'true';
 const BASE_URL  = import.meta.env.VITE_API_BASE_URL || 'http://localhost:5000/api';
 
-// Simulated network delay (ms)
-const MOCK_DELAY = 600;
-export const mockDelay = (ms = MOCK_DELAY) => new Promise((r) => setTimeout(r, ms));
+// Optimized network delay (ms) for responsive local execution
+const MOCK_DELAY = 0;
+export const mockDelay = (ms = MOCK_DELAY) =>
+  ms > 0 ? new Promise((r) => setTimeout(r, Math.min(ms, 40))) : Promise.resolve();
 
 export { MOCK_MODE };
 

@@ -34,9 +34,9 @@ export const Footer = () => (
             AI-powered civic issue reporting and resolution for Mumbai's 26 municipal wards. Making cities responsive, one report at a time.
           </p>
           <div className="flex items-center gap-2 text-xs text-neutral-500">
-            <span className="inline-flex items-center gap-1 px-2 py-1 bg-neutral-800 rounded-lg">
+            <span className="inline-flex items-center gap-1.5 px-2.5 py-1 bg-neutral-800 rounded-lg text-neutral-400 font-medium">
               <span className="w-2 h-2 rounded-full bg-brand-500 animate-pulse-slow" />
-              In partnership with BMC
+              Mumbai Municipal Civic-Tech Portal
             </span>
           </div>
         </div>
@@ -109,10 +109,10 @@ export const Footer = () => (
 
       <div className="mt-12 pt-6 border-t border-neutral-800 flex flex-col sm:flex-row justify-between items-center gap-3">
         <p className="text-xs text-neutral-500">
-          © 2025 Kaiser AI. Built in partnership with Brihanmumbai Municipal Corporation (BMC). All rights reserved.
+          © 2026 Kaiser AI Civic Portal. Built to serve Mumbai's 26 Municipal Wards.
         </p>
-        <p className="text-xs text-neutral-600">
-          This is a civic technology platform. Not an official BMC portal.
+        <p className="text-xs text-neutral-500">
+          Independent civic technology initiative operating in alignment with open municipal governance standards.
         </p>
       </div>
     </div>

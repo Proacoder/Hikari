@@ -6,7 +6,6 @@ import { Button } from '../components/common/Button';
 import { Input } from '../components/common/Input';
 import { Card } from '../components/common/Card';
 import { DEMO_CITIZENS, MOCK_USERS, MUMBAI_WARDS } from '../utils/mockData';
-import { sanitizeInput } from '../api/auth.api';
 
 // ── Validation helpers ──────────────────────────────────────────────────────
 const validateEmail = (email) => {
@@ -81,8 +80,7 @@ export const AuthPage = () => {
   }, [formData, mode, role]);
 
   const handleInputChange = (field, value) => {
-    const sanitized = field === 'password' ? value : sanitizeInput(value);
-    setFormData(prev => ({ ...prev, [field]: sanitized }));
+    setFormData(prev => ({ ...prev, [field]: value }));
     // Clear field error on change
     if (fieldErrors[field]) {
       setFieldErrors(prev => {

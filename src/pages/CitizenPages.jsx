@@ -26,14 +26,7 @@ import { BeforeAfterSlider } from '../components/complaints/BeforeAfterSlider';
 import { sound } from '../utils/soundEffects';
 import { triggerConfetti } from '../utils/confetti';
 
-// Preset samples for quick image upload testing
-const SAMPLE_EVIDENCE = [
-  { label: 'Pothole on Road', url: 'https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=600&q=80', cat: 'Pothole', title: 'Deep Pothole at Main Junction' },
-  { label: 'Overflowing Bins', url: 'https://images.unsplash.com/photo-1504711434969-e33886168f5c?w=600&q=80', cat: 'Garbage', title: 'Severe Garbage Overflow at Market' },
-  { label: 'Clogged Drain', url: 'https://images.unsplash.com/photo-1547683905-f686c993aae5?w=600&q=80', cat: 'Drainage', title: 'Storm Drain Blocked with Silt' },
-  { label: 'Broken Streetlamp', url: 'https://images.unsplash.com/photo-1518893883800-45cd0954574b?w=600&q=80', cat: 'Streetlight', title: 'Non-functional Street Lamp Pole' },
-  { label: 'Water Pipe Burst', url: 'https://images.unsplash.com/photo-1570887830800-53c6e09d99f7?w=600&q=80', cat: 'Water Leakage', title: 'High-pressure Pipeline Leak' },
-];
+
 
 // Quick Mumbai locations for testing GPS classification
 const LOCATION_PRESETS = [
@@ -438,39 +431,6 @@ export const ReportIssuePage = () => {
     reader.readAsDataURL(file);
   };
 
-  // Select sample evidence photo with YOLOv8 Defect Detection
-  const handleSelectSample = async (sample) => {
-    setFormData((prev) => ({
-      ...prev,
-      imageUrl: sample.url,
-      imageName: `${sample.label}.jpg`,
-      title: prev.title || sample.title,
-      category: sample.cat,
-    }));
-    runAiAnalysis(sample.title);
-
-    // Run YOLOv8 on sample photo URL
-    setAiAnalyzing(true);
-    const yolo = await detectDefectWithYOLO(sample.url, sample.title);
-    if (yolo && yolo.success) {
-      setAiPrediction({
-        category: yolo.category,
-        confidence: yolo.confidence,
-        severity: yolo.severity,
-        slaHours: yolo.sla_hours,
-        assignedDept: yolo.assigned_department,
-        detections: yolo.detections,
-        annotatedImage: yolo.annotated_image,
-        source: 'YOLOv8 Computer Vision',
-      });
-      setFormData((prev) => ({
-        ...prev,
-        category: yolo.category,
-      }));
-      toast.success(`YOLOv8 Detected: ${yolo.category} (${yolo.confidence})`, { icon: '🎯' });
-    }
-    setAiAnalyzing(false);
-  };
 
   // Submit Complaint with DBSCAN Deduplication
   const handleSubmit = async (e) => {
@@ -926,22 +886,6 @@ export const ReportIssuePage = () => {
               </div>
             )}
 
-            {/* Quick Sample Photos for Testing */}
-            <div className="pt-1">
-              <span className="text-[11px] text-neutral-400 block mb-1">Or select a sample civic issue photo for quick test:</span>
-              <div className="flex flex-wrap gap-1.5">
-                {SAMPLE_EVIDENCE.map((s) => (
-                  <button
-                    key={s.label}
-                    type="button"
-                    onClick={() => handleSelectSample(s)}
-                    className="px-2.5 py-1 bg-neutral-100 hover:bg-neutral-200 rounded-lg text-[11px] font-medium text-neutral-700 transition-colors"
-                  >
-                    📸 {s.label}
-                  </button>
-                ))}
-              </div>
-            </div>
           </div>
 
           {/* ── Section 3: Title & Description ── */}
