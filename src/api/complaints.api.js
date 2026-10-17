@@ -165,38 +165,6 @@ export const getMapData = async (filters = {}) => {
   return res.data;
 };
 
-// GET /api/complaints/my-complaints
-export const getMyComplaints = async (customUserId) => {
-  if (MOCK_MODE) {
-    await mockDelay();
-    const complaints = getStoredComplaints();
-    const sessionUser = getCurrentSessionUser();
-    const targetId = customUserId || sessionUser?.id;
-    if (!targetId) {
-      return successResponse([]);
-    }
-    return successResponse(
-      complaints.filter((c) => c.createdBy?.id === targetId || (sessionUser?.email && c.createdBy?.email === sessionUser.email))
-    );
-  }
-  const res = await apiClient.get('/complaints/my-complaints');
-  return res.data;
-};
-
-// GET /api/complaints/top-10/:ward
-export const getTopComplaintsByWard = async (ward) => {
-  if (MOCK_MODE) {
-    await mockDelay();
-    return successResponse(
-      MOCK_COMPLAINTS.filter((c) => c.ward === Number(ward))
-        .sort((a, b) => b.severity - a.severity)
-        .slice(0, 10)
-    );
-  }
-  const res = await apiClient.get(`/complaints/top-10/${ward}`);
-  return res.data;
-};
-
 // POST /api/complaints/:id/upvote
 export const upvoteComplaint = async (id) => {
   if (MOCK_MODE) {
@@ -212,24 +180,6 @@ export const upvoteComplaint = async (id) => {
     return successResponse({ upvoteCount: c?.upvoteCount || 0 });
   }
   const res = await apiClient.post(`/complaints/${id}/upvote`);
-  return res.data;
-};
-
-// DELETE /api/complaints/:id/upvote
-export const removeUpvote = async (id) => {
-  if (MOCK_MODE) {
-    await mockDelay(300);
-    const complaints = getStoredComplaints();
-    const c = complaints.find((x) => x.id === id);
-    if (c && c.upvoteCount > 0) {
-      c.upvoteCount -= 1;
-      saveStoredComplaints(complaints);
-      const m = MOCK_COMPLAINTS.find((x) => x.id === id);
-      if (m) m.upvoteCount = c.upvoteCount;
-    }
-    return successResponse({ upvoteCount: c?.upvoteCount || 0 });
-  }
-  const res = await apiClient.delete(`/complaints/${id}/upvote`);
   return res.data;
 };
 

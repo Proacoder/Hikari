@@ -1,10 +1,8 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
 import {
-  Camera, MapPin, Cpu, CheckCircle2, Shield, Clock,
-  ArrowRight, Users, Bell, AlertTriangle
+  Camera, Cpu, CheckCircle2, Shield
 } from 'lucide-react';
-import { Card } from '../../components/common/Card';
 import { Badge } from '../../components/common/Badge';
 
 export const HowItWorksPage = () => {

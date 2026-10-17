@@ -2,8 +2,7 @@ import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
   Shield, Search, ChevronRight, Lock, Eye, EyeOff, Star,
-  MapPin, Building2, BadgeCheck, AlertCircle, User, CheckCircle2,
-  Phone, Mail, Award, ArrowLeft
+  MapPin, BadgeCheck, AlertCircle, User, CheckCircle2, ArrowLeft
 } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { MOCK_OFFICERS } from '../utils/mockData';

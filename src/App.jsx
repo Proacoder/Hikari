@@ -22,6 +22,7 @@ const ReportIssuePage = lazy(() => import('./pages/CitizenPages').then(m => ({ d
 const MyComplaintsPage = lazy(() => import('./pages/CitizenPages').then(m => ({ default: m.MyComplaintsPage })));
 const IssueMapPage = lazy(() => import('./pages/CitizenPages').then(m => ({ default: m.IssueMapPage })));
 const CitizenProfilePage = lazy(() => import('./pages/CitizenPages').then(m => ({ default: m.CitizenProfilePage })));
+const ComplaintDetailPage = lazy(() => import('./pages/citizen/ComplaintDetailPage').then(m => ({ default: m.ComplaintDetailPage })));
 
 // Lazy-loaded Portals & Assistants
 const OfficerDashboard = lazy(() => import('./pages/OfficerPages').then(m => ({ default: m.OfficerDashboard })));
@@ -85,7 +86,7 @@ const RedirectIfAuth = ({ children }) => {
   return children;
 };
 
-export function App() {
+function App() {
   return (
     <LanguageProvider>
       <AuthProvider>
@@ -134,6 +135,7 @@ export function App() {
                   <Route path="leaderboard" element={<CivicLeaderboardPage />} />
                   <Route path="notifications" element={<NotificationsPage />} />
                   <Route path="profile" element={<CitizenProfilePage />} />
+                  <Route path="complaint/:id" element={<ComplaintDetailPage />} />
                 </Route>
 
                 {/* Ward Officer Portal — requires officer role, scoped to own officer ID */}

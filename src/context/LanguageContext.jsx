@@ -39,12 +39,6 @@ export const LanguageProvider = ({ children }) => {
     return t(key, category);
   }, [t]);
 
-  // Helper for status translations
-  const translateStatus = useCallback((status) => {
-    const key = `status.${status}`;
-    return t(key, status);
-  }, [t]);
-
   return (
     <LanguageContext.Provider
       value={{
@@ -52,7 +46,6 @@ export const LanguageProvider = ({ children }) => {
         setLanguage,
         t,
         translateCategory,
-        translateStatus,
         supportedLanguages: SUPPORTED_LANGUAGES,
       }}
     >
@@ -69,4 +62,3 @@ export const useLanguage = () => {
   return ctx;
 };
 
-export default LanguageContext;

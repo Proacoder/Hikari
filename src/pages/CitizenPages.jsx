@@ -2,9 +2,9 @@ import React, { useState, useEffect, useRef, useMemo, useCallback } from 'react'
 import { Link } from 'react-router-dom';
 import toast from 'react-hot-toast';
 import {
-  AlertTriangle, MapPin, Camera, Mic, Sparkles, Clock, CheckCircle2,
-  Shield, Navigation, CloudRain, Wind, Thermometer, Eye,
-  Crosshair, Check
+  AlertTriangle, MapPin, Camera, Sparkles, CheckCircle2,
+  Navigation, CloudRain, Wind, Thermometer, Eye,
+  Crosshair
 } from 'lucide-react';
 import { getComplaints, createComplaint, getMapData, getStoredComplaints, saveStoredComplaints } from '../api/complaints.api';
 import { getWeatherAQI } from '../api/weather.api';
@@ -21,6 +21,10 @@ import { Badge } from '../components/common/Badge';
 import { Input } from '../components/common/Input';
 import { LeafletMap } from '../components/map/LeafletMap';
 import { Skeleton, SkeletonCard } from '../components/common/Skeleton';
+import { HolographicScanner } from '../components/ai/HolographicScanner';
+import { BeforeAfterSlider } from '../components/complaints/BeforeAfterSlider';
+import { sound } from '../utils/soundEffects';
+import { triggerConfetti } from '../utils/confetti';
 
 // Preset samples for quick image upload testing
 const SAMPLE_EVIDENCE = [
@@ -197,6 +201,26 @@ export const CitizenDashboard = () => {
         </Card>
       </div>
 
+      {/* Verified Municipal Resolutions Showcase */}
+      <div className="space-y-3">
+        <div className="flex items-center justify-between">
+          <div>
+            <h3 className="text-lg font-bold text-neutral-900">Verified BMC Road Restorations</h3>
+            <p className="text-xs text-neutral-500">Live before-and-after proof of completed civic resolutions</p>
+          </div>
+          <span className="px-2.5 py-1 bg-emerald-100 text-emerald-800 rounded-full text-xs font-bold font-mono">
+            100% SLA COMPLIANT
+          </span>
+        </div>
+        <BeforeAfterSlider
+          beforeUrl="https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=800&q=80"
+          afterUrl="https://images.unsplash.com/photo-1544620347-c4fd4a3d5957?w=800&q=80"
+          title="Major Crater Restored at Andheri-Kurla Junction"
+          wardName="Ward K/E – Andheri East (BMC Road Maintenance Dept)"
+          resolvedDate="14 Oct 2026 · Closed in 18 hrs"
+        />
+      </div>
+
       {/* Recent Ward Activity Feed */}
       <div className="space-y-4">
         <div className="flex items-center justify-between">
@@ -255,14 +279,6 @@ export const ReportIssuePage = () => {
   const [submitting, setSubmitting] = useState(false);
   const [submittedTicket, setSubmittedTicket] = useState(null);
 
-  // Automatically update closest ward when latitude & longitude change
-  useEffect(() => {
-    if (formData.latitude && formData.longitude) {
-      const closest = findClosestWard(formData.latitude, formData.longitude);
-      setDetectedWardInfo(closest);
-      setFormData((prev) => ({ ...prev, ward: closest.ward.id }));
-    }
-  }, [formData.latitude, formData.longitude]);
 
   // Dynamic AI categorization
   const runAiAnalysis = useCallback((hint) => {
@@ -544,6 +560,8 @@ export const ReportIssuePage = () => {
       const res = await createComplaint(payload);
       const created = res.data;
       setSubmittedTicket(created);
+      sound.play('fanfare');
+      triggerConfetti();
 
       // Dispatch real notification to Notification Center
       const currentWard = MUMBAI_WARDS.find((w) => w.id === formData.ward) || detectedWardInfo.ward;
@@ -828,29 +846,17 @@ export const ReportIssuePage = () => {
             />
 
             {formData.imageUrl ? (
-              /* Image Preview Box with YOLOv8 Overlay Toggle */
-              <div className="relative border-2 border-brand-200 bg-brand-50/20 rounded-2xl p-4 flex flex-col sm:flex-row items-start sm:items-center gap-4">
-                <div className="relative w-28 h-28 rounded-xl overflow-hidden bg-neutral-900 shrink-0 border border-neutral-300 shadow-md group">
-                  <img
-                    src={showAnnotatedOverlay && aiPrediction?.annotatedImage ? aiPrediction.annotatedImage : formData.imageUrl}
-                    alt="Uploaded evidence"
-                    className="w-full h-full object-cover transition-transform group-hover:scale-105"
-                  />
-                  {showAnnotatedOverlay && aiPrediction?.annotatedImage && (
-                    <span className="absolute bottom-1 right-1 px-1.5 py-0.5 rounded text-[9px] font-mono font-bold bg-black/75 text-emerald-300 border border-emerald-500/30">
-                      YOLOv8 BBox
-                    </span>
-                  )}
-                </div>
-                <div className="flex-1 min-w-0">
-                  <div className="flex flex-wrap items-center gap-1.5 mb-1">
-                    <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-semibold bg-emerald-50 text-emerald-700 border border-emerald-200">
-                      <Check size={11} /> Photo Attached
-                    </span>
-                    <span className="text-[11px] text-neutral-400 truncate">{formData.imageName || 'evidence.jpg'}</span>
+              <div className="space-y-3">
+                <HolographicScanner
+                  imageUrl={showAnnotatedOverlay && aiPrediction?.annotatedImage ? aiPrediction.annotatedImage : formData.imageUrl}
+                  defectData={aiPrediction}
+                  isScanning={aiAnalyzing}
+                />
+                <div className="flex flex-wrap items-center justify-between gap-2 p-3 bg-neutral-100 rounded-xl">
+                  <div className="flex items-center gap-2">
+                    <span className="text-xs font-semibold text-neutral-700 truncate max-w-xs">{formData.imageName || 'evidence.jpg'}</span>
                   </div>
-                  <p className="text-xs text-neutral-600">Image ready for dispatch. Officer of {currentWardObj.name} will inspect this photo.</p>
-                  <div className="mt-2.5 flex flex-wrap items-center gap-2">
+                  <div className="flex items-center gap-2">
                     {aiPrediction?.annotatedImage && (
                       <button
                         type="button"
@@ -864,17 +870,18 @@ export const ReportIssuePage = () => {
                     <button
                       type="button"
                       onClick={() => fileInputRef.current?.click()}
-                      className="text-[11px] font-semibold text-brand-600 hover:underline"
+                      className="text-xs font-semibold text-brand-700 hover:underline px-2 py-1"
                     >
                       Replace Photo
                     </button>
                     <button
                       type="button"
                       onClick={() => {
+                        sound.play('click');
                         setFormData((prev) => ({ ...prev, imageUrl: '', imageName: '' }));
                         setAiPrediction(null);
                       }}
-                      className="text-[11px] font-semibold text-red-500 hover:underline"
+                      className="text-xs font-semibold text-red-600 hover:underline px-2 py-1"
                     >
                       Remove
                     </button>

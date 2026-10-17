@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
 import {
   Bell, X, Check, CheckCheck, Trash2, ExternalLink,
-  AlertTriangle, CheckCircle2, MessageSquare, ThumbsUp, UserCheck, Shield
+  AlertTriangle, CheckCircle2, MessageSquare, ThumbsUp, UserCheck
 } from 'lucide-react';
 import { useNotifications } from '../../context/NotificationContext';
 import { useLanguage } from '../../context/LanguageContext';
@@ -232,4 +232,3 @@ export const NotificationDrawer = () => {
   );
 };
 
-export default NotificationDrawer;

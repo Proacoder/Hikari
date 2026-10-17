@@ -3,16 +3,26 @@ import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
 
 // Custom SVG marker generator based on severity
-const createMarkerIcon = (severity, category) => {
+const createMarkerIcon = (severity, _category) => {
   let color = '#16a34a'; // Low (< 40)
   if (severity >= 80) color = '#dc2626'; // Critical
   else if (severity >= 60) color = '#ea580c'; // High
   else if (severity >= 40) color = '#d97706'; // Medium
 
+  const isCritical = severity >= 80;
+  const isHigh = severity >= 60;
+
   const html = `
-    <div style="position: relative; width: 32px; height: 32px; display: flex; align-items: center; justify-content: center;">
-      <div style="position: absolute; width: 28px; height: 28px; border-radius: 50%; background-color: ${color}; opacity: 0.25; animation: ping 2s cubic-bezier(0, 0, 0.2, 1) infinite;"></div>
-      <div style="position: relative; width: 22px; height: 22px; border-radius: 50%; background-color: ${color}; border: 2.5px solid #ffffff; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.3); display: flex; align-items: center; justify-content: center; color: white; font-size: 10px; font-weight: bold;">
+    <div style="position: relative; width: 36px; height: 36px; display: flex; align-items: center; justify-content: center; cursor: pointer;">
+      ${isCritical ? `
+        <div style="position: absolute; inset: 0; border-radius: 50%; background-color: ${color}; opacity: 0.45; animation: radarSweep 1.8s cubic-bezier(0, 0, 0.2, 1) infinite;"></div>
+        <div style="position: absolute; inset: -4px; border-radius: 50%; border: 1.5px solid ${color}; opacity: 0.6; animation: radarSweep 1.8s cubic-bezier(0, 0, 0.2, 1) 0.6s infinite;"></div>
+      ` : isHigh ? `
+        <div style="position: absolute; width: 32px; height: 32px; border-radius: 50%; background-color: ${color}; opacity: 0.35; animation: ping 2s cubic-bezier(0, 0, 0.2, 1) infinite;"></div>
+      ` : `
+        <div style="position: absolute; width: 26px; height: 26px; border-radius: 50%; background-color: ${color}; opacity: 0.2; animation: ping 3s cubic-bezier(0, 0, 0.2, 1) infinite;"></div>
+      `}
+      <div style="position: relative; width: 24px; height: 24px; border-radius: 50%; background-color: ${color}; border: 2.5px solid #ffffff; box-shadow: 0 4px 10px rgba(0,0,0,0.35); display: flex; align-items: center; justify-content: center; color: white; font-size: 10px; font-weight: 800; font-family: monospace;">
         ${severity}
       </div>
     </div>
@@ -21,9 +31,9 @@ const createMarkerIcon = (severity, category) => {
   return L.divIcon({
     html,
     className: 'custom-leaflet-marker',
-    iconSize: [32, 32],
-    iconAnchor: [16, 16],
-    popupAnchor: [0, -16]
+    iconSize: [36, 36],
+    iconAnchor: [18, 18],
+    popupAnchor: [0, -18]
   });
 };
 
@@ -60,12 +70,14 @@ export const LeafletMap = ({
   height = '500px',
   className = '',
   onComplaintClick = null,
-  showWardCircles = false
+  _showWardCircles = false
 }) => {
   const mapContainerRef = useRef(null);
   const mapInstanceRef = useRef(null);
   const markersLayerRef = useRef(null);
   const pickerMarkerRef = useRef(null);
+  const centerLat = center?.[0];
+  const centerLng = center?.[1];
 
   // Initialize Map
   useEffect(() => {
@@ -104,14 +116,14 @@ export const LeafletMap = ({
         mapInstanceRef.current = null;
       }
     };
-  }, []);
+  }, [center, onPositionChange, pickerMode, zoom]);
 
   // Update Center if changed
   useEffect(() => {
     if (mapInstanceRef.current && center) {
       mapInstanceRef.current.setView(center, zoom);
     }
-  }, [center[0], center[1], zoom]);
+  }, [centerLat, centerLng, zoom, center]);
 
   // Update Complaint Markers
   useEffect(() => {
@@ -152,7 +164,7 @@ export const LeafletMap = ({
         markersLayerRef.current.addLayer(marker);
       });
     }
-  }, [complaints, pickerMode]);
+  }, [complaints, pickerMode, onComplaintClick]);
 
   // Update Picker Marker
   useEffect(() => {
@@ -180,7 +192,7 @@ export const LeafletMap = ({
       pickerMarkerRef.current.remove();
       pickerMarkerRef.current = null;
     }
-  }, [pickerMode, selectedPosition]);
+  }, [pickerMode, selectedPosition, onPositionChange]);
 
   return (
     <div

@@ -28,14 +28,6 @@ export const SkeletonRow = () => (
   </div>
 );
 
-export const SkeletonText = ({ lines = 3 }) => (
-  <div className="space-y-2">
-    {Array.from({ length: lines }, (_, i) => (
-      <Skeleton key={i} className={classNames('h-3.5', i === lines - 1 ? 'w-2/3' : 'w-full')} />
-    ))}
-  </div>
-);
-
 export const SkeletonKpiCard = () => (
   <div className="bg-white rounded-2xl border border-neutral-100 p-5 shadow-soft space-y-3">
     <div className="flex justify-between">

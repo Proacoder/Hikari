@@ -1,8 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import {
-  MessageSquare, Sparkles, Send, Mic, MicOff, X, Bot, User,
-  CheckCircle2, AlertTriangle, MapPin, ArrowRight, Phone, RefreshCw,
-  ExternalLink, ChevronRight, Volume2, Shield, Flame
+  Sparkles, Send, Mic, MicOff, X, Bot, Phone, RefreshCw
 } from 'lucide-react';
 import { useLanguage } from '../../context/LanguageContext';
 import { useNotifications } from '../../context/NotificationContext';
@@ -13,17 +11,64 @@ import { MUMBAI_WARDS, MOCK_OFFICERS } from '../../utils/mockData';
 import { findClosestWard, analyzeComplaintDynamic } from '../../utils/geoUtils';
 import toast from 'react-hot-toast';
 
+const createMessage = (sender, data = {}) => ({
+  id: `msg-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`,
+  sender,
+  timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+  ...data,
+});
+
+const getWelcomeMessage = (language, user) => {
+  const welcomeByLang = {
+    en: {
+      text: `Namaste${user?.name ? `, ${user.name}` : ''}! I am **Kaiser Sahayak**, your 24/7 AI Civic Assistant for Mumbai. How can I help you today? You can report an issue, track an existing complaint, check your ward details, or ask for municipal emergency helplines.`,
+      chips: [
+        '🚨 Report a Pothole',
+        '🔍 Track Complaint #cmp-001',
+        '📍 Find My Ward Officer',
+        '📞 BMC Emergency Helplines',
+      ],
+    },
+    hi: {
+      text: `नमस्ते${user?.name ? `, ${user.name}` : ''}! मैं **कैसर सहायक** हूँ, मुंबई के लिए आपका AI नागरिक सहायक। मैं आपकी क्या मदद कर सकता हूँ? आप कोई शिकायत दर्ज कर सकते हैं, स्थिति जान सकते हैं या आपातकालीन सहायता नंबर ले सकते हैं।`,
+      chips: [
+        '🚨 गड्ढे की शिकायत करें',
+        '🔍 शिकायत की स्थिति देखें',
+        '📍 वार्ड अधिकारी खोजें',
+        '📞 बीएमसी हेल्पलाइन नंबर',
+      ],
+    },
+    mr: {
+      text: `नमस्कार${user?.name ? `, ${user.name}` : ''}! मी **कैसर सहाय्यक** आहे, मुंबईसाठी तुमचा AI नागरी सहाय्यक. मी आज आपल्याला कशी मदत करू शकतो? तुम्ही तक्रार नोंदवू शकता, तक्रारीची सद्यस्थिती तपासू शकता किंवा आपत्कालीन मदत मागू शकता.`,
+      chips: [
+        '🚨 खड्ड्याची तक्रार करा',
+        '🔍 तक्रार ट्रॅक करा',
+        '📍 प्रभाग अधिकारी शोधा',
+        '📞 आपत्कालीन संपर्क क्रमांक',
+      ],
+    },
+  };
+
+  const welcome = welcomeByLang[language] || welcomeByLang.en;
+  return createMessage('ai', {
+    id: 'msg-welcome',
+    text: welcome.text,
+    chips: welcome.chips,
+  });
+};
+
 export const CivicAiAssistant = () => {
+  const { language } = useLanguage();
+  const { dispatchNotification } = useNotifications();
+  const { user } = useAuth();
+
   const [isOpen, setIsOpen] = useState(false);
-  const [messages, setMessages] = useState([]);
+  const [messages, setMessages] = useState(() => [getWelcomeMessage(language, user)]);
   const [inputValue, setInputValue] = useState('');
   const [isTyping, setIsTyping] = useState(false);
   const [isListening, setIsListening] = useState(false);
   const messagesEndRef = useRef(null);
-
-  const { language, t, translateCategory } = useLanguage();
-  const { dispatchNotification } = useNotifications();
-  const { user } = useAuth();
+  const hasMounted = useRef(false);
 
   // Scroll chat to bottom
   const scrollToBottom = () => {
@@ -36,48 +81,13 @@ export const CivicAiAssistant = () => {
     }
   }, [messages, isOpen, isTyping]);
 
-  // Initial welcome message
+  // Synchronize language change without cascading render on initial mount
   useEffect(() => {
-    const welcomeByLang = {
-      en: {
-        text: `Namaste${user?.name ? `, ${user.name}` : ''}! I am **Kaiser Sahayak**, your 24/7 AI Civic Assistant for Mumbai. How can I help you today? You can report an issue, track an existing complaint, check your ward details, or ask for municipal emergency helplines.`,
-        chips: [
-          '🚨 Report a Pothole',
-          '🔍 Track Complaint #cmp-001',
-          '📍 Find My Ward Officer',
-          '📞 BMC Emergency Helplines',
-        ],
-      },
-      hi: {
-        text: `नमस्ते${user?.name ? `, ${user.name}` : ''}! मैं **कैसर सहायक** हूँ, मुंबई के लिए आपका AI नागरिक सहायक। मैं आपकी क्या मदद कर सकता हूँ? आप कोई शिकायत दर्ज कर सकते हैं, स्थिति जान सकते हैं या आपातकालीन सहायता नंबर ले सकते हैं।`,
-        chips: [
-          '🚨 गड्ढे की शिकायत करें',
-          '🔍 शिकायत की स्थिति देखें',
-          '📍 वार्ड अधिकारी खोजें',
-          '📞 बीएमसी हेल्पलाइन नंबर',
-        ],
-      },
-      mr: {
-        text: `नमस्कार${user?.name ? `, ${user.name}` : ''}! मी **कैसर सहाय्यक** आहे, मुंबईसाठी तुमचा AI नागरी सहाय्यक. मी आज आपल्याला कशी मदत करू शकतो? तुम्ही तक्रार नोंदवू शकता, तक्रारीची सद्यस्थिती तपासू शकता किंवा आपत्कालीन मदत मागू शकता.`,
-        chips: [
-          '🚨 खड्ड्याची तक्रार करा',
-          '🔍 तक्रार ट्रॅक करा',
-          '📍 प्रभाग अधिकारी शोधा',
-          '📞 आपत्कालीन संपर्क क्रमांक',
-        ],
-      },
-    };
-
-    const welcome = welcomeByLang[language] || welcomeByLang.en;
-    setMessages([
-      {
-        id: 'msg-welcome',
-        sender: 'ai',
-        text: welcome.text,
-        chips: welcome.chips,
-        timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
-      },
-    ]);
+    if (!hasMounted.current) {
+      hasMounted.current = true;
+      return;
+    }
+    setMessages([getWelcomeMessage(language, user)]);
   }, [language, user]);
 
   // Speech Recognition Simulation
@@ -147,23 +157,18 @@ export const CivicAiAssistant = () => {
 
       if (found) {
         setIsTyping(false);
-        return {
-          id: `msg-${Date.now()}`,
-          sender: 'ai',
+        return createMessage('ai', {
           text: `Here is the real-time municipal status for **Ticket #${found.id}**:`,
           ticketCard: found,
           chips: ['View on Ward Map', 'Report Another Issue'],
-          timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
-        };
+        });
       }
     }
 
     // Check 2: Emergency Helplines
     if (q.includes('emergency') || q.includes('helpline') || q.includes('help') || q.includes('number') || q.includes('आपात') || q.includes('मदत')) {
       setIsTyping(false);
-      return {
-        id: `msg-${Date.now()}`,
-        sender: 'ai',
+      return createMessage('ai', {
         text: `Here are the official **BMC 24/7 Disaster & Civic Control Room numbers**:`,
         helplines: [
           { name: 'BMC Disaster Control Room', number: '1916 / 022-22694725', desc: 'Central Flood, Tree Fall & Structural Distress' },
@@ -173,8 +178,7 @@ export const CivicAiAssistant = () => {
           { name: 'Pothole & Roads Special Cell', number: '1800-22-1234', desc: 'BMC Asphalt & Pothole rapid response' },
         ],
         chips: ['🚨 Report a Pothole', '📍 Find My Ward Officer'],
-        timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
-      };
+      });
     }
 
     // Check 3: Ward Officer Inquiry
@@ -184,14 +188,11 @@ export const CivicAiAssistant = () => {
       const wardObj = MUMBAI_WARDS.find((w) => w.id === wardId) || MUMBAI_WARDS[0];
 
       setIsTyping(false);
-      return {
-        id: `msg-${Date.now()}`,
-        sender: 'ai',
+      return createMessage('ai', {
         text: `Your registered ward is **${wardObj.name} (${wardObj.area})**. Here are your designated ward officer details:`,
         officerCard: { officer, ward: wardObj },
         chips: ['🚨 Report Grievance to this Ward', '📞 View All BMC Contacts'],
-        timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
-      };
+      });
     }
 
     // Check 4: Civic Grievance Triage & Instant Filing
@@ -203,9 +204,7 @@ export const CivicAiAssistant = () => {
       const closest = findClosestWard(19.076, 72.877);
 
       setIsTyping(false);
-      return {
-        id: `msg-${Date.now()}`,
-        sender: 'ai',
+      return createMessage('ai', {
         text: `I analyzed your grievance details using **Kaiser AI Triage**:
 * **Category:** ${analysis?.category || 'Civic Infrastructure'}
 * **Urgency Severity:** ${analysis?.severity || 75}/100
@@ -221,8 +220,7 @@ Would you like me to register this ticket immediately for **${closest.ward.name}
           wardName: closest.ward.name,
         },
         chips: ['✅ Confirm & Register Ticket', 'Edit Details First', 'Cancel'],
-        timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
-      };
+      });
     }
 
     // Check 5: Query Live Multilingual AI Intelligence Service (Gemini 1.5 Flash / Civic Assistant Engine)
@@ -230,9 +228,7 @@ Would you like me to register this ticket immediately for **${closest.ward.name}
       const mlChat = await queryAssistantChat(queryText, language, user?.ward || 8);
       if (mlChat && mlChat.reply) {
         setIsTyping(false);
-        return {
-          id: `msg-${Date.now()}`,
-          sender: 'ai',
+        return createMessage('ai', {
           text: mlChat.reply,
           sourceBadge: mlChat.source || 'Kaiser AI Assistant',
           chips: [
@@ -241,18 +237,15 @@ Would you like me to register this ticket immediately for **${closest.ward.name}
             '📍 Find My Ward Officer',
             '📞 Emergency Contacts',
           ],
-          timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
-        };
+        });
       }
-    } catch (err) {
+    } catch {
       // Fallback to client response below
     }
 
     // Default Fallback
     setIsTyping(false);
-    return {
-      id: `msg-${Date.now()}`,
-      sender: 'ai',
+    return createMessage('ai', {
       text: `I understand you are asking about: *"${queryText}"*. 
 
 As your BMC civic assistant, I can:
@@ -268,20 +261,14 @@ Please select an option or provide more details:`,
         '📍 Find My Ward Officer',
         '📞 Emergency Contacts',
       ],
-      timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
-    };
+    });
   };
 
   const handleSend = async (overrideText) => {
     const text = overrideText || inputValue;
     if (!text.trim()) return;
 
-    const userMsg = {
-      id: `msg-${Date.now()}`,
-      sender: 'user',
-      text,
-      timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
-    };
+    const userMsg = createMessage('user', { text });
 
     setMessages((prev) => [...prev, userMsg]);
     setInputValue('');
@@ -318,9 +305,7 @@ Please select an option or provide more details:`,
 
       setMessages((prev) => [
         ...prev,
-        {
-          id: `msg-${Date.now()}`,
-          sender: 'ai',
+        createMessage('ai', {
           text: `🎉 **Success! Your grievance has been registered:**
 * **Ticket ID:** \`${created.id}\`
 * **Status:** Dispatched to Ward Officer
@@ -329,10 +314,9 @@ Please select an option or provide more details:`,
 You can track its progress anytime here or in the **My Complaints** portal.`,
           ticketCard: created,
           chips: ['View All My Complaints', 'Report Another Issue'],
-          timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
-        },
+        }),
       ]);
-    } catch (err) {
+    } catch {
       toast.error('Failed to register complaint. Please try again.');
     }
   };
@@ -345,7 +329,7 @@ You can track its progress anytime here or in the **My Complaints** portal.`,
         return;
       }
     }
-    handleSend(chip.replace(/^[🚨🔍📍📞✅]\s*/, ''));
+    handleSend(chip.replace(/^[🚨🔍📍📞✅]\s*/u, ''));
   };
 
   return (

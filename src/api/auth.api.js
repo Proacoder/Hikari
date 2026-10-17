@@ -1,8 +1,8 @@
-import { apiClient, MOCK_MODE, mockDelay, successResponse, errorResponse } from './client';
+import { apiClient, MOCK_MODE, mockDelay, successResponse } from './client';
 import { MOCK_USERS, MOCK_OFFICERS, DEMO_CITIZENS } from '../utils/mockData';
 
 // ── Input sanitization (strip HTML/script tags to prevent stored XSS) ────────
-const sanitize = (str) => {
+export const sanitizeInput = (str) => {
   if (typeof str !== 'string') return '';
   return str.replace(/[<>'"&]/g, (c) => ({
     '<': '&lt;', '>': '&gt;', "'": '&#39;', '"': '&quot;', '&': '&amp;',
@@ -56,7 +56,7 @@ export const login = async ({ email, password }) => {
     await mockDelay();
 
     // Sanitize inputs
-    const cleanEmail = sanitize(email).trim().toLowerCase();
+    const cleanEmail = sanitizeInput(email).trim().toLowerCase();
     const cleanPassword = password; // passwords are compared, not rendered
 
     // Basic validation
@@ -129,9 +129,9 @@ export const register = async (payload) => {
     await mockDelay(800);
 
     // Validate required fields
-    const cleanName = sanitize(payload.name).trim();
-    const cleanEmail = sanitize(payload.email).trim().toLowerCase();
-    const cleanPhone = sanitize(payload.phone || '').trim();
+    const cleanName = sanitizeInput(payload.name).trim();
+    const cleanEmail = sanitizeInput(payload.email).trim().toLowerCase();
+    const cleanPhone = sanitizeInput(payload.phone || '').trim();
     const cleanPassword = payload.password;
 
     if (!cleanName || cleanName.length < 2) {
@@ -169,18 +169,6 @@ export const register = async (payload) => {
   return res.data;
 };
 
-// POST /api/auth/google-callback
-export const googleLogin = async (credential) => {
-  if (MOCK_MODE) {
-    await mockDelay(700);
-    const token = `mock-jwt-citizen-token-google-${Date.now()}`;
-    localStorage.setItem('kaiser_token', token);
-    localStorage.setItem('kaiser_user', JSON.stringify(MOCK_USERS.citizen));
-    return successResponse({ user: MOCK_USERS.citizen, token });
-  }
-  const res = await apiClient.post('/auth/google-callback', { credential });
-  return res.data;
-};
 
 // GET /api/auth/verify
 export const verifyToken = async () => {
@@ -240,35 +228,5 @@ export const logout = async () => {
     return successResponse({ message: 'Logged out' });
   }
   const res = await apiClient.post('/auth/logout');
-  return res.data;
-};
-
-// POST /api/auth/refresh-token
-export const refreshToken = async () => {
-  if (MOCK_MODE) {
-    await mockDelay(300);
-    return successResponse({ token: `mock-jwt-refreshed-${Date.now()}` });
-  }
-  const res = await apiClient.post('/auth/refresh-token');
-  return res.data;
-};
-
-// POST /api/auth/forgot-password
-export const forgotPassword = async ({ email }) => {
-  if (MOCK_MODE) {
-    await mockDelay(700);
-    return successResponse({ message: 'Reset link sent to ' + sanitize(email) });
-  }
-  const res = await apiClient.post('/auth/forgot-password', { email });
-  return res.data;
-};
-
-// POST /api/auth/reset-password
-export const resetPassword = async ({ token, password }) => {
-  if (MOCK_MODE) {
-    await mockDelay(600);
-    return successResponse({ message: 'Password reset successfully' });
-  }
-  const res = await apiClient.post('/auth/reset-password', { token, password });
   return res.data;
 };

@@ -33,7 +33,6 @@ export const CATEGORIES = [
   'Pothole', 'Garbage', 'Drainage', 'Streetlight', 'Water Leakage', 'Other',
 ];
 
-export const COMPLAINT_STATUSES = ['reported', 'assigned', 'in_progress', 'resolved', 'duplicate'];
 
 export const MOCK_USERS = {
   citizen: {

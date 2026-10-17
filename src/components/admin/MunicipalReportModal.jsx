@@ -1,19 +1,33 @@
 import React, { useState, useRef } from 'react';
 import {
-  FileText, Download, Printer, X, CheckCircle2, AlertTriangle,
-  Building2, Calendar, ShieldCheck, BarChart3, TrendingUp, Layers
+  FileText, Download, Printer, X, Calendar
 } from 'lucide-react';
 import { Button } from '../common/Button';
-import { Badge } from '../common/Badge';
 import { MUMBAI_WARDS } from '../../utils/mockData';
 import toast from 'react-hot-toast';
 
-export const MunicipalReportModal = ({ isOpen, onClose, complaints = [], analytics = {} }) => {
-  const [selectedWard, setSelectedWard] = useState('ALL');
-  const [reportMonth, setReportMonth] = useState('October 2026');
-  const reportRef = useRef(null);
+const createReportMetadata = () => ({
+  refNo: `BMC-KAIZER-GRV-${Math.floor(100000 + Math.random() * 900000)}`,
+  generatedDate: new Date().toLocaleDateString('en-IN', { dateStyle: 'long' }),
+});
 
+export const MunicipalReportModal = ({ isOpen, onClose, complaints = [], analytics = {} }) => {
   if (!isOpen) return null;
+
+  return (
+    <MunicipalReportModalContent
+      onClose={onClose}
+      complaints={complaints}
+      _analytics={analytics}
+    />
+  );
+};
+
+const MunicipalReportModalContent = ({ onClose, complaints = [], _analytics = {} }) => {
+  const [selectedWard, setSelectedWard] = useState('ALL');
+  const [reportMonth] = useState('October 2026');
+  const reportRef = useRef(null);
+  const [reportMetadata] = useState(createReportMetadata);
 
   // Filter complaints for report
   const filtered = selectedWard === 'ALL'
@@ -247,7 +261,7 @@ export const MunicipalReportModal = ({ isOpen, onClose, complaints = [], analyti
               Civic Infrastructure & Public Grievance Redressal Command Center · Kaiser AI Platform
             </p>
             <div className="text-[11px] font-mono text-neutral-500 pt-1">
-              Ref No: BMC-KAIZER-GRV-{Date.now().toString().slice(-6)} · Generated on {new Date().toLocaleDateString('en-IN', { dateStyle: 'long' })}
+              Ref No: {reportMetadata.refNo} · Generated on {reportMetadata.generatedDate}
             </div>
           </div>
 

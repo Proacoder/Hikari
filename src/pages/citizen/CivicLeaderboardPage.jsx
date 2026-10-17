@@ -1,19 +1,25 @@
 import React, { useState } from 'react';
 import {
-  Award, Trophy, Star, ShieldCheck, Flame, Users, TrendingUp,
-  Gift, CheckCircle2, ChevronRight, Sparkles, MapPin, ArrowUpRight
+  Award, Trophy, TrendingUp,
+  Gift, CheckCircle2, ChevronRight, Sparkles, MapPin
 } from 'lucide-react';
 import { Card } from '../../components/common/Card';
 import { Badge } from '../../components/common/Badge';
 import { Button } from '../../components/common/Button';
-import { useAuth } from '../../context/AuthContext';
-import { useLanguage } from '../../context/LanguageContext';
-import { MUMBAI_WARDS } from '../../utils/mockData';
 import toast from 'react-hot-toast';
 
+const createVoucher = (reward) => ({
+  id: `VCH-${Date.now().toString(36).toUpperCase()}-${Math.floor(100 + Math.random() * 900)}`,
+  title: reward.title,
+  cost: reward.cost,
+  icon: reward.icon,
+  desc: reward.desc,
+  code: `BMC-${reward.id.toUpperCase()}-${Math.random().toString(36).substring(2, 7).toUpperCase()}`,
+  claimedAt: new Date().toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' }),
+  validUntil: new Date(Date.now() + 30 * 86400000).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' }),
+});
+
 export const CivicLeaderboardPage = () => {
-  const { user } = useAuth();
-  const { t } = useLanguage();
   const [activeTab, setActiveTab] = useState('citizens'); // 'citizens' | 'wards' | 'badges' | 'rewards' | 'vouchers'
 
   // User karma stats stored persistently
@@ -87,16 +93,7 @@ export const CivicLeaderboardPage = () => {
         console.warn(e);
       }
 
-      const newVoucher = {
-        id: `VCH-${Date.now().toString(36).toUpperCase()}-${Math.floor(100 + Math.random() * 900)}`,
-        title: reward.title,
-        cost: reward.cost,
-        icon: reward.icon,
-        desc: reward.desc,
-        code: `BMC-${reward.id.toUpperCase()}-${Math.random().toString(36).substring(2, 7).toUpperCase()}`,
-        claimedAt: new Date().toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' }),
-        validUntil: new Date(Date.now() + 30 * 86400000).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' }),
-      };
+      const newVoucher = createVoucher(reward);
 
       const updated = [newVoucher, ...claimedVouchers];
       setClaimedVouchers(updated);

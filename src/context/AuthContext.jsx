@@ -1,5 +1,5 @@
 import { createContext, useContext, useState, useEffect, useCallback } from 'react';
-import { verifyToken, login as apiLogin, logout as apiLogout, register as apiRegister, googleLogin as apiGoogleLogin } from '../api/auth.api';
+import { verifyToken, login as apiLogin, logout as apiLogout, register as apiRegister } from '../api/auth.api';
 
 const AuthContext = createContext(null);
 
@@ -61,16 +61,6 @@ export const AuthProvider = ({ children }) => {
     return res;
   }, []);
 
-  const googleLogin = useCallback(async (credential) => {
-    const res = await apiGoogleLogin(credential);
-    if (res.success) {
-      setUser(res.data.user);
-      setRole(res.data.user.role);
-      setToken(res.data.token);
-    }
-    return res;
-  }, []);
-
   const logout = useCallback(async () => {
     await apiLogout();
     setUser(null);
@@ -79,7 +69,7 @@ export const AuthProvider = ({ children }) => {
   }, []);
 
   return (
-    <AuthContext.Provider value={{ user, role, token, isLoading, login, register, googleLogin, logout }}>
+    <AuthContext.Provider value={{ user, role, token, isLoading, login, register, logout }}>
       {children}
     </AuthContext.Provider>
   );
@@ -91,4 +81,3 @@ export const useAuth = () => {
   return ctx;
 };
 
-export default AuthContext;

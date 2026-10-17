@@ -20,16 +20,13 @@ import { LeafletMap } from '../components/map/LeafletMap';
 import { SkeletonKpiCard, SkeletonRow } from '../components/common/Skeleton';
 import { useAuth } from '../context/AuthContext';
 import { FieldInspectionModal } from '../components/officer/FieldInspectionModal';
+import { formatDate } from '../utils/formatters';
 import {
   BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer,
   PieChart, Pie, Cell, AreaChart, Area, CartesianGrid
 } from 'recharts';
 
 // ── Helpers ────────────────────────────────────────────────────────────────────
-const formatDate = (iso) => {
-  if (!iso) return '—';
-  return new Date(iso).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' });
-};
 
 const daysAgo = (iso) => {
   if (!iso) return 'Recent';
@@ -111,17 +108,17 @@ const ImageLightbox = ({ src, title, onClose }) => (
 
 // ── Complaint Detail Modal with Full Image Inspection ─────────────────────────
 const ComplaintDetailModal = ({ complaint, onClose, onUpdate, onInspect }) => {
+  const [prevId, setPrevId] = useState(complaint?.id);
   const [status, setStatus] = useState(complaint?.status || 'reported');
   const [remarks, setRemarks] = useState('');
   const [saving, setSaving] = useState(false);
   const [lightbox, setLightbox] = useState(false);
 
-  useEffect(() => {
-    if (complaint) {
-      setStatus(complaint.status);
-      setRemarks('');
-    }
-  }, [complaint]);
+  if (complaint && complaint.id !== prevId) {
+    setPrevId(complaint.id);
+    setStatus(complaint.status);
+    setRemarks('');
+  }
 
   const handleSave = async () => {
     if (!complaint) return;
@@ -585,30 +582,36 @@ export const OfficerDashboard = ({ activeTabOverride }) => {
   const [loading,          setLoading]          = useState(true);
 
   // Load ward complaints and weather
-  const loadWardData = useCallback(async () => {
-    if (!officerProfile) return;
-    setLoading(true);
-    try {
-      const wardObj = MUMBAI_WARDS.find(w => w.id === officerProfile.ward);
-      const lat = wardObj?.lat || 19.076;
-      const lng = wardObj?.lng || 72.877;
-
-      const [weatherRes, complaintsRes] = await Promise.all([
-        getWeatherAQI(lat, lng),
-        getComplaints({ ward: officerProfile.ward }),
-      ]);
-      setWeather(weatherRes.data || null);
-      setComplaints(complaintsRes.data || []);
-    } catch (e) {
-      console.error(e);
-    } finally {
-      setLoading(false);
-    }
-  }, [officerProfile]);
-
   useEffect(() => {
-    loadWardData();
-  }, [loadWardData]);
+    let ignore = false;
+    async function loadData() {
+      if (!officerProfile) return;
+      try {
+        const wardObj = MUMBAI_WARDS.find((w) => w.id === officerProfile.ward);
+        const lat = wardObj?.lat || 19.076;
+        const lng = wardObj?.lng || 72.877;
+
+        const [weatherRes, complaintsRes] = await Promise.all([
+          getWeatherAQI(lat, lng),
+          getComplaints({ ward: officerProfile.ward }),
+        ]);
+        if (!ignore) {
+          setWeather(weatherRes.data || null);
+          setComplaints(complaintsRes.data || []);
+        }
+      } catch (e) {
+        console.error(e);
+      } finally {
+        if (!ignore) {
+          setLoading(false);
+        }
+      }
+    }
+    loadData();
+    return () => {
+      ignore = true;
+    };
+  }, [officerProfile]);
 
   // Handle switching tabs
   const handleTabClick = (tabId) => {

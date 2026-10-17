@@ -1,12 +1,14 @@
 // ─── Public Navbar ────────────────────────────────────────────────────────
 import { useState } from 'react';
 import { Link, NavLink, useNavigate } from 'react-router-dom';
-import { Menu, X, Shield, Globe, ChevronDown, Bell, User } from 'lucide-react';
+import { Menu, X, Shield, Globe, ChevronDown, Bell, Search, Volume2, VolumeX } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 import { useLanguage } from '../../context/LanguageContext';
 import { useNotifications } from '../../context/NotificationContext';
 import { Button } from '../common/Button';
 import { classNames } from '../../utils/formatters';
+import { CommandPalette } from '../common/CommandPalette';
+import { sound } from '../../utils/soundEffects';
 
 export const Navbar = () => {
   const { user, role, logout } = useAuth();
@@ -15,6 +17,8 @@ export const Navbar = () => {
   const navigate = useNavigate();
   const [menuOpen, setMenuOpen]   = useState(false);
   const [langOpen, setLangOpen]   = useState(false);
+  const [cmdOpen, setCmdOpen]     = useState(false);
+  const [soundOn, setSoundOn]     = useState(sound.isEnabled());
 
   const navLinks = [
     { label: t('nav.home', 'Home'),                 to: '/'             },
@@ -37,16 +41,16 @@ export const Navbar = () => {
         <div className="flex items-center justify-between h-16">
           {/* Logo */}
           <Link to="/" className="flex items-center gap-2.5 shrink-0 group">
-            <div className="w-8 h-8 bg-brand-600 rounded-lg flex items-center justify-center shadow-brand group-hover:shadow-brand-lg transition-shadow">
-              <Shield size={18} className="text-white" strokeWidth={2.5} />
+            <div className="w-9 h-9 bg-gradient-to-tr from-brand-600 via-brand-500 to-emerald-400 rounded-xl flex items-center justify-center shadow-brand group-hover:scale-105 transition-all duration-200">
+              <Shield size={19} className="text-white" strokeWidth={2.5} />
             </div>
-            <span className="font-bold text-lg text-neutral-900 tracking-tight">
-              Kaiser <span className="text-brand-600">AI</span>
+            <span className="font-extrabold text-lg text-neutral-900 tracking-tight">
+              Kaiser<span className="text-brand-600 ml-0.5">AI</span>
             </span>
           </Link>
 
           {/* Desktop nav links */}
-          <nav className="hidden md:flex items-center gap-1" aria-label="Main navigation">
+          <nav className="hidden md:flex items-center gap-1.5" aria-label="Main navigation">
             {navLinks.map((link) => (
               <NavLink
                 key={link.to}
@@ -54,10 +58,10 @@ export const Navbar = () => {
                 end={link.to === '/'}
                 className={({ isActive }) =>
                   classNames(
-                    'px-3.5 py-2 rounded-xl text-sm font-medium transition-colors',
+                    'px-3.5 py-1.5 rounded-xl text-xs sm:text-sm font-semibold transition-all duration-150',
                     isActive
-                      ? 'text-brand-700 bg-brand-50'
-                      : 'text-neutral-600 hover:text-neutral-900 hover:bg-neutral-50'
+                      ? 'text-brand-700 bg-brand-50/80 shadow-xs'
+                      : 'text-neutral-600 hover:text-neutral-900 hover:bg-neutral-100/70'
                   )
                 }
               >
@@ -67,7 +71,35 @@ export const Navbar = () => {
           </nav>
 
           {/* Right side */}
-          <div className="hidden md:flex items-center gap-2">
+          <div className="hidden md:flex items-center gap-2.5">
+            {/* Quick Spotlight Search trigger */}
+            <button
+              onClick={() => {
+                sound.play('pop');
+                setCmdOpen(true);
+              }}
+              className="flex items-center gap-2 px-3 py-1.5 text-xs text-neutral-600 hover:text-neutral-900 bg-neutral-100/90 hover:bg-neutral-200/70 rounded-xl transition-all border border-neutral-200/80 shadow-xs cursor-pointer active:scale-95"
+              title="Spotlight Search (Ctrl+K)"
+            >
+              <Search size={14} className="text-neutral-500" />
+              <span className="hidden lg:inline font-semibold">Quick Find</span>
+              <kbd className="hidden sm:inline-block px-1.5 py-0.5 text-[9px] font-mono font-bold bg-white text-neutral-500 rounded border border-neutral-300/80 shadow-xs">
+                Ctrl K
+              </kbd>
+            </button>
+
+            {/* Sound Effects Toggle */}
+            <button
+              onClick={() => {
+                const s = sound.toggle();
+                setSoundOn(s);
+              }}
+              className="p-2 text-neutral-500 hover:text-neutral-900 hover:bg-neutral-100 rounded-xl transition-colors"
+              title={soundOn ? 'Sound Effects Active (Click to mute)' : 'Sound Effects Muted (Click to enable)'}
+            >
+              {soundOn ? <Volume2 size={16} className="text-emerald-600" /> : <VolumeX size={16} className="text-neutral-400" />}
+            </button>
+
             {/* Language selector */}
             <div className="relative">
               <button
@@ -233,8 +265,9 @@ export const Navbar = () => {
           </div>
         </div>
       )}
+      {/* Global Command Palette */}
+      <CommandPalette isOpen={cmdOpen} onClose={() => setCmdOpen(false)} onOpen={() => setCmdOpen(true)} />
     </header>
   );
 };
 
-export default Navbar;

@@ -5,20 +5,6 @@
 
 const ML_SERVICE_URL = import.meta.env.VITE_ML_SERVICE_URL || 'http://localhost:5001/api/ml';
 
-/**
- * Checks if the local Python ML service is running and healthy.
- */
-export const checkMlServiceHealth = async () => {
-  try {
-    const res = await fetch(`${ML_SERVICE_URL}/health`, { method: 'GET' });
-    if (res.ok) {
-      return await res.json();
-    }
-  } catch (e) {
-    // Service offline
-  }
-  return { status: 'offline' };
-};
 
 /**
  * Sends image to local YOLOv8 engine for civic defect detection and bounding box segmentation.
@@ -68,7 +54,7 @@ export const checkDuplicateWithDBSCAN = async (candidate, existingComplaints, ra
     if (res.ok) {
       return await res.json();
     }
-  } catch (err) {
+  } catch {
     console.info('Local ML service offline for DBSCAN deduplication check.');
   }
   return null;
@@ -93,7 +79,7 @@ export const predictMonsoonRiskML = async (wardCode, rainfallMmHr, tideHeightM =
     if (res.ok) {
       return await res.json();
     }
-  } catch (err) {
+  } catch {
     console.info('Local ML service offline for monsoon risk prediction.');
   }
   return null;
@@ -117,7 +103,7 @@ export const queryAssistantChat = async (query, language = 'en', userWard = 8) =
     if (res.ok) {
       return await res.json();
     }
-  } catch (err) {
+  } catch {
     console.info('Local assistant chat service offline, using client NLP fallback.');
   }
   return null;

@@ -2,13 +2,12 @@
 import { Link } from 'react-router-dom';
 import {
   ThumbsUp, MessageSquare, Clock, MapPin, ChevronRight,
-  AlertTriangle, CheckCircle, Loader, Circle, Hash
+  AlertTriangle, CheckCircle, Loader, Hash
 } from 'lucide-react';
-import { Badge } from '../common/Badge';
 import { Card } from '../common/Card';
 import {
   formatRelative, daysOpen, getSeverityLabel, getSeverityColor,
-  getSeverityDotColor, getStatusLabel, getStatusColor, CATEGORY_COLORS, truncate
+  getSeverityDotColor, getStatusLabel, getStatusColor, CATEGORY_COLORS
 } from '../../utils/formatters';
 
 // ── Category Icon ─────────────────────────────────────────────────────────────
@@ -133,7 +132,7 @@ const TIMELINE_STEPS = [
 
 const STATUS_ORDER = { reported: 0, assigned: 1, in_progress: 2, resolved: 3 };
 
-export const StatusTimeline = ({ status, complaint }) => {
+export const StatusTimeline = ({ status }) => {
   const currentIdx = STATUS_ORDER[status] ?? 0;
   return (
     <ol className="relative">

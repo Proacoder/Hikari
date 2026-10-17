@@ -1,17 +1,12 @@
 import React, { useState, useCallback } from 'react';
 import { useNavigate, useSearchParams, useLocation, Link } from 'react-router-dom';
-import { Shield, User, Lock, Phone, ArrowRight, CheckCircle2, BadgeCheck, AlertCircle, Eye, EyeOff, Info } from 'lucide-react';
+import { Shield, ArrowRight, BadgeCheck, AlertCircle, Eye, EyeOff, Info } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { Button } from '../components/common/Button';
 import { Input } from '../components/common/Input';
 import { Card } from '../components/common/Card';
 import { DEMO_CITIZENS, MOCK_USERS, MUMBAI_WARDS } from '../utils/mockData';
-
-// ── Input sanitization ──────────────────────────────────────────────────────
-const sanitizeInput = (str) => {
-  if (typeof str !== 'string') return '';
-  return str.replace(/[<>]/g, '');
-};
+import { sanitizeInput } from '../api/auth.api';
 
 // ── Validation helpers ──────────────────────────────────────────────────────
 const validateEmail = (email) => {

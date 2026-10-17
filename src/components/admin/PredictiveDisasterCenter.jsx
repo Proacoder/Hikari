@@ -1,8 +1,6 @@
 import React, { useState } from 'react';
 import {
-  CloudRain, Waves, AlertTriangle, ShieldAlert, Radio,
-  Activity, ArrowUpRight, Gauge, Droplets, CheckCircle2,
-  RefreshCw, Zap, Bell, Navigation, Siren, Building2
+  CloudRain, Waves, Droplets, Zap, Siren
 } from 'lucide-react';
 import toast from 'react-hot-toast';
 import { predictMonsoonRiskML } from '../../api/ml.api';
@@ -100,6 +98,18 @@ export const PredictiveDisasterCenter = () => {
           </button>
         </div>
       </div>
+
+      {mlInference && (
+        <div className="bg-red-500/10 border border-red-500/30 rounded-2xl p-4 text-xs flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-red-900 shadow-sm animate-fade-in">
+          <div className="flex items-center gap-2 font-bold">
+            <span className="w-2.5 h-2.5 rounded-full bg-red-600 animate-ping"></span>
+            <span>ML Simulation Output: {mlInference.alert_level || 'Critical Inundation Risk'}</span>
+          </div>
+          <div className="font-mono text-neutral-700 bg-white/80 px-3 py-1 rounded-lg border border-red-200">
+            Protocol: <span className="font-bold text-red-700">{mlInference.protocol || 'QRT Evacuation & Dewatering'}</span>
+          </div>
+        </div>
+      )}
 
       {/* Primary Telemetry Triad: Tide, Mithi River, Rainfall */}
       <div className="grid sm:grid-cols-3 gap-4">

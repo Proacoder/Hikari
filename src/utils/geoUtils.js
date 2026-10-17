@@ -78,7 +78,7 @@ export const reverseGeocodeCoordinates = async (lat, lng) => {
         }
       }
     }
-  } catch (err) {
+  } catch {
     // Non-blocking fallback
   }
 

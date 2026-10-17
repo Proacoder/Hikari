@@ -1,8 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import {
-  ThumbsUp, MessageSquare, Clock, MapPin, Share2, AlertTriangle,
-  ChevronDown, ChevronUp, CheckCircle2, Shield, Send
+  ThumbsUp, MessageSquare, Clock, MapPin, Share2,
+  ChevronDown, ChevronUp, Send
 } from 'lucide-react';
 import { getComplaintById, upvoteComplaint, getComments, addComment } from '../../api/complaints.api';
 import { StatusTimeline, SeverityBadge, StatusBadge, CategoryIcon } from '../../components/complaints/ComplaintComponents';

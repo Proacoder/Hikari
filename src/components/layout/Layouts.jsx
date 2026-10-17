@@ -3,8 +3,9 @@ import { Outlet, Link, NavLink, useNavigate, useLocation } from 'react-router-do
 import { useState, useMemo } from 'react';
 import {
   Shield, Home, Map, FileText, Bell, User, BarChart3,
-  Users, Building2, Settings, LogOut, Menu, X, ChevronRight,
-  AlertTriangle, TrendingUp, ClipboardList, Layers, Globe, ChevronDown, Star, BadgeCheck, Trophy, CloudRain
+  Users, Building2, LogOut, Menu, X,
+  AlertTriangle, TrendingUp, ClipboardList, Layers, Globe, ChevronDown, BadgeCheck, Trophy, CloudRain,
+  Search, Volume2, VolumeX
 } from 'lucide-react';
 import { Navbar } from './Navbar';
 import { Footer } from './Footer';
@@ -14,10 +15,14 @@ import { useNotifications } from '../../context/NotificationContext';
 import { NotificationDrawer } from '../notifications/NotificationDrawer';
 import { classNames } from '../../utils/formatters';
 import { MOCK_OFFICERS } from '../../utils/mockData';
+import { EmergencyTicker } from '../common/EmergencyTicker';
+import { CommandPalette } from '../common/CommandPalette';
+import { sound } from '../../utils/soundEffects';
 
 // ── Public layout (marketing site) ───────────────────────────────────────────
 export const PublicLayout = () => (
   <div className="flex flex-col min-h-screen bg-neutral-50">
+    <EmergencyTicker />
     <Navbar />
     <NotificationDrawer />
     <main className="flex-1 page-enter">
@@ -28,31 +33,62 @@ export const PublicLayout = () => (
 );
 
 // ── Shared app top bar for logged-in layouts ──────────────────────────────────
-const AppTopBar = ({ title, sidebarOpen, setSidebarOpen }) => {
+const AppTopBar = ({ title, setSidebarOpen }) => {
   const { user, logout } = useAuth();
   const { language, setLanguage, t, supportedLanguages } = useLanguage();
   const { unreadCount, toggleDrawer } = useNotifications();
   const [langOpen, setLangOpen] = useState(false);
+  const [cmdOpen, setCmdOpen] = useState(false);
+  const [soundOn, setSoundOn] = useState(sound.isEnabled());
   const navigate = useNavigate();
 
   const currentLangObj = supportedLanguages.find((l) => l.code === language) || supportedLanguages[0];
 
   return (
-    <header className="bg-white border-b border-neutral-100 h-14 flex items-center justify-between px-4 lg:px-6 shrink-0 shadow-soft-sm relative z-30">
-      <div className="flex items-center gap-3">
-        <button
-          onClick={() => setSidebarOpen(true)}
-          className="lg:hidden p-2 rounded-xl text-neutral-500 hover:bg-neutral-100 transition-colors"
-          aria-label="Open sidebar"
-        >
-          <Menu size={20} />
-        </button>
-        <h1 className="text-sm font-semibold text-neutral-800 hidden sm:block">{title}</h1>
-      </div>
+    <>
+      <header className="bg-white border-b border-neutral-100 h-14 flex items-center justify-between px-4 lg:px-6 shrink-0 shadow-soft-sm relative z-30">
+        <div className="flex items-center gap-3">
+          <button
+            onClick={() => setSidebarOpen(true)}
+            className="lg:hidden p-2 rounded-xl text-neutral-500 hover:bg-neutral-100 transition-colors"
+            aria-label="Open sidebar"
+          >
+            <Menu size={20} />
+          </button>
+          <h1 className="text-sm font-semibold text-neutral-800 hidden sm:block">{title}</h1>
+        </div>
 
-      <div className="flex items-center gap-2">
-        {/* Language selector in dashboard topbar */}
-        <div className="relative">
+        <div className="flex items-center gap-2">
+          {/* Quick Spotlight Search trigger */}
+          <button
+            onClick={() => {
+              sound.play('pop');
+              setCmdOpen(true);
+            }}
+            className="flex items-center gap-2 px-2.5 py-1.5 text-xs text-neutral-500 hover:text-neutral-900 bg-neutral-100 hover:bg-neutral-200/70 rounded-xl transition-all border border-neutral-200/60"
+            title="Search commands, wards, or complaints (Ctrl+K)"
+          >
+            <Search size={14} className="text-neutral-500" />
+            <span className="hidden md:inline text-neutral-600 font-medium">Quick Find</span>
+            <kbd className="hidden sm:inline-block px-1.5 py-0.5 text-[9px] font-mono font-bold bg-white text-neutral-500 rounded border border-neutral-300">
+              Ctrl K
+            </kbd>
+          </button>
+
+          {/* Sound Effects Toggle */}
+          <button
+            onClick={() => {
+              const s = sound.toggle();
+              setSoundOn(s);
+            }}
+            className="p-2 text-neutral-500 hover:text-neutral-900 hover:bg-neutral-100 rounded-xl transition-colors"
+            title={soundOn ? 'Sound Effects Active' : 'Sound Effects Muted'}
+          >
+            {soundOn ? <Volume2 size={16} className="text-emerald-600" /> : <VolumeX size={16} className="text-neutral-400" />}
+          </button>
+
+          {/* Language selector in dashboard topbar */}
+          <div className="relative">
           <button
             onClick={() => setLangOpen((p) => !p)}
             className="flex items-center gap-1.5 px-2.5 py-1.5 text-xs text-neutral-600 hover:text-neutral-900 hover:bg-neutral-50 rounded-xl transition-colors border border-neutral-200/70"
@@ -113,7 +149,9 @@ const AppTopBar = ({ title, sidebarOpen, setSidebarOpen }) => {
         </div>
       </div>
     </header>
-  );
+    <CommandPalette isOpen={cmdOpen} onClose={() => setCmdOpen(false)} onOpen={() => setCmdOpen(true)} />
+  </>
+);
 };
 
 // ── Sidebar nav link ──────────────────────────────────────────────────────────
@@ -204,7 +242,6 @@ const CitizenSidebar = ({ open, onClose }) => {
 
 export const CitizenLayout = () => {
   const [sidebarOpen, setSidebarOpen] = useState(false);
-  const { t } = useLanguage();
   return (
     <div className="flex h-screen bg-neutral-50 overflow-hidden">
       <CitizenSidebar open={sidebarOpen} onClose={() => setSidebarOpen(false)} />

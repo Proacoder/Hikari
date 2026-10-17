@@ -1,8 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import {
   ShieldCheck, MapPin, Camera, CheckCircle2, AlertTriangle,
-  FileCheck, Download, Share2, Sparkles, Navigation, X,
-  Clock, Hash, Building2, User, Wrench, Check
+  Download, Sparkles, Navigation, X, Wrench, Check
 } from 'lucide-react';
 import { calculateDistanceKm } from '../../utils/geoUtils';
 import toast from 'react-hot-toast';
@@ -10,7 +9,18 @@ import toast from 'react-hot-toast';
 export const FieldInspectionModal = ({ complaint, officer, isOpen, onClose, onResolveSuccess }) => {
   if (!isOpen || !complaint) return null;
 
-  const [afterImage, setAfterImage] = useState(
+  return (
+    <FieldInspectionModalContent
+      complaint={complaint}
+      officer={officer}
+      onClose={onClose}
+      onResolveSuccess={onResolveSuccess}
+    />
+  );
+};
+
+const FieldInspectionModalContent = ({ complaint, officer, onClose, onResolveSuccess }) => {
+  const [afterImage] = useState(
     'https://images.unsplash.com/photo-1541888946425-d0fbb186156f?w=800&auto=format&fit=crop&q=80'
   );
   const [sliderPos, setSliderPos] = useState(50);
@@ -41,7 +51,7 @@ export const FieldInspectionModal = ({ complaint, officer, isOpen, onClose, onRe
         const hashArray = Array.from(new Uint8Array(hashBuf));
         const hex = hashArray.map(b => b.toString(16).padStart(2, '0')).join('').toUpperCase();
         setCertificateHash(`BMC-SHA256-${hex.slice(0, 16)}-${new Date().getFullYear()}`);
-      } catch (e) {
+      } catch {
         setCertificateHash(`BMC-CERT-${complaint.id.toUpperCase()}-${Date.now().toString(36).toUpperCase()}`);
       }
     }

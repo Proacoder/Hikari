@@ -1,5 +1,5 @@
 import React from 'react';
-import { AlertTriangle, RefreshCw, Home, ShieldAlert } from 'lucide-react';
+import { RefreshCw, Home, ShieldAlert } from 'lucide-react';
 
 export class ErrorBoundary extends React.Component {
   constructor(props) {
@@ -65,7 +65,7 @@ export class ErrorBoundary extends React.Component {
               </button>
             </div>
 
-            {process.env.NODE_ENV !== 'production' && this.state.error && (
+            {import.meta.env.DEV && this.state.error && (
               <details className="text-left bg-neutral-50 rounded-xl p-3 border border-neutral-200/80 text-[11px] text-neutral-700 space-y-1">
                 <summary className="cursor-pointer font-semibold text-neutral-600 select-none">
                   Technical Details
@@ -87,4 +87,3 @@ export class ErrorBoundary extends React.Component {
   }
 }
 
-export default ErrorBoundary;

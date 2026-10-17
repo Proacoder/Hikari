@@ -17,7 +17,6 @@ export const NotificationProvider = ({ children }) => {
 
   const fetchNotifications = useCallback(async () => {
     try {
-      setLoading(true);
       const res = await getNotifications();
       if (res && res.data) {
         setNotifications(res.data);
@@ -30,8 +29,18 @@ export const NotificationProvider = ({ children }) => {
   }, []);
 
   useEffect(() => {
-    fetchNotifications();
-  }, [fetchNotifications]);
+    let isMounted = true;
+    getNotifications().then((res) => {
+      if (isMounted && res?.data) {
+        setNotifications(res.data);
+      }
+    }).catch((err) => {
+      console.error('Failed to load notifications:', err);
+    }).finally(() => {
+      if (isMounted) setLoading(false);
+    });
+    return () => { isMounted = false; };
+  }, []);
 
   const unreadCount = notifications.filter((n) => !n.isRead).length;
 
@@ -65,7 +74,7 @@ export const NotificationProvider = ({ children }) => {
       if (newNotif) {
         setNotifications((prev) => [newNotif, ...prev]);
         toast(
-          (t) => (
+          () => (
             <div className="flex flex-col gap-0.5 text-xs">
               <span className="font-bold text-neutral-900">{title}</span>
               <span className="text-neutral-600 line-clamp-2">{body}</span>
@@ -125,4 +134,3 @@ export const useNotifications = () => {
   return ctx;
 };
 
-export default NotificationContext;

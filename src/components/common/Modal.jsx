@@ -2,7 +2,6 @@
 import { useEffect } from 'react';
 import { X } from 'lucide-react';
 import { classNames } from '../../utils/formatters';
-import { Button } from './Button';
 
 export const Modal = ({ open, isOpen, onClose, title, children, footer, size = 'md' }) => {
   // Accept both 'open' and 'isOpen' for compatibility
@@ -68,21 +67,3 @@ export const Modal = ({ open, isOpen, onClose, title, children, footer, size = '
     </div>
   );
 };
-
-// Confirm dialog pattern
-export const ConfirmModal = ({ open, onClose, onConfirm, title, message, confirmLabel = 'Confirm', variant = 'danger', loading = false }) => (
-  <Modal
-    open={open}
-    onClose={onClose}
-    title={title}
-    size="sm"
-    footer={
-      <>
-        <Button variant="secondary" size="sm" onClick={onClose} disabled={loading}>Cancel</Button>
-        <Button variant={variant} size="sm" onClick={onConfirm} loading={loading}>{confirmLabel}</Button>
-      </>
-    }
-  >
-    <p className="text-sm text-neutral-600">{message}</p>
-  </Modal>
-);

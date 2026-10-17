@@ -1,10 +1,8 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { useLocation } from 'react-router-dom';
 import {
-  BarChart3, Building2, Users, TrendingUp, AlertTriangle, CheckCircle2,
-  Download, Filter, Layers, Shield, Award, Star, MapPin, Activity,
-  CloudRain, Thermometer, Wind, ChevronRight, Search, ThumbsUp, Calendar,
-  CheckCircle, Clock, Eye
+  Building2, Download, Award, Star,
+  Thermometer, ChevronRight, Search, CheckCircle
 } from 'lucide-react';
 import { getDashboardStats, getCategoryAnalytics, getWardAnalytics, getResolutionTrends } from '../api/analytics.api';
 import { getWeatherAQI } from '../api/weather.api';
@@ -20,8 +18,7 @@ import { SkeletonKpiCard } from '../components/common/Skeleton';
 import { useDebounce } from '../hooks/useDebounce';
 import {
   BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer,
-  LineChart, Line, CartesianGrid, Area, AreaChart,
-  PieChart, Pie, Cell, Legend
+  LineChart, Line, CartesianGrid, Area, AreaChart
 } from 'recharts';
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
@@ -111,8 +108,8 @@ export const AdminDashboard = () => {
   const debouncedWardSearch = useDebounce(wardSearchQuery, 250);
   const debouncedComplaintSearch = useDebounce(complaintSearch, 250);
 
-  const sectionFromPath = () => {
-    const p = location.pathname;
+  const sectionFromPath = (path) => {
+    const p = path || location.pathname;
     if (p.endsWith('/wards')) return 'wards';
     if (p.endsWith('/officers')) return 'leaderboard';
     if (p.endsWith('/complaints')) return 'complaints';
@@ -122,11 +119,13 @@ export const AdminDashboard = () => {
     return 'overview';
   };
 
-  const [activeSection, setActiveSection] = useState(sectionFromPath());
+  const [prevPath, setPrevPath] = useState(location.pathname);
+  const [activeSection, setActiveSection] = useState(() => sectionFromPath(location.pathname));
 
-  useEffect(() => {
-    setActiveSection(sectionFromPath());
-  }, [location.pathname]);
+  if (location.pathname !== prevPath) {
+    setPrevPath(location.pathname);
+    setActiveSection(sectionFromPath(location.pathname));
+  }
 
   useEffect(() => {
     async function load() {

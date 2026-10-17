@@ -1,8 +1,8 @@
 import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
 import {
-  Bell, Check, CheckCheck, Trash2, ExternalLink, Filter,
-  Search, Shield, CheckCircle2, MessageSquare, ThumbsUp, UserCheck, AlertTriangle
+  Bell, Check, CheckCheck, Trash2, ExternalLink,
+  Search, CheckCircle2, MessageSquare, ThumbsUp, UserCheck
 } from 'lucide-react';
 import { useNotifications } from '../context/NotificationContext';
 import { useLanguage } from '../context/LanguageContext';
@@ -26,7 +26,7 @@ const getIcon = (type) => {
 };
 
 export const NotificationsPage = () => {
-  const { notifications, unreadCount, markRead, markAllRead, deleteNotif, loading } = useNotifications();
+  const { notifications, unreadCount, markRead, markAllRead, deleteNotif } = useNotifications();
   const { t } = useLanguage();
   const [activeTab, setActiveTab] = useState('all'); // all | unread
   const [search, setSearch] = useState('');
@@ -190,4 +190,3 @@ export const NotificationsPage = () => {
   );
 };
 
-export default NotificationsPage;
