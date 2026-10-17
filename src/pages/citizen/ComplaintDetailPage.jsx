@@ -35,7 +35,7 @@ export const ComplaintDetailPage = () => {
         setUpvotes(comp.upvoteCount || 0);
         setComments(commRes.data || []);
       } catch (err) {
-        console.error(err);
+        console.error('Failed to load complaint details:', err);
       }
     }
     load();
