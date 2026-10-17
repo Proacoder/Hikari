@@ -1,6 +1,8 @@
-import React, { useEffect, useRef } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
+import { MUMBAI_WARDS_GEOJSON, getWardHeatmapStyle } from '../../utils/mumbaiWardsGeo';
+import { classNames } from '../../utils/formatters';
 
 // Custom SVG marker generator based on severity
 const createMarkerIcon = (severity, _category) => {
@@ -75,7 +77,9 @@ export const LeafletMap = ({
   const mapContainerRef = useRef(null);
   const mapInstanceRef = useRef(null);
   const markersLayerRef = useRef(null);
+  const geoJsonLayerRef = useRef(null);
   const pickerMarkerRef = useRef(null);
+  const [mapViewMode, setMapViewMode] = useState('pins'); // 'pins' | 'wards'
   const centerLat = center?.[0];
   const centerLng = center?.[1];
 
@@ -125,13 +129,23 @@ export const LeafletMap = ({
     }
   }, [centerLat, centerLng, zoom, center]);
 
-  // Update Complaint Markers
+  // Update Markers or Ward Polygons based on mapViewMode
   useEffect(() => {
-    if (!mapInstanceRef.current || !markersLayerRef.current) return;
+    if (!mapInstanceRef.current) return;
 
-    markersLayerRef.current.clearLayers();
+    // Clean existing layers
+    if (markersLayerRef.current) {
+      markersLayerRef.current.clearLayers();
+    }
+    if (geoJsonLayerRef.current) {
+      mapInstanceRef.current.removeLayer(geoJsonLayerRef.current);
+      geoJsonLayerRef.current = null;
+    }
 
-    if (!pickerMode && complaints.length > 0) {
+    if (pickerMode) return;
+
+    // 1. Pins View Mode
+    if (mapViewMode === 'pins' && complaints.length > 0) {
       complaints.forEach((c) => {
         if (!c.latitude || !c.longitude) return;
 
@@ -164,7 +178,51 @@ export const LeafletMap = ({
         markersLayerRef.current.addLayer(marker);
       });
     }
-  }, [complaints, pickerMode, onComplaintClick]);
+
+    // 2. Ward Choropleth Heatmap Mode
+    if (mapViewMode === 'wards') {
+      const geoLayer = L.geoJSON(MUMBAI_WARDS_GEOJSON, {
+        style: (feature) => {
+          const wardId = feature.properties.id;
+          const matchingComplaints = complaints.filter(
+            (c) => Number(c.ward) === Number(wardId) || String(c.ward).toLowerCase().includes(feature.properties.code.toLowerCase())
+          );
+          return getWardHeatmapStyle(matchingComplaints.length);
+        },
+        onEachFeature: (feature, layer) => {
+          const wardId = feature.properties.id;
+          const matchingComplaints = complaints.filter(
+            (c) => Number(c.ward) === Number(wardId) || String(c.ward).toLowerCase().includes(feature.properties.code.toLowerCase())
+          );
+          const count = matchingComplaints.length;
+          const critical = matchingComplaints.filter((c) => (c.severity || 0) >= 80).length;
+
+          const tooltipHtml = `
+            <div style="font-family: Inter, sans-serif; font-size: 12px; line-height: 1.4;">
+              <strong style="color: #0f172a; font-size: 13px;">${feature.properties.code}</strong> - ${feature.properties.name}<br/>
+              <span style="color: #64748b; font-size: 10px;">${feature.properties.zone}</span>
+              <hr style="margin: 4px 0; border: none; border-top: 1px solid #e2e8f0;"/>
+              <span>Active Issues: <strong>${count}</strong></span> · <span style="color: #dc2626;">Critical: <strong>${critical}</strong></span><br/>
+              <span style="color: #0284c7; font-size: 10px;">Asst. Comm: ${feature.properties.ac}</span>
+            </div>
+          `;
+          layer.bindTooltip(tooltipHtml, { sticky: true, className: 'ward-choropleth-tooltip' });
+
+          layer.on({
+            mouseover: (e) => {
+              const l = e.target;
+              l.setStyle({ weight: 3, fillOpacity: 0.5, color: '#0f172a' });
+            },
+            mouseout: (e) => {
+              geoLayer.resetStyle(e.target);
+            }
+          });
+        }
+      }).addTo(mapInstanceRef.current);
+
+      geoJsonLayerRef.current = geoLayer;
+    }
+  }, [complaints, pickerMode, mapViewMode, onComplaintClick]);
 
   // Update Picker Marker
   useEffect(() => {
@@ -195,10 +253,41 @@ export const LeafletMap = ({
   }, [pickerMode, selectedPosition, onPositionChange]);
 
   return (
-    <div
-      ref={mapContainerRef}
-      style={{ height, width: '100%', minHeight: '300px' }}
-      className={`rounded-2xl overflow-hidden shadow-soft-sm border border-neutral-200 z-10 ${className}`}
-    />
+    <div className={`relative rounded-2xl overflow-hidden shadow-soft-sm border border-neutral-200 z-10 ${className}`}>
+      {/* Floating Layer Mode Switcher */}
+      {!pickerMode && (
+        <div className="absolute top-3 right-3 z-[1000] flex items-center bg-white/95 backdrop-blur-md rounded-xl p-1 shadow-soft-md border border-neutral-200 text-xs font-semibold">
+          <button
+            type="button"
+            onClick={() => setMapViewMode('pins')}
+            className={classNames(
+              'px-2.5 py-1 rounded-lg transition-all cursor-pointer',
+              mapViewMode === 'pins'
+                ? 'bg-brand-600 text-white shadow-xs'
+                : 'text-neutral-600 hover:text-neutral-900 hover:bg-neutral-100'
+            )}
+          >
+            📍 Issue Pins
+          </button>
+          <button
+            type="button"
+            onClick={() => setMapViewMode('wards')}
+            className={classNames(
+              'px-2.5 py-1 rounded-lg transition-all cursor-pointer',
+              mapViewMode === 'wards'
+                ? 'bg-brand-600 text-white shadow-xs'
+                : 'text-neutral-600 hover:text-neutral-900 hover:bg-neutral-100'
+            )}
+          >
+            🗺️ Ward Heatmap
+          </button>
+        </div>
+      )}
+
+      <div
+        ref={mapContainerRef}
+        style={{ height, width: '100%', minHeight: '300px' }}
+      />
+    </div>
   );
 };

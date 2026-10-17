@@ -3,7 +3,7 @@ import { Link } from 'react-router-dom';
 import {
   AlertTriangle, MapPin, Search,
   Activity, CloudRain, ChevronRight, Phone,
-  ArrowRight, Shield, CheckCircle2, RefreshCw
+  ArrowRight, Shield, CheckCircle2, RefreshCw, MessageSquare
 } from 'lucide-react';
 import { getComplaints } from '../api/complaints.api';
 import { getDashboardStats } from '../api/analytics.api';
@@ -144,6 +144,17 @@ export const LandingPage = () => {
                   <span>{t('hero.mapBtn', 'Live Mumbai GIS Map')}</span>
                 </button>
               </Link>
+              <a
+                href="https://wa.me/919167722222?text=Hi%20BMC%20Kaiser%20AI%2C%20I%20want%20to%20report%20a%20civic%20grievance%20in%20Mumbai."
+                target="_blank"
+                rel="noopener noreferrer"
+                onClick={() => sound.play('click')}
+                className="px-5 py-3.5 bg-emerald-50/90 hover:bg-emerald-100/90 text-emerald-800 border border-emerald-200/80 rounded-xl font-bold text-sm shadow-xs transition-all duration-200 flex items-center gap-2 cursor-pointer active:scale-95"
+                title="BMC WhatsApp Chatbot (24/7 Helpline)"
+              >
+                <MessageSquare size={16} className="text-emerald-600" />
+                <span>WhatsApp Bot</span>
+              </a>
             </div>
 
             {/* Quick Stats Grid */}

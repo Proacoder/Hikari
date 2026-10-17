@@ -202,6 +202,23 @@ export const Navbar = () => {
       {/* Mobile menu */}
       {menuOpen && (
         <div className="md:hidden border-t border-neutral-100 bg-white px-4 py-3 space-y-2 animate-fade-in">
+          {/* Sound effects toggle in mobile menu */}
+          <div className="flex items-center justify-between p-2 bg-neutral-50 rounded-xl">
+            <div className="flex items-center gap-2">
+              {soundOn ? <Volume2 size={15} className="text-emerald-600" /> : <VolumeX size={15} className="text-neutral-400" />}
+              <span className="text-xs font-semibold text-neutral-600">Sound Effects:</span>
+            </div>
+            <button
+              onClick={() => {
+                const s = sound.toggle();
+                setSoundOn(s);
+              }}
+              className="px-2.5 py-1 rounded-lg text-xs font-medium bg-white border border-neutral-200 text-neutral-700 cursor-pointer"
+            >
+              {soundOn ? 'Enabled (Mute)' : 'Muted (Enable)'}
+            </button>
+          </div>
+
           {/* Language selector in mobile menu */}
           <div className="flex items-center gap-2 p-2 bg-neutral-50 rounded-xl">
             <Globe size={15} className="text-brand-600 shrink-0" />
