@@ -21,6 +21,7 @@ import { SkeletonKpiCard, SkeletonRow } from '../components/common/Skeleton';
 import { useAuth } from '../context/AuthContext';
 import { FieldInspectionModal } from '../components/officer/FieldInspectionModal';
 import { formatDate } from '../utils/formatters';
+import toast from 'react-hot-toast';
 import {
   BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer,
   PieChart, Pie, Cell, AreaChart, Area, CartesianGrid
@@ -540,7 +541,23 @@ export const OfficerDashboard = ({ activeTabOverride }) => {
   const loggedInOfficer = useMemo(() => {
     if (user?.role === 'officer' && user?.id) {
       const matched = MOCK_OFFICERS.find((o) => o.id === user.id);
-      if (matched) return matched;
+      if (matched) return { ...matched, ...user };
+      return {
+        id: user.id,
+        name: user.name || 'Ward Officer',
+        email: user.email || '',
+        phone: user.phone || '+91 22 2410 0008',
+        ward: user.ward || 8,
+        wardName: user.wardName || `Ward ${user.ward || 8}`,
+        department: user.department || 'Roads & Infrastructure',
+        employeeId: user.employeeId || user.badgeNumber || 'BMC/OFF/2024',
+        avatarInitials: user.avatarInitials || (user.name ? user.name.split(' ').map((n) => n[0]).join('').slice(0, 2).toUpperCase() : 'WO'),
+        status: 'Available',
+        assignedCount: 0,
+        resolvedCount: 0,
+        avgResolutionDays: 3.5,
+        rating: 4.5,
+      };
     }
     const storedId = localStorage.getItem('kaiser_officer_id');
     if (storedId) {
@@ -551,16 +568,23 @@ export const OfficerDashboard = ({ activeTabOverride }) => {
   }, [user]);
 
   // If a URL param :officerId is present and doesn't match the logged-in
-  // officer, force-redirect to the logged-in officer's own dashboard.
+  // officer (and user is not an admin), force-redirect to the logged-in officer's own dashboard.
   useEffect(() => {
-    if (!loggedInOfficer) return;
+    if (!loggedInOfficer || user?.role === 'admin') return;
     if (officerId && officerId !== loggedInOfficer.id) {
       navigate(`/officer/${loggedInOfficer.id}`, { replace: true });
     }
-  }, [officerId, loggedInOfficer, navigate]);
+  }, [officerId, loggedInOfficer, user?.role, navigate]);
 
-  // The officer profile is always the logged-in officer (never another)
-  const officerProfile = loggedInOfficer || MOCK_OFFICERS[0];
+  // The officer profile is the logged-in officer, or the target officer for admins, or default
+  const officerProfile = useMemo(() => {
+    if (loggedInOfficer) return loggedInOfficer;
+    if (officerId) {
+      const fromParam = MOCK_OFFICERS.find((o) => o.id === officerId);
+      if (fromParam) return fromParam;
+    }
+    return MOCK_OFFICERS[0];
+  }, [loggedInOfficer, officerId]);
 
   // Determine active tab from route or activeTabOverride
   const activeTab = useMemo(() => {
@@ -600,7 +624,7 @@ export const OfficerDashboard = ({ activeTabOverride }) => {
           setComplaints(complaintsRes.data || []);
         }
       } catch (e) {
-        console.error(e);
+        console.error('Failed to load officer dashboard data:', e);
       } finally {
         if (!ignore) {
           setLoading(false);
@@ -633,8 +657,16 @@ export const OfficerDashboard = ({ activeTabOverride }) => {
   [complaints, filterStatus, filterCat, searchQ]);
 
   const handleUpdateStatus = useCallback(async (id, payload) => {
-    await updateComplaint(id, payload);
-    setComplaints((prev) => prev.map((c) => c.id === id ? { ...c, ...payload } : c));
+    try {
+      const res = await updateComplaint(id, payload);
+      const updatedData = res?.data || { id, ...payload };
+      setComplaints((prev) => prev.map((c) => (c.id === id ? { ...c, ...updatedData } : c)));
+      setSelectedTicket((prev) => (prev && prev.id === id ? { ...prev, ...updatedData } : prev));
+      toast.success(`Complaint #${id} updated`);
+    } catch (err) {
+      console.error('Failed to update complaint status:', err);
+      toast.error('Failed to update complaint. Please try again.');
+    }
   }, []);
 
   const stats = useMemo(() => ({
@@ -957,7 +989,8 @@ export const OfficerDashboard = ({ activeTabOverride }) => {
         onResolveSuccess={(updated) => {
           handleUpdateStatus(updated.id, {
             status: 'resolved',
-            officerRemarks: updated.officerNotes,
+            notes: updated.officerNotes,
+            resolvedImageUrl: updated.afterImage,
             resolvedAt: updated.resolvedAt,
           });
         }}

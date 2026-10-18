@@ -1,11 +1,14 @@
 import React, { useState } from 'react';
 import {
   Award, Trophy, TrendingUp,
-  Gift, CheckCircle2, ChevronRight, Sparkles, MapPin
+  Gift, CheckCircle2, ChevronRight, Sparkles, MapPin, FileText
 } from 'lucide-react';
 import { Card } from '../../components/common/Card';
 import { Badge } from '../../components/common/Badge';
 import { Button } from '../../components/common/Button';
+import { MunicipalCertificateModal } from '../../components/citizen/MunicipalCertificateModal';
+import { getCitizenCertificate } from '../../api/complaints.api';
+import { getCurrentSessionUser } from '../../api/auth.api';
 import toast from 'react-hot-toast';
 
 const createVoucher = (reward) => ({
@@ -21,6 +24,8 @@ const createVoucher = (reward) => ({
 
 export const CivicLeaderboardPage = () => {
   const [activeTab, setActiveTab] = useState('citizens'); // 'citizens' | 'wards' | 'badges' | 'rewards' | 'vouchers'
+  const [showCertModal, setShowCertModal] = useState(false);
+  const [certData, setCertData] = useState(null);
 
   // User karma stats stored persistently
   const [karmaPoints, setKarmaPoints] = useState(() => {
@@ -80,10 +85,29 @@ export const CivicLeaderboardPage = () => {
     { id: 'r1', title: 'Mumbai Metro Card Credit', cost: 400, desc: '₹100 recharge voucher for Maha Mumbai Metro Card', icon: '🚇' },
     { id: 'r2', title: 'BMC Public Parking Pass', cost: 600, desc: '3 Free full-day parking vouchers across BMC lots', icon: '🅿️' },
     { id: 'r3', title: 'Municipal Garden Eco Kit', cost: 500, desc: 'Compost kit & saplings from BMC Horticulture Dept', icon: '🌱' },
-    { id: 'r4', title: 'Property Tax Rebate Token', cost: 1200, desc: '1% municipal rebate voucher on annual BMC property tax', icon: '🏛️' },
+    { id: 'r4', title: 'Official Certificate of Civic Recognition', cost: 500, desc: 'Official municipal honors parchment signed by Municipal Commissioner Rajendra Mehta with verification QR & seal', icon: '📜' },
   ];
 
+  const handleOpenCertificate = async () => {
+    try {
+      const user = getCurrentSessionUser();
+      const res = await getCitizenCertificate(user?.id || 'user-001');
+      if (res?.data) {
+        setCertData(res.data);
+      }
+    } catch (e) {
+      console.warn('Failed to fetch certificate:', e);
+    }
+    setShowCertModal(true);
+  };
+
   const handleRedeem = (reward) => {
+    if (reward.id === 'r4') {
+      handleOpenCertificate();
+      toast.success('Municipal Certificate of Civic Recognition loaded!');
+      return;
+    }
+
     if (karmaPoints >= reward.cost) {
       const remaining = karmaPoints - reward.cost;
       setKarmaPoints(remaining);
@@ -135,6 +159,15 @@ export const CivicLeaderboardPage = () => {
               <Award size={12} /> {currentTier}
             </div>
             <p className="text-[10px] text-emerald-200/80 mt-1.5">Rank #{rank} across Mumbai</p>
+            <div className="pt-2 mt-2 border-t border-white/10">
+              <button
+                type="button"
+                onClick={handleOpenCertificate}
+                className="w-full py-1.5 px-2 rounded-xl bg-amber-400 text-amber-950 text-xs font-bold hover:bg-amber-300 transition shadow-soft-sm flex items-center justify-center gap-1.5 cursor-pointer"
+              >
+                <FileText size={13} /> View Certificate
+              </button>
+            </div>
           </div>
         </div>
 
@@ -160,7 +193,7 @@ export const CivicLeaderboardPage = () => {
             activeTab === 'wards' ? 'text-brand-600 border-b-2 border-brand-600' : 'hover:text-neutral-800'
           }`}
         >
-          <MapPin size={16} /> 26 Ward Rankings
+          <MapPin size={16} /> 24 Ward Rankings
         </button>
         <button
           type="button"
@@ -245,7 +278,7 @@ export const CivicLeaderboardPage = () => {
         </div>
       )}
 
-      {/* Tab 2: 26 Ward Rankings */}
+      {/* Tab 2: 24 Ward Rankings */}
       {activeTab === 'wards' && (
         <Card className="p-0 overflow-hidden bg-white border-neutral-200 shadow-sm" padding="">
           <div className="p-4 border-b border-neutral-100 flex items-center justify-between">
@@ -253,7 +286,7 @@ export const CivicLeaderboardPage = () => {
               <h3 className="font-bold text-neutral-900 text-sm">Inter-Ward Governance Rankings</h3>
               <p className="text-xs text-neutral-500">Ranked by resolution speed, citizen feedback, and SLA compliance</p>
             </div>
-            <span className="text-xs text-neutral-400">Updated Daily · 26 BMC Wards</span>
+            <span className="text-xs text-neutral-400">Updated Daily · 24 BMC Wards</span>
           </div>
 
           <div className="overflow-x-auto">
@@ -339,7 +372,7 @@ export const CivicLeaderboardPage = () => {
           <div className="p-4 bg-amber-50/80 border border-amber-200 rounded-2xl text-xs text-amber-800 flex items-center justify-between flex-wrap gap-2">
             <span className="flex items-center gap-1.5">
               <Gift size={16} className="text-amber-600" />
-              <strong>Municipal Civic Redemption:</strong> Points can be redeemed for public transit subsidies, park admissions, and civic tax credits.
+              <strong>Municipal Civic Redemption:</strong> Points can be redeemed for public transit subsidies, municipal horticulture kits, and the official Certificate of Civic Recognition.
             </span>
             <span className="font-bold font-mono">Available: {karmaPoints} Karma Points</span>
           </div>
@@ -434,6 +467,13 @@ export const CivicLeaderboardPage = () => {
           )}
         </div>
       )}
+
+      {/* Official BMC Certificate Modal */}
+      <MunicipalCertificateModal
+        isOpen={showCertModal}
+        onClose={() => setShowCertModal(false)}
+        certData={certData}
+      />
     </div>
   );
 };

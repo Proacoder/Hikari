@@ -120,7 +120,7 @@ function App() {
                 </Route>
 
                 {/* Officer Portal Login — standalone (no layout wrapper) */}
-                <Route path="/officer-login" element={<OfficerLoginPage />} />
+                <Route path="/officer-login" element={<RedirectIfAuth><OfficerLoginPage /></RedirectIfAuth>} />
 
                 {/* Citizen App Portal — requires citizen role */}
                 <Route path="/app" element={

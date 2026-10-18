@@ -74,7 +74,7 @@ def run_tests():
     res = client.get("/api/wards")
     assert res.status_code == 200
     wards = res.json()["data"]
-    assert len(wards) == 26
+    assert len(wards) == 24
     print(f"[PASS] Wards API passed: {len(wards)} Mumbai BMC Wards verified")
 
     # 7. Create Grievance (Authenticated Citizen)
@@ -201,8 +201,103 @@ def run_tests():
     assert res_mr.status_code == 200
     print("[PASS] Multilingual Assistant (Marathi NLP response) passed")
 
+    # 16. Live Open-Meteo Weather Telemetry
+    res = client.get("/api/weather/19.0760/72.8777")
+    assert res.status_code == 200, f"Weather telemetry failed: {res.text}"
+    w_data = res.json()["data"]
+    assert "temperature" in w_data
+    assert "humidity" in w_data
+    assert "rainfallMm" in w_data
+    assert "source" in w_data
+    print(f"[PASS] Live Weather Telemetry passed ({w_data['temperature']}°C, {w_data['condition']}, Source: {w_data['source'][:30]}...)")
+
+    # 17. Zero-Key OpenStreetMap Nominatim Reverse Geocoding
+    res = client.get("/api/geo/reverse?lat=19.0600&lng=72.8330")
+    assert res.status_code == 200, f"Reverse geocoding failed: {res.text}"
+    geo_data = res.json()["data"]
+    assert "displayName" in geo_data
+    assert "wardCode" in geo_data
+    print(f"[PASS] OpenStreetMap Reverse Geocoding passed: {geo_data['displayName'][:45]}... (Ward: {geo_data['wardCode']})")
+
+    # 18. Compound Multi-Hazard Severity Escalator
+    hazard_payload = {
+        "hint_title": "Exposed electric wire sparking in waterlogged street near school"
+    }
+    # Create synthetic test image for detect-defect
+    from PIL import Image
+    import io
+    test_img = Image.new("RGB", (100, 100), color=(100, 120, 150))
+    buf = io.BytesIO()
+    test_img.save(buf, format="JPEG")
+    buf.seek(0)
+    res = client.post("/api/ml/detect-defect", data={"hint_title": "Exposed electric wire sparking in waterlogged floodwater"}, files={"file": ("test.jpg", buf, "image/jpeg")})
+    assert res.status_code == 200, f"Detect defect failed: {res.text}"
+    defect_res = res.json()
+    assert defect_res["severity"] >= 95, f"Expected compound escalation >=95, got {defect_res['severity']}"
+    assert defect_res["sla_hours"] <= 3, f"Expected emergency SLA <=3h, got {defect_res['sla_hours']}"
+    assert defect_res["compound_hazard"] is not None
+    print(f"[PASS] Compound Multi-Hazard Escalator passed (Severity: {defect_res['severity']}/100, SLA: {defect_res['sla_hours']}h, Type: {defect_res['compound_hazard']['type']})")
+
+    # 19. Before-and-After AI Resolution Verification
+    img_before = Image.new("RGB", (100, 100), color=(40, 40, 40))
+    img_after = Image.new("RGB", (100, 100), color=(160, 160, 160))
+    buf_b = io.BytesIO()
+    img_before.save(buf_b, format="JPEG")
+    buf_b.seek(0)
+    buf_a = io.BytesIO()
+    img_after.save(buf_a, format="JPEG")
+    buf_a.seek(0)
+
+    # 19a. Legitimate Repair verification
+    res = client.post(
+        "/api/ml/verify-resolution",
+        files={"file_before": ("before.jpg", buf_b, "image/jpeg"), "file_after": ("after.jpg", buf_a, "image/jpeg")},
+        data={"category": "Pothole", "complaint_id": ticket_id}
+    )
+    assert res.status_code == 200, f"Verify resolution failed: {res.text}"
+    v_data = res.json()
+    assert v_data["verified"] is True
+    assert v_data["audit_status"] == "VERIFIED_APPROVED"
+    assert v_data["remediation_score"] >= 80.0
+    print(f"[PASS] AI Before-and-After Verification passed (Remediation Score: {v_data['remediation_score']}%, Status: {v_data['audit_status']})")
+
+    # 19b. Fraudulent closure with identical photo
+    buf_dup1 = io.BytesIO()
+    img_before.save(buf_dup1, format="JPEG")
+    buf_dup1.seek(0)
+    buf_dup2 = io.BytesIO()
+    img_before.save(buf_dup2, format="JPEG")
+    buf_dup2.seek(0)
+    res_fraud = client.post(
+        "/api/ml/verify-resolution",
+        files={"file_before": ("before.jpg", buf_dup1, "image/jpeg"), "file_after": ("after.jpg", buf_dup2, "image/jpeg")}
+    )
+    assert res_fraud.status_code == 200
+    assert res_fraud.json()["verified"] is False
+    assert res_fraud.json()["audit_status"] == "REJECTED_IDENTICAL_PHOTO"
+    print(f"[PASS] Anti-Fraud Identical Photo Filter passed (Rejected fraudulent closure: {res_fraud.json()['audit_status']})")
+
+    # 20. Field GPS Geofencing on Status Resolution
+    res = client.patch(
+        f"/api/complaints/{ticket_id}",
+        json={
+            "status": "resolved",
+            "officerLatitude": 19.0601,
+            "officerLongitude": 72.8331,
+            "notes": "Field crew completed hot-pour bitumen sealing."
+        },
+        headers={"Authorization": f"Bearer {officer_token}"}
+    )
+    assert res.status_code == 200, f"Resolve with geofence failed: {res.text}"
+    db = SessionLocal()
+    last_audit = db.query(ResolutionAuditModel).filter(ResolutionAuditModel.complaint_id == ticket_id).order_by(ResolutionAuditModel.created_at.desc()).first()
+    assert last_audit is not None
+    assert "GEOFENCE" in last_audit.notes
+    db.close()
+    print(f"[PASS] Field GPS Geofencing Audit passed: '{last_audit.notes}'")
+
     print("\n" + "=" * 60)
-    print("ALL 15 END-TO-END VALIDATION TESTS PASSED PERFECTLY!")
+    print("ALL 20 END-TO-END VALIDATION TESTS PASSED PERFECTLY!")
     print("=" * 60)
 
 if __name__ == "__main__":

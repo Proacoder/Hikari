@@ -218,7 +218,7 @@ const CommandPaletteModal = ({ onClose }) => {
                           {w.name} Ward
                         </div>
                         <div className="text-[11px] text-neutral-500 truncate">
-                          {w.areas?.join(', ')}
+                          {w.area}
                         </div>
                       </div>
                     </div>

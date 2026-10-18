@@ -5,7 +5,7 @@ import {
 import { useLanguage } from '../../context/LanguageContext';
 import { useNotifications } from '../../context/NotificationContext';
 import { useAuth } from '../../context/AuthContext';
-import { getStoredComplaints, createComplaint } from '../../api/complaints.api';
+import { getStoredComplaints, createComplaint, getComplaintById } from '../../api/complaints.api';
 import { queryAssistantChat } from '../../api/ml.api';
 import { MUMBAI_WARDS, MOCK_OFFICERS } from '../../utils/mockData';
 import { findClosestWard, analyzeComplaintDynamic } from '../../utils/geoUtils';
@@ -148,14 +148,27 @@ export const CivicAiAssistant = () => {
 
     await new Promise((r) => setTimeout(r, 750));
 
-    // Check 1: Ticket Tracking (e.g., cmp-001, cmp-002, or "track")
-    const ticketMatch = q.match(/cmp-\d+/i);
+    // Check 1: Ticket Tracking (e.g., cmp-001, cmp-2024-xxx, or "track")
+    const ticketMatch = q.match(/(cmp|ksr)-[a-z0-9-]+/i);
     if (ticketMatch || q.includes('track') || q.includes('status') || q.includes('स्थिति') || q.includes('तक्रार')) {
-      const complaints = getStoredComplaints();
-      const targetId = ticketMatch ? ticketMatch[0].toLowerCase() : complaints[0]?.id;
-      const found = complaints.find((c) => c.id.toLowerCase() === targetId) || complaints[0];
+      let found = null;
+      const targetId = ticketMatch ? ticketMatch[0] : null;
+      if (targetId) {
+        try {
+          const res = await getComplaintById(targetId);
+          found = res?.data || res;
+        } catch {}
+      }
+      if (!found || !found.id) {
+        const complaints = getStoredComplaints();
+        if (targetId) {
+          found = complaints.find((c) => c.id?.toLowerCase() === targetId.toLowerCase());
+        } else {
+          found = complaints[0];
+        }
+      }
 
-      if (found) {
+      if (found && found.id) {
         setIsTyping(false);
         return createMessage('ai', {
           text: `Here is the real-time municipal status for **Ticket #${found.id}**:`,
@@ -251,7 +264,7 @@ Would you like me to register this ticket immediately for **${closest.ward.name}
 As your BMC civic assistant, I can:
 1. **Instantly file complaints** with automated AI categorization and SLA assignment.
 2. **Track ticket status** (e.g., type your complaint ID like \`cmp-001\`).
-3. **Connect you with your Ward Officer** among all 26 Mumbai wards.
+3. **Connect you with your Ward Officer** among all 24 Mumbai wards.
 4. **Provide municipal bylaws and grievance SLAs**.
 
 Please select an option or provide more details:`,

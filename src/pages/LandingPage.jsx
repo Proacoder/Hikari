@@ -121,7 +121,7 @@ export const LandingPage = () => {
             </h1>
             
             <p className="text-base sm:text-lg text-neutral-600 max-w-2xl mx-auto lg:mx-0 leading-relaxed">
-              {t('hero.description', 'Kaiser AI automatically categorizes, prioritizes, and routes civic grievances directly to municipal ward officers across Mumbai’s 26 administrative zones.')}
+              {t('hero.description', `Kaiser AI automatically categorizes, prioritizes, and routes civic grievances directly to municipal ward officers across Mumbai’s ${MUMBAI_WARDS.length} administrative wards.`)}
             </p>
             
             <div className="flex flex-wrap items-center justify-center lg:justify-start gap-3.5 pt-2">
@@ -285,7 +285,7 @@ export const LandingPage = () => {
               }}
               className="py-2 px-3 bg-white border border-neutral-200 rounded-xl text-xs font-semibold text-neutral-700 focus:outline-none focus:ring-2 focus:ring-brand-500/20 focus:border-brand-500 shadow-xs cursor-pointer"
             >
-              <option value="">{t('hero.allWards', 'All Mumbai Wards (26)')}</option>
+              <option value="">{t('hero.allWards', `All Mumbai Wards (${MUMBAI_WARDS.length})`)}</option>
               {MUMBAI_WARDS.map((w) => (
                 <option key={w.id} value={w.id}>
                   Ward {w.name} ({w.area})

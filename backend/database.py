@@ -3,7 +3,7 @@ import math
 from datetime import datetime, timezone
 from typing import Generator, List, Optional
 from sqlalchemy import (
-    create_engine, Column, Integer, Float, String, Text, Boolean, DateTime, ForeignKey, Index
+    create_engine, Column, Integer, Float, String, Text, Boolean, DateTime, ForeignKey, Index, text
 )
 from sqlalchemy.orm import declarative_base, sessionmaker, relationship, Session
 
@@ -101,6 +101,16 @@ class ComplaintModel(Base):
 
     created_at = Column(DateTime, default=lambda: datetime.now(timezone.utc), index=True)
     resolved_at = Column(DateTime, nullable=True)
+
+    # Phase 2: Citizen Feedback & Anti-Abuse Re-open Protocol
+    reopen_count = Column(Integer, default=0)
+    reopened_at = Column(DateTime, nullable=True)
+    reopen_reason = Column(Text, nullable=True)
+    reopen_photo_url = Column(Text, nullable=True)
+    is_permanently_locked = Column(Boolean, default=False)
+    rating = Column(Integer, nullable=True)
+    feedback_tags = Column(String(255), nullable=True)
+    feedback_comment = Column(Text, nullable=True)
 
     # Relationships
     ward = relationship("WardModel", back_populates="complaints")
@@ -213,6 +223,29 @@ def find_nearby_complaints(
 def init_db():
     """Initializes schema and seeds realistic baseline records if table is empty."""
     Base.metadata.create_all(bind=engine)
+    
+    # Auto-migrate any missing columns for existing SQLite databases
+    with engine.connect() as conn:
+        try:
+            res = conn.execute(text("PRAGMA table_info(complaints)")).fetchall()
+            existing_cols = {row[1] for row in res}
+            new_columns = [
+                ("reopen_count", "INTEGER DEFAULT 0"),
+                ("reopened_at", "DATETIME"),
+                ("reopen_reason", "TEXT"),
+                ("reopen_photo_url", "TEXT"),
+                ("is_permanently_locked", "BOOLEAN DEFAULT 0"),
+                ("rating", "INTEGER"),
+                ("feedback_tags", "VARCHAR(255)"),
+                ("feedback_comment", "TEXT"),
+            ]
+            for col_name, col_type in new_columns:
+                if col_name not in existing_cols:
+                    conn.execute(text(f"ALTER TABLE complaints ADD COLUMN {col_name} {col_type}"))
+            conn.commit()
+        except Exception as e:
+            pass
+
     db = SessionLocal()
     try:
         from seed_data import (
@@ -236,6 +269,12 @@ def init_db():
                     lat=w["lat"],
                     lng=w["lng"],
                 ))
+            db.commit()
+        else:
+            # Purge any obsolete wards/officers beyond the official 24 wards
+            db.query(ComplaintModel).filter(ComplaintModel.ward_id > 24).update({ComplaintModel.ward_id: 20})
+            db.query(UserModel).filter(UserModel.role == "officer", UserModel.ward_id > 24).delete()
+            db.query(WardModel).filter(WardModel.id > 24).delete()
             db.commit()
 
         # 2. Seed Users

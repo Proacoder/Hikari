@@ -31,9 +31,8 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 COPY backend/requirements.txt ./
 RUN pip install --no-cache-dir -r requirements.txt
 
-# Copy backend application, database layer & ML services
+# Copy backend application and database layer (ML router is inside backend)
 COPY backend/ ./backend/
-COPY ml_service/ ./ml_service/
 
 # Copy compiled React static bundle from Stage 1
 COPY --from=frontend-builder /app/dist ./dist

@@ -20,8 +20,8 @@ export const FieldInspectionModal = ({ complaint, officer, isOpen, onClose, onRe
 };
 
 const FieldInspectionModalContent = ({ complaint, officer, onClose, onResolveSuccess }) => {
-  const [afterImage] = useState(
-    'https://images.unsplash.com/photo-1541888946425-d0fbb186156f?w=800&auto=format&fit=crop&q=80'
+  const [afterImage, setAfterImage] = useState(
+    complaint.resolvedImageUrl || 'https://images.unsplash.com/photo-1541888946425-d0fbb186156f?w=800&auto=format&fit=crop&q=80'
   );
   const [sliderPos, setSliderPos] = useState(50);
   const [materials, setMaterials] = useState([
@@ -112,7 +112,8 @@ const FieldInspectionModalContent = ({ complaint, officer, onClose, onResolveSuc
         status: 'resolved',
         resolutionHash: certificateHash,
         resolvedAt: new Date().toISOString(),
-        officerNotes
+        officerNotes,
+        afterImage,
       });
     }
   };
@@ -211,6 +212,32 @@ const FieldInspectionModalContent = ({ complaint, officer, onClose, onResolveSuc
                 onChange={(e) => setSliderPos(Number(e.target.value))}
                 className="absolute inset-0 opacity-0 cursor-ew-resize w-full h-full"
               />
+            </div>
+
+            {/* After Photo Selector */}
+            <div className="flex items-center gap-2 pt-1 text-[11px]">
+              <span className="font-semibold text-neutral-600">After Photo:</span>
+              <input
+                type="text"
+                value={afterImage}
+                onChange={(e) => setAfterImage(e.target.value)}
+                placeholder="https://... URL of completed work photo"
+                className="flex-1 rounded-lg border border-neutral-200 px-2.5 py-1 text-xs focus:ring-1 focus:ring-brand-500"
+              />
+              <button
+                type="button"
+                onClick={() => setAfterImage('https://images.unsplash.com/photo-1584467735871-8e85353a8413?w=800&auto=format&fit=crop&q=80')}
+                className="px-2 py-1 bg-neutral-100 hover:bg-neutral-200 text-neutral-700 rounded text-[10px] font-semibold cursor-pointer shrink-0"
+              >
+                Pothole Fixed
+              </button>
+              <button
+                type="button"
+                onClick={() => setAfterImage('https://images.unsplash.com/photo-1541888946425-d0fbb186156f?w=800&auto=format&fit=crop&q=80')}
+                className="px-2 py-1 bg-neutral-100 hover:bg-neutral-200 text-neutral-700 rounded text-[10px] font-semibold cursor-pointer shrink-0"
+              >
+                Drain Cleaned
+              </button>
             </div>
           </div>
 

@@ -1,11 +1,11 @@
 import React, { useState, useCallback } from 'react';
 import { useNavigate, useSearchParams, useLocation, Link } from 'react-router-dom';
-import { Shield, ArrowRight, BadgeCheck, AlertCircle, Eye, EyeOff, Info } from 'lucide-react';
+import { Shield, ArrowRight, BadgeCheck, AlertCircle, Eye, EyeOff, UserCheck } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { Button } from '../components/common/Button';
 import { Input } from '../components/common/Input';
 import { Card } from '../components/common/Card';
-import { DEMO_CITIZENS, MOCK_USERS, MUMBAI_WARDS } from '../utils/mockData';
+import { DEMO_CITIZENS, MUMBAI_WARDS } from '../utils/mockData';
 
 // ── Validation helpers ──────────────────────────────────────────────────────
 const validateEmail = (email) => {
@@ -37,14 +37,12 @@ export const AuthPage = () => {
   const [searchParams] = useSearchParams();
   const initialMode = searchParams.get('mode') === 'register' ? 'register' : 'login';
   const [mode, setMode] = useState(initialMode);
-  const [role, setRole] = useState('citizen'); // citizen | officer | admin
   const [formData, setFormData] = useState({
     email: '',
     password: '',
     name: '',
     phone: '',
     ward: 8, // Default to Ward 8 (G/N Bandra)
-    badgeNumber: ''
   });
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
@@ -71,17 +69,12 @@ export const AuthPage = () => {
     const passwordErr = validatePassword(formData.password, mode === 'register');
     if (passwordErr) errors.password = passwordErr;
 
-    if (role === 'officer' && !formData.badgeNumber.trim()) {
-      errors.badgeNumber = 'Officer Badge ID is required for officer login.';
-    }
-
     setFieldErrors(errors);
     return Object.keys(errors).length === 0;
-  }, [formData, mode, role]);
+  }, [formData, mode]);
 
   const handleInputChange = (field, value) => {
     setFormData(prev => ({ ...prev, [field]: value }));
-    // Clear field error on change
     if (fieldErrors[field]) {
       setFieldErrors(prev => {
         const updated = { ...prev };
@@ -118,7 +111,7 @@ export const AuthPage = () => {
           password: formData.password,
         });
 
-        // Route based on the user role that was returned and preserve return destination
+        // Route based on returned role (protects against staff logging in here)
         const userRole = result?.data?.user?.role;
         if (userRole === 'admin') navigate('/admin');
         else if (userRole === 'officer') navigate(`/officer/${result.data.user.id}`);
@@ -131,23 +124,12 @@ export const AuthPage = () => {
     }
   };
 
-  // Demo credentials for quick access (2 citizen demo accounts + admin + officer)
-  const demoCredentials = role === 'citizen' ? [
-    { label: 'Priya Nair (Citizen #1)', ward: 'Ward 8 · Bandra North', email: DEMO_CITIZENS[0].email, password: DEMO_CITIZENS[0].password },
-    { label: 'Aarav Sharma (Citizen #2)', ward: 'Ward 12 · Andheri East', email: DEMO_CITIZENS[1].email, password: DEMO_CITIZENS[1].password },
-  ] : role === 'admin' ? [
-    { label: 'BMC Commissioner Admin', ward: 'Municipal HQ Console', email: MOCK_USERS.admin.email, password: MOCK_USERS.admin.password },
-  ] : [
-    { label: 'Suresh Patil (Ward Officer)', ward: 'Ward 8 · Bandra North', email: 'suresh.patil@bmc.gov.in', password: 'BandraN@2024', badge: 'BMC/GN/2020/008' },
-    { label: 'Ravi Mehta (Ward Officer)', ward: 'Ward 12 · Andheri East', email: 'ravi.mehta@bmc.gov.in', password: 'AndheriE@2024', badge: 'BMC/KE/2021/012' },
-  ];
-
-  const fillDemoCredentials = (cred) => {
+  // Strictly 1 Demo User for Citizens
+  const fillSingleCitizenDemo = () => {
     setFormData(prev => ({
       ...prev,
-      email: cred.email,
-      password: cred.password,
-      badgeNumber: cred.badge || prev.badgeNumber || '',
+      email: DEMO_CITIZENS[0].email,
+      password: DEMO_CITIZENS[0].password,
     }));
     setFieldErrors({});
     setError('');
@@ -161,36 +143,13 @@ export const AuthPage = () => {
             <Shield size={24} />
           </div>
           <h2 className="text-2xl font-bold text-neutral-900">
-            {mode === 'login' ? 'Sign in to Kaiser AI' : 'Create Citizen Account'}
+            {mode === 'login' ? 'Citizen Sign In' : 'Create Citizen Account'}
           </h2>
           <p className="text-xs text-neutral-500">
-            Select your portal role to continue
+            {mode === 'login'
+              ? 'Access your municipal grievance desk and track complaints'
+              : 'Register as a Mumbai resident to report and monitor civic issues'}
           </p>
-        </div>
-
-        {/* Role toggle tabs */}
-        <div className="grid grid-cols-3 gap-1 p-1 bg-neutral-100 rounded-xl text-xs font-semibold">
-          <button
-            type="button"
-            onClick={() => { setRole('citizen'); setError(''); setFieldErrors({}); }}
-            className={`py-2 rounded-lg transition-all ${role === 'citizen' ? 'bg-white text-neutral-900 shadow-soft-sm' : 'text-neutral-500'}`}
-          >
-            Citizen
-          </button>
-          <button
-            type="button"
-            onClick={() => { setRole('officer'); setError(''); setFieldErrors({}); }}
-            className={`py-2 rounded-lg transition-all ${role === 'officer' ? 'bg-white text-neutral-900 shadow-soft-sm' : 'text-neutral-500'}`}
-          >
-            Officer
-          </button>
-          <button
-            type="button"
-            onClick={() => { setRole('admin'); setError(''); setFieldErrors({}); }}
-            className={`py-2 rounded-lg transition-all ${role === 'admin' ? 'bg-white text-neutral-900 shadow-soft-sm' : 'text-neutral-500'}`}
-          >
-            BMC Admin
-          </button>
         </div>
 
         {error && (
@@ -246,7 +205,7 @@ export const AuthPage = () => {
                     </option>
                   ))}
                 </select>
-                <p className="text-[11px] text-neutral-400">Used to route your local civic complaints and show your ward officer.</p>
+                <p className="text-[11px] text-neutral-400">Used to route your local civic complaints to your ward officer.</p>
               </div>
             </>
           )}
@@ -255,7 +214,7 @@ export const AuthPage = () => {
             <Input
               label="Email Address"
               type="email"
-              placeholder={role === 'officer' ? 'officer.ke@mcgm.gov.in' : role === 'admin' ? 'r.mehta@bmc.gov.in' : 'priya.nair@example.com'}
+              placeholder="priya.nair@example.com"
               value={formData.email}
               onChange={(e) => handleInputChange('email', e.target.value)}
               required
@@ -302,62 +261,43 @@ export const AuthPage = () => {
             )}
           </div>
 
-          {role === 'officer' && (
-            <div className="space-y-1">
-              <Input
-                label="Officer Badge ID"
-                type="text"
-                placeholder="BMC-OFF-4892"
-                value={formData.badgeNumber}
-                onChange={(e) => handleInputChange('badgeNumber', e.target.value)}
-                autoComplete="off"
-              />
-              {fieldErrors.badgeNumber && (
-                <p className="text-red-500 text-[11px] font-medium flex items-center gap-1">
-                  <AlertCircle size={11} /> {fieldErrors.badgeNumber}
-                </p>
-              )}
-            </div>
-          )}
-
           <Button
             type="submit"
             variant="primary"
             className="w-full justify-center py-2.5"
             loading={loading}
           >
-            {mode === 'login' ? `Sign In as ${role.charAt(0).toUpperCase() + role.slice(1)}` : 'Register Account'}
+            {mode === 'login' ? 'Sign In as Citizen' : 'Register Citizen Account'}
           </Button>
         </form>
 
-        {/* Demo Credentials Quick-Fill with clear passwords */}
-        {mode === 'login' && demoCredentials.length > 0 && (
-          <div className="p-3 bg-sky-50 border border-sky-200 rounded-xl space-y-2">
+        {/* Strictly 1 Demo User for Public Preview */}
+        {mode === 'login' && (
+          <div className="p-3 bg-sky-50/80 border border-sky-200 rounded-xl space-y-2">
             <div className="flex items-center justify-between text-[11px] font-bold text-sky-800">
-              <span className="flex items-center gap-1.5"><Info size={13} /> Demo Accounts (Click to Fill)</span>
-              <span className="text-sky-600 font-normal">Pre-configured passwords</span>
+              <span className="flex items-center gap-1.5"><UserCheck size={13} /> Quick Demo Access</span>
+              <span className="text-sky-600 font-normal">Citizen Account</span>
             </div>
-            <div className="space-y-1.5">
-              {demoCredentials.map((cred) => (
-                <button
-                  key={cred.email}
-                  type="button"
-                  onClick={() => fillDemoCredentials(cred)}
-                  className="w-full flex items-center justify-between px-3 py-2 bg-white hover:bg-sky-100/70 border border-sky-200 rounded-xl text-left transition-colors group"
-                >
-                  <div className="min-w-0 pr-2">
-                    <span className="text-xs font-bold text-neutral-800 group-hover:text-sky-900 block truncate">{cred.label}</span>
-                    <span className="text-[10px] text-neutral-500 block truncate">{cred.ward} · {cred.email}</span>
-                  </div>
-                  <div className="text-right shrink-0">
-                    <span className="text-[11px] font-mono bg-sky-100 text-sky-800 px-2 py-0.5 rounded font-bold">
-                      {cred.password}
-                    </span>
-                    <span className="block text-[10px] text-sky-600 font-medium mt-0.5">Click to fill →</span>
-                  </div>
-                </button>
-              ))}
-            </div>
+            <button
+              type="button"
+              onClick={fillSingleCitizenDemo}
+              className="w-full flex items-center justify-between px-3 py-2 bg-white hover:bg-sky-100/70 border border-sky-200 rounded-xl text-left transition-colors group"
+            >
+              <div className="min-w-0 pr-2">
+                <span className="text-xs font-bold text-neutral-800 group-hover:text-sky-900 block truncate">
+                  Priya Nair (Resident · Bandra North)
+                </span>
+                <span className="text-[10px] text-neutral-500 block truncate">
+                  Ward 8 · {DEMO_CITIZENS[0].email}
+                </span>
+              </div>
+              <div className="text-right shrink-0">
+                <span className="text-[11px] font-mono bg-sky-100 text-sky-800 px-2 py-0.5 rounded font-bold">
+                  {DEMO_CITIZENS[0].password}
+                </span>
+                <span className="block text-[10px] text-sky-600 font-medium mt-0.5">Click to fill →</span>
+              </div>
+            </button>
           </div>
         )}
 
@@ -387,20 +327,20 @@ export const AuthPage = () => {
           )}
         </div>
 
-        {/* Officer Portal Banner */}
+        {/* Segregated Municipal Staff Portal Banner */}
         <div className="mt-4 p-3 bg-gradient-to-r from-blue-900/5 to-indigo-900/5 border border-blue-100 rounded-xl flex items-center gap-3">
           <div className="w-8 h-8 bg-blue-100 rounded-xl flex items-center justify-center shrink-0">
-            <BadgeCheck size={15} className="text-blue-600" />
+            <BadgeCheck size={16} className="text-blue-600" />
           </div>
           <div className="flex-1 min-w-0">
-            <p className="text-xs font-semibold text-neutral-800">Ward Officer Portal</p>
-            <p className="text-[11px] text-neutral-500">26 ward officers with individual dashboards</p>
+            <p className="text-xs font-semibold text-neutral-800">BMC Municipal Staff Portal</p>
+            <p className="text-[11px] text-neutral-500">24 Ward Officers & Municipal Commissioner HQ</p>
           </div>
           <Link
             to="/officer-login"
             className="text-xs font-semibold text-blue-600 hover:text-blue-700 flex items-center gap-1 shrink-0"
           >
-            Access <ArrowRight size={12} />
+            Staff Portal <ArrowRight size={12} />
           </Link>
         </div>
       </Card>

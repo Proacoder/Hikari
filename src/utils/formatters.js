@@ -1,27 +1,58 @@
 // ─── Utility helpers for Kaiser AI ─────────────────────────────────────────
 
-import { format, formatDistanceToNow, differenceInDays, parseISO } from 'date-fns';
+import { format, formatDistanceToNow, differenceInDays, parseISO, isValid } from 'date-fns';
+
+// ── Date formatting helper ──────────────────────────────────────────────────
+const safeParseDate = (val) => {
+  if (!val) return null;
+  try {
+    const d = typeof val === 'string' ? parseISO(val) : new Date(val);
+    return isValid(d) ? d : null;
+  } catch {
+    return null;
+  }
+};
 
 // ── Date formatting ──────────────────────────────────────────────────────────
 export const formatDate = (iso) => {
-  if (!iso) return '—';
-  return format(parseISO(iso), 'd MMM yyyy');
+  const d = safeParseDate(iso);
+  if (!d) return '—';
+  try {
+    return format(d, 'd MMM yyyy');
+  } catch {
+    return '—';
+  }
 };
 
 export const formatDateTime = (iso) => {
-  if (!iso) return '—';
-  return format(parseISO(iso), 'd MMM yyyy, h:mm a');
+  const d = safeParseDate(iso);
+  if (!d) return '—';
+  try {
+    return format(d, 'd MMM yyyy, h:mm a');
+  } catch {
+    return '—';
+  }
 };
 
 export const formatRelative = (iso) => {
-  if (!iso) return '—';
-  return formatDistanceToNow(parseISO(iso), { addSuffix: true });
+  const d = safeParseDate(iso);
+  if (!d) return '—';
+  try {
+    return formatDistanceToNow(d, { addSuffix: true });
+  } catch {
+    return '—';
+  }
 };
 
 export const daysOpen = (createdAt, resolvedAt = null) => {
-  if (!createdAt) return 0;
-  const end = resolvedAt ? parseISO(resolvedAt) : new Date();
-  return differenceInDays(end, parseISO(createdAt));
+  const start = safeParseDate(createdAt);
+  if (!start) return 0;
+  const end = safeParseDate(resolvedAt) || new Date();
+  try {
+    return Math.max(0, differenceInDays(end, start));
+  } catch {
+    return 0;
+  }
 };
 
 // ── Severity ─────────────────────────────────────────────────────────────────
@@ -51,6 +82,8 @@ const STATUS_LABELS = {
   assigned:    'Assigned',
   in_progress: 'In Progress',
   resolved:    'Resolved',
+  reopened:    'Contested / Reopened',
+  escalated:   'Escalated',
   duplicate:   'Duplicate',
 };
 
@@ -59,6 +92,8 @@ const STATUS_COLORS = {
   assigned:    'text-sky-600 bg-sky-50 border-sky-200',
   in_progress: 'text-amber-600 bg-amber-50 border-amber-200',
   resolved:    'text-green-600 bg-green-50 border-green-200',
+  reopened:    'text-red-700 bg-red-50 border-red-300',
+  escalated:   'text-rose-700 bg-rose-50 border-rose-300',
   duplicate:   'text-slate-500 bg-slate-50 border-slate-200',
 };
 

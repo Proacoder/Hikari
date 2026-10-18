@@ -7,6 +7,11 @@ export const getWeatherAQI = async (lat, lng) => {
     await mockDelay();
     return successResponse(MOCK_WEATHER);
   }
-  const res = await apiClient.get(`/weather/${lat}/${lng}`);
-  return res.data;
+  try {
+    const res = await apiClient.get(`/weather/${lat}/${lng}`);
+    return res.data;
+  } catch (err) {
+    console.warn('Weather service unavailable, using local meteorological data fallback:', err.message);
+    return successResponse(MOCK_WEATHER);
+  }
 };

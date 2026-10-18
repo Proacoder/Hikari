@@ -132,9 +132,16 @@ export const createComplaint = async (formData) => {
 
     return successResponse(newComplaint);
   }
-  const res = await apiClient.post('/complaints', formData, {
-    headers: { 'Content-Type': 'multipart/form-data' },
-  });
+
+  const isFormData = typeof FormData !== 'undefined' && formData instanceof FormData;
+  const config = isFormData ? {} : { headers: { 'Content-Type': 'application/json' } };
+  const res = await apiClient.post('/complaints', formData, config);
+  if (res.data?.data) {
+    const currentList = getStoredComplaints();
+    const updated = [res.data.data, ...currentList.filter((c) => c.id !== res.data.data.id)];
+    saveStoredComplaints(updated);
+    MOCK_COMPLAINTS.unshift(res.data.data);
+  }
   return res.data;
 };
 
@@ -155,6 +162,14 @@ export const updateComplaint = async (id, payload) => {
     return successResponse({ id, ...payload });
   }
   const res = await apiClient.patch(`/complaints/${id}`, payload);
+  if (res.data?.data) {
+    const currentList = getStoredComplaints();
+    const idx = currentList.findIndex((c) => c.id === id);
+    if (idx >= 0) {
+      currentList[idx] = { ...currentList[idx], ...res.data.data };
+      saveStoredComplaints(currentList);
+    }
+  }
   return res.data;
 };
 
@@ -232,5 +247,124 @@ export const addComment = async (id, { text, author }) => {
     return successResponse(newComment);
   }
   const res = await apiClient.post(`/complaints/${id}/comments`, { text, author });
+  return res.data;
+};
+
+// ── Phase 2: Citizen Feedback & Anti-Abuse Re-open Protocol ───────────────────
+
+// POST /api/complaints/:id/reopen
+export const reopenComplaint = async (id, { reason, photoUrl }) => {
+  if (MOCK_MODE) {
+    await mockDelay();
+    const complaints = getStoredComplaints();
+    const c = complaints.find((x) => x.id === id);
+    if (!c) throw { response: { data: { success: false, detail: 'Complaint not found' } } };
+
+    if (c.isPermanentlyLocked) {
+      throw { response: { data: { success: false, detail: 'Resolution Final: Grievance has been permanently affirmed by the Superintending Engineer.' } } };
+    }
+    if ((c.reopenCount || 0) >= 1) {
+      throw { response: { data: { success: false, detail: 'Anti-Abuse Limit: A resolution may only be contested once per MCGM Bylaws.' } } };
+    }
+    if (c.status !== 'resolved') {
+      throw { response: { data: { success: false, detail: 'Only resolved grievances can be contested.' } } };
+    }
+    if (!reason || reason.trim().length < 10) {
+      throw { response: { data: { success: false, detail: 'Please provide at least 10 characters detailing why repair is deficient.' } } };
+    }
+    if (!photoUrl) {
+      throw { response: { data: { success: false, detail: 'Photographic evidence is mandatory under MCGM Bylaws.' } } };
+    }
+
+    c.status = 'reopened';
+    c.reopenCount = (c.reopenCount || 0) + 1;
+    c.reopenedAt = new Date().toISOString();
+    c.reopenReason = reason;
+    c.reopenPhotoUrl = photoUrl;
+    saveStoredComplaints(complaints);
+    return successResponse(c);
+  }
+  const res = await apiClient.post(`/complaints/${id}/reopen`, { reason, photoUrl });
+  return res.data;
+};
+
+// POST /api/complaints/:id/affirm
+export const affirmComplaint = async (id, { notes, auditPhotoUrl } = {}) => {
+  if (MOCK_MODE) {
+    await mockDelay();
+    const complaints = getStoredComplaints();
+    const c = complaints.find((x) => x.id === id);
+    if (!c) throw { response: { data: { success: false, detail: 'Complaint not found' } } };
+
+    c.status = 'resolved';
+    c.isPermanentlyLocked = true;
+    c.resolvedAt = new Date().toISOString();
+    saveStoredComplaints(complaints);
+    return successResponse(c);
+  }
+  const res = await apiClient.post(`/complaints/${id}/affirm`, { notes, auditPhotoUrl });
+  return res.data;
+};
+
+// POST /api/complaints/:id/feedback
+export const submitComplaintFeedback = async (id, { rating, tags, comment }) => {
+  if (MOCK_MODE) {
+    await mockDelay();
+    const complaints = getStoredComplaints();
+    const c = complaints.find((x) => x.id === id);
+    if (c) {
+      c.rating = rating;
+      c.feedbackTags = tags;
+      c.feedbackComment = comment;
+      saveStoredComplaints(complaints);
+    }
+    return successResponse(c);
+  }
+  const res = await apiClient.post(`/complaints/${id}/feedback`, { rating, tags, comment });
+  return res.data;
+};
+
+// GET /api/complaints/:id/whatsapp
+export const getComplaintWhatsApp = async (id) => {
+  if (MOCK_MODE) {
+    await mockDelay();
+    const complaints = getStoredComplaints();
+    const c = complaints.find((x) => x.id === id) || { id, title: 'Civic Grievance', ward: 8, category: 'Pothole', status: 'resolved' };
+    const text = `🏛️ *BRIHANMUMBAI MUNICIPAL CORPORATION (MCGM)*\n📋 *Official Grievance Receipt*\n• *Ticket ID:* #${c.id}\n• *Title:* ${c.title}\n• *Ward:* Ward #${c.ward}\n• *Status:* ${c.status?.toUpperCase()}\n• *Live Tracker:* https://kaiser.mcgm.gov.in/app/complaints/${c.id}\n----------------------------------\n_Kaiser AI BMC Municipal Operations_`;
+    const encoded = encodeURIComponent(text);
+    return successResponse({
+      complaintId: c.id,
+      message: text,
+      shareUrl: `https://api.whatsapp.com/send?text=${encoded}`,
+      botUrl: `https://api.whatsapp.com/send?phone=919869407777&text=${encodeURIComponent('STATUS ' + c.id)}`,
+      bmcHelpline: '+91 98694 07777',
+    });
+  }
+  const res = await apiClient.get(`/complaints/${id}/whatsapp`);
+  return res.data;
+};
+
+// GET /api/citizens/:userId/certificate
+export const getCitizenCertificate = async (userId) => {
+  if (MOCK_MODE) {
+    await mockDelay();
+    const sessionUser = getCurrentSessionUser();
+    const name = sessionUser?.name || 'Priya Nair';
+    const wardName = sessionUser?.wardName || 'G/N Ward – Bandra (North)';
+    return successResponse({
+      certificateId: 'BMC-CIVIC-2026-PN8842',
+      citizenName: name,
+      wardName,
+      civicKarma: 840,
+      issuesResolved: 14,
+      totalReports: 18,
+      issueDate: 'October 2026',
+      authorizedBy: 'Rajendra Mehta, IAS',
+      designation: 'Municipal Commissioner, Greater Mumbai',
+      verificationHash: 'A8F9-2026-C4B1-MCGM',
+      verificationUrl: 'https://kaiser.mcgm.gov.in/verify-certificate/BMC-CIVIC-2026-PN8842',
+    });
+  }
+  const res = await apiClient.get(`/citizens/${userId}/certificate`);
   return res.data;
 };

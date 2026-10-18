@@ -14,7 +14,7 @@ export const AboutPage = () => {
   const [openFaq, setOpenFaq] = useState(null);
 
   const stats = [
-    { label: 'Administrative Wards', value: '26', subtext: 'Colaba to Dahisar & Mulund' },
+    { label: 'Administrative Wards', value: '24', subtext: 'Colaba to Dahisar & Mulund' },
     { label: 'AI Classification Accuracy', value: '94.2%', subtext: 'Trained on 60,000+ urban images' },
     { label: 'Average Emergency SLA', value: '<24h', subtext: 'Monsoon hazards & open manholes' },
     { label: 'Civic Grievances Triaged', value: '14,800+', subtext: 'Sub-meter GPS pinpointed' },
@@ -39,7 +39,7 @@ export const AboutPage = () => {
       icon: Compass,
       title: 'Sub-Meter Geospatial Ward Routing',
       tag: 'OpenStreetMap GIS',
-      description: 'No more confusing administrative jurisdictions. Kaiser AI matches exact citizen GPS coordinates against official BMC 26-ward polygon boundaries in real time.',
+      description: 'No more confusing administrative jurisdictions. Kaiser AI matches exact citizen GPS coordinates against official BMC 24-ward polygon boundaries in real time.',
       bullets: [
         'Automatic routing to designated Junior Engineer (Roads, SWD, or SWM)',
         'Zero vendor lock-in utilizing open Leaflet and OpenStreetMap GIS',
@@ -118,7 +118,7 @@ export const AboutPage = () => {
       name: 'Dharmik Desai',
       role: 'Full-Stack Systems Architect',
       domain: 'Cloud Services & Geospatial GIS',
-      bio: 'Engineered the 26-ward polygon reverse-geocoding engine, REST APIs, and resilient data synchronization.',
+      bio: 'Engineered the 24-ward polygon reverse-geocoding engine, REST APIs, and resilient data synchronization.',
       initials: 'DD'
     }
   ];
@@ -126,7 +126,7 @@ export const AboutPage = () => {
   const faqs = [
     {
       q: 'How does Kaiser AI automatically determine my municipal ward?',
-      a: 'When you take a photo or place a pin on our map, Kaiser AI executes an instant point-in-polygon spatial calculation using GIS boundary coordinates for all 26 BMC administrative wards (A Ward to T Ward). This guarantees your ticket immediately lands in the inbox of the correct Assistant Commissioner and field Junior Engineer.'
+      a: 'When you take a photo or place a pin on our map, Kaiser AI executes an instant point-in-polygon spatial calculation using GIS boundary coordinates for all 24 BMC administrative wards (A Ward to T Ward). This guarantees your ticket immediately lands in the inbox of the correct Assistant Commissioner and field Junior Engineer.'
     },
     {
       q: 'Is my personal information and phone number made public?',
@@ -163,7 +163,7 @@ export const AboutPage = () => {
             </h1>
 
             <p className="text-base sm:text-lg text-neutral-600 leading-relaxed font-normal">
-              Kaiser AI is an intelligent civic response platform engineered for Mumbai’s 20+ million citizens and 26 municipal wards. We eliminate bureaucratic delays with automated computer vision triage, sub-meter GPS mapping, and tamper-proof photo resolution audit trails.
+              Kaiser AI is an intelligent civic response platform engineered for Mumbai’s 20+ million citizens and 24 municipal wards. We eliminate bureaucratic delays with automated computer vision triage, sub-meter GPS mapping, and tamper-proof photo resolution audit trails.
             </p>
 
             <div className="flex flex-wrap items-center justify-center gap-3 pt-3">

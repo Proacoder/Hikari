@@ -54,13 +54,19 @@ export const CitizenDashboard = () => {
 
   const userSubmissions = useMemo(() => {
     const allStored = getStoredComplaints();
-    return allStored.filter(
+    const combined = [...allStored];
+    complaints.forEach((c) => {
+      if (!combined.some((item) => item.id === c.id)) {
+        combined.push(c);
+      }
+    });
+    return combined.filter(
       (c) =>
         (user?.id && c.createdBy?.id === user.id) ||
         (user?.name && c.createdBy?.name === user.name) ||
         (user?.email && c.createdBy?.email === user.email)
     );
-  }, [user]);
+  }, [user, complaints]);
 
   const activeSubmissionsCount = userSubmissions.filter((c) => c.status !== 'resolved').length;
   const inProgressCount = userSubmissions.filter((c) => c.status === 'in_progress' || c.status === 'assigned').length;
@@ -69,9 +75,12 @@ export const CitizenDashboard = () => {
   useEffect(() => {
     async function load() {
       try {
+        const userWard = MUMBAI_WARDS.find((w) => w.id === user?.ward);
+        const lat = userWard?.lat || 19.076;
+        const lng = userWard?.lng || 72.877;
         const [res, weatherRes] = await Promise.all([
           getComplaints(user?.ward ? { ward: user.ward } : { limit: 6 }),
-          getWeatherAQI(19.076, 72.877),
+          getWeatherAQI(lat, lng),
         ]);
         setComplaints(res.data || []);
         setWeather(weatherRes.data || null);
@@ -96,7 +105,7 @@ export const CitizenDashboard = () => {
             {user ? `Welcome back, ${user.name}!` : t('citizen.seeIssuePrompt', 'See a civic issue in Mumbai?')}
           </h2>
           <p className="text-sm text-brand-100 max-w-lg leading-relaxed">
-            {t('citizen.seeIssueSub', 'Upload a photo & detect your live GPS location. Kaiser AI automatically routes your report to the designated Ward Officer among all 26 Mumbai wards.')}
+            {t('citizen.seeIssueSub', `Upload a photo & detect your live GPS location. Kaiser AI automatically routes your report to the designated Ward Officer among all ${MUMBAI_WARDS.length} Mumbai wards.`)}
           </p>
         </div>
         <div className="flex flex-col sm:flex-row gap-3">
@@ -190,7 +199,7 @@ export const CitizenDashboard = () => {
         </Card>
         <Card className="p-4 bg-white border-neutral-200 border-l-4 border-l-sky-500 space-y-1 shadow-sm" padding="">
           <span className="text-xs font-semibold text-neutral-500 uppercase">{t('citizen.wardRanking', 'Wards Covered')}</span>
-          <div className="text-2xl font-bold text-sky-700">26 Wards Active</div>
+          <div className="text-2xl font-bold text-sky-700">{MUMBAI_WARDS.length} Wards Active</div>
         </Card>
       </div>
 
@@ -624,9 +633,9 @@ export const ReportIssuePage = () => {
           </div>
 
           <div className="pt-2 flex flex-col sm:flex-row justify-center gap-3">
-            <Link to={`/officer/${assignedOfficer.id}`} className="w-full sm:w-auto">
+            <Link to={`/app/complaint/${submittedTicket.id}`} className="w-full sm:w-auto">
               <Button variant="primary" className="w-full justify-center">
-                Open {assignedOfficer.name}'s Dashboard →
+                View Complaint Details →
               </Button>
             </Link>
             <Link to="/app/my-complaints" className="w-full sm:w-auto">
@@ -667,7 +676,7 @@ export const ReportIssuePage = () => {
                 </div>
                 <div>
                   <label className="text-sm font-bold text-neutral-900">Live GPS Location & Ward</label>
-                  <p className="text-[11px] text-neutral-500">Auto-routes to the nearest of 26 BMC Ward Offices</p>
+                  <p className="text-[11px] text-neutral-500">Auto-routes to the nearest of {MUMBAI_WARDS.length} BMC Ward Offices</p>
                 </div>
               </div>
               <button
@@ -763,7 +772,7 @@ export const ReportIssuePage = () => {
               <div className="space-y-1">
                 <div className="flex items-center justify-between">
                   <label className="text-xs font-semibold text-neutral-700">{t('citizen.wardLabel', 'Municipal Ward')}</label>
-                  <span className="text-[10px] text-brand-600 font-medium">26 BMC Wards</span>
+                  <span className="text-[10px] text-brand-600 font-medium">{MUMBAI_WARDS.length} BMC Wards</span>
                 </div>
                 <select
                   value={formData.ward}
@@ -1028,7 +1037,7 @@ export const MyComplaintsPage = () => {
               : 'text-neutral-500 hover:text-neutral-800'
           }`}
         >
-          My Submissions ({myComplaints.length || 2})
+          My Submissions ({myComplaints.length})
         </button>
         <button
           type="button"
@@ -1122,7 +1131,7 @@ export const IssueMapPage = () => {
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
         <div>
           <h2 className="text-2xl font-bold text-neutral-900">{t('nav.issueMap', 'Mumbai Interactive Ward Map')}</h2>
-          <p className="text-xs text-neutral-500">Visual geospatial map of all 26 Mumbai wards with active citizen reports.</p>
+          <p className="text-xs text-neutral-500">Visual geospatial map of all {MUMBAI_WARDS.length} Mumbai wards with active citizen reports.</p>
         </div>
         <div className="flex items-center gap-2">
           <Badge variant="brand">Live Tracking</Badge>

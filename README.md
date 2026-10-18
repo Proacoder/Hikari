@@ -135,14 +135,13 @@ python backend/test_e2e.py
 
 For quick local evaluation without setting up an external backend database, use the pre-configured role presets:
 
-| Role | Preset Email | Password | Assigned Scope |
-| :--- | :--- | :--- | :--- |
-| **Citizen** | `priya.nair@example.com` | `Citizen@123` | Individual Submissions & Ward 8 |
-| **Citizen 2** | `aarav.sharma@example.com` | `Citizen@456` | Individual Submissions & Ward 12 |
-| **Ward Officer** | `suresh.patil@bmc.gov.in` | `BandraN@2024` | G/N Ward (Bandra North) Field Desk |
-| **BMC Administrator** | `r.mehta@bmc.gov.in` | `Admin@2024` | Municipal Commissioner (All 26 Wards) |
+| Role | Preset Email | Password | Assigned Scope | Portal |
+| :--- | :--- | :--- | :--- | :--- |
+| **Citizen (Demo)** | `priya.nair@example.com` | `Citizen@123` | Individual Submissions & Ward 8 | `/login` |
+| **Ward Officer** | `suresh.patil@bmc.gov.in` | `BandraN@2024` | G/N Ward (Bandra North) Field Desk | `/officer-login` |
+| **BMC Administrator** | `r.mehta@bmc.gov.in` | `Admin@2024` | Municipal Commissioner (All 24 Wards) | `/officer-login` |
 
-*(You can also click the quick-fill role tabs directly on the `/login` screen)*
+*(Citizens log in at `/login`. Ward Officers & Municipal Administrators log in via the official staff gateway at `/officer-login`)*
 
 ---
 

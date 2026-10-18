@@ -153,7 +153,7 @@ export const AdminDashboard = () => {
     load();
   }, []);
 
-  // Compute all 26 wards data
+  // Compute all 24 wards data
   const allWardsData = useMemo(() => {
     return MUMBAI_WARDS.map((w) => {
       const match = wardData.find((d) => d.wardId === w.id || d.ward?.toLowerCase().startsWith(w.name.toLowerCase()));
@@ -216,7 +216,7 @@ export const AdminDashboard = () => {
             <span className="text-xs text-neutral-400 font-mono">City-wide Analytics</span>
           </div>
           <h2 className="text-2xl font-bold text-neutral-900">BMC Command & Control Dashboard</h2>
-          <p className="text-xs text-neutral-500">Live operational overview of all 26 administrative wards in Greater Mumbai.</p>
+          <p className="text-xs text-neutral-500">Live operational overview of all {MUMBAI_WARDS.length} administrative wards in Greater Mumbai.</p>
         </div>
 
         <div className="flex items-center gap-3">
@@ -271,8 +271,8 @@ export const AdminDashboard = () => {
 
             <Card className="p-4 space-y-1">
               <span className="text-xs font-semibold text-neutral-500 uppercase">Active Officers</span>
-              <div className="text-3xl font-extrabold text-brand-600">{analytics?.activeOfficers || 84}</div>
-              <div className="text-[11px] text-neutral-400">Across 26 wards</div>
+              <div className="text-3xl font-extrabold text-brand-600">{analytics?.activeOfficers || MUMBAI_WARDS.length}</div>
+              <div className="text-[11px] text-neutral-400">Across {MUMBAI_WARDS.length} wards</div>
             </Card>
           </>
         )}
@@ -287,7 +287,7 @@ export const AdminDashboard = () => {
             className={`pb-2 transition-colors whitespace-nowrap capitalize ${activeSection === tab ? 'text-brand-600 border-b-2 border-brand-600' : 'hover:text-neutral-800'}`}
           >
             {tab === 'overview' ? 'Command Overview' :
-             tab === 'wards' ? '26 Wards Scorecard' :
+             tab === 'wards' ? `${MUMBAI_WARDS.length} Wards Scorecard` :
              tab === 'leaderboard' ? 'Officer Leaderboard' :
              tab === 'analytics' ? 'Charts & Analytics' :
              tab === 'disaster' ? 'Monsoon & Disaster AI ⚡' :
@@ -305,7 +305,7 @@ export const AdminDashboard = () => {
             <div>
               <h3 className="text-lg font-bold text-neutral-900 flex items-center gap-2">
                 <Building2 className="text-brand-600" size={20} />
-                26 Administrative Wards Scorecard
+                {allWardsData.length} Administrative Wards Scorecard
               </h3>
               <p className="text-xs text-neutral-500">
                 Detailed municipal operational overview and SLA health across all zones in Greater Mumbai.
@@ -449,7 +449,7 @@ export const AdminDashboard = () => {
         <Card className="p-6 space-y-4 shadow-soft-sm">
           <div className="flex items-center justify-between">
             <h3 className="font-bold text-neutral-900 text-base">Ward Resolution Performance Ranking</h3>
-            <Badge variant="brand">26 Wards Active</Badge>
+            <Badge variant="brand">{allWardsData.length} Wards Active</Badge>
           </div>
 
           <div className="overflow-x-auto">
@@ -666,7 +666,7 @@ export const AdminDashboard = () => {
                 <span className="text-[10px] uppercase font-bold text-amber-400 tracking-wider">Executive Municipal Audit</span>
                 <h3 className="text-xl font-black">Brihanmumbai Monthly Grievance Dossier</h3>
                 <p className="text-xs text-white/70 max-w-lg">
-                  Generate the certified municipal performance dossier with SLA compliance breakdown across all 26 wards, departmental speed metrics, and exportable CSV/print formats.
+                  Generate the certified municipal performance dossier with SLA compliance breakdown across all 24 wards, departmental speed metrics, and exportable CSV/print formats.
                 </p>
               </div>
               <Button
@@ -774,7 +774,7 @@ export const AdminDashboard = () => {
               onChange={(e) => setComplaintWardFilter(e.target.value)}
               className="px-3 py-2 bg-white border border-neutral-200 rounded-xl text-xs font-semibold text-neutral-700 focus:outline-none"
             >
-              <option value="all">All 26 Wards</option>
+              <option value="all">All 24 Wards</option>
               {MUMBAI_WARDS.map((w) => (
                 <option key={w.id} value={w.id}>
                   Ward #{w.id} – {w.name} ({w.area})

@@ -128,15 +128,19 @@ const TIMELINE_STEPS = [
   { key: 'assigned',   label: 'Assigned',    icon: Hash          },
   { key: 'in_progress',label: 'In Progress', icon: Loader        },
   { key: 'resolved',   label: 'Resolved',    icon: CheckCircle   },
+  { key: 'reopened',   label: 'Contested (Escalated to EE)', icon: AlertTriangle },
 ];
 
-const STATUS_ORDER = { reported: 0, assigned: 1, in_progress: 2, resolved: 3 };
+const STATUS_ORDER = { reported: 0, assigned: 1, in_progress: 2, resolved: 3, reopened: 4 };
 
 export const StatusTimeline = ({ status }) => {
+  const steps = status === 'reopened'
+    ? TIMELINE_STEPS
+    : TIMELINE_STEPS.filter((s) => s.key !== 'reopened');
   const currentIdx = STATUS_ORDER[status] ?? 0;
   return (
     <ol className="relative">
-      {TIMELINE_STEPS.map((step, idx) => {
+      {steps.map((step, idx) => {
         const done    = idx < currentIdx;
         const active  = idx === currentIdx;
         const future  = idx > currentIdx;

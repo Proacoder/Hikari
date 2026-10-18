@@ -1,6 +1,6 @@
 /**
  * Mumbai Municipal Administrative Wards GeoJSON Boundaries
- * Provides polygon boundaries for BMC's 26 administrative wards for Leaflet choropleth heatmap rendering.
+ * Provides polygon boundaries for BMC's 24 administrative wards for Leaflet choropleth heatmap rendering.
  * NOTE: These are approximate boundaries based on ward center points. For production use,
  * replace with official BMC ward boundary data.
  */
@@ -537,50 +537,6 @@ export const MUMBAI_WARDS_GEOJSON = {
           [72.9482, 19.1549],
           [72.9282, 19.1549],
           [72.9282, 19.1349]
-        ]]
-      }
-    },
-    // Ward 25 - RC Ward
-    {
-      type: "Feature",
-      properties: {
-        id: 25,
-        code: "RC Ward",
-        name: "Borivali (East), Magathane, National Park periphery",
-        ac: "Shri Sandeep Malvi",
-        zone: "Zone 7 (Western Suburbs)",
-        severityLevel: "medium"
-      },
-      geometry: {
-        type: "Polygon",
-        coordinates: [[
-          [72.8592, 19.2192],
-          [72.8792, 19.2192],
-          [72.8792, 19.2392],
-          [72.8592, 19.2392],
-          [72.8592, 19.2192]
-        ]]
-      }
-    },
-    // Ward 26 - RS Ward
-    {
-      type: "Feature",
-      properties: {
-        id: 26,
-        code: "RS Ward",
-        name: "Kandivali (East), Thakur Village, Lokhandwala Township",
-        ac: "Shri Devidas Kshirsagar",
-        zone: "Zone 4 (Western Suburbs)",
-        severityLevel: "medium"
-      },
-      geometry: {
-        type: "Polygon",
-        coordinates: [[
-          [72.8375, 19.1775],
-          [72.8575, 19.1775],
-          [72.8575, 19.1975],
-          [72.8375, 19.1975],
-          [72.8375, 19.1775]
         ]]
       }
     }

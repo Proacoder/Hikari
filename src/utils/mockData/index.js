@@ -25,8 +25,6 @@ export const MUMBAI_WARDS = [
   { id: 22, name: 'R/S Ward', code: 'R/S Ward', zone: 'Zone 4 (Western Suburbs)', area: 'Kandivali (West), Charkop, Mahavir Nagar, Poisar',        ac: 'Smt. Sandhya Nandedkar', phone: '022-2805-6000', email: 'ac.rs@mcgm.gov.in', address: 'M.G. Cross Road No. 2, Kandivali West, Mumbai 400067', lat: 19.2115, lng: 72.8383 },
   { id: 23, name: 'S Ward',   code: 'S Ward',   zone: 'Zone 6 (Eastern Suburbs)', area: 'Bhandup, Powai, Kanjurmarg, IIT Bombay, Hiranandani',     ac: 'Shri Ajitkumar Ambi', phone: '022-2594-7510', email: 'ac.s@mcgm.gov.in', address: 'Lal Bahadur Shastri Marg, Bhandup West, Mumbai 400078', lat: 19.1728, lng: 72.9564 },
   { id: 24, name: 'T Ward',   code: 'T Ward',   zone: 'Zone 6 (Eastern Suburbs)', area: 'Mulund (East & West), Nahur, Sarvodaya Nagar',           ac: 'Shri Ajay Patne', phone: '022-2564-5289', email: 'ac.t@mcgm.gov.in', address: 'Lala Devidayal Marg, Mulund West, Mumbai 400080', lat: 19.1449, lng: 72.9382 },
-  { id: 25, name: 'RC Ward',  code: 'RC Ward',  zone: 'Zone 7 (Western Suburbs)', area: 'Borivali (East), Magathane, National Park periphery',     ac: 'Shri Sandeep Malvi', phone: '022-2895-4422', email: 'ac.rce@mcgm.gov.in', address: 'Kasturba Cross Road No. 1, Borivali East, Mumbai 400066', lat: 19.2292, lng: 72.8660 },
-  { id: 26, name: 'RS Ward',  code: 'RS Ward',  zone: 'Zone 4 (Western Suburbs)', area: 'Kandivali (East), Thakur Village, Lokhandwala Township',  ac: 'Shri Devidas Kshirsagar', phone: '022-2886-5000', email: 'ac.rse@mcgm.gov.in', address: 'Thakur Complex, Kandivali East, Mumbai 400101', lat: 19.1875, lng: 72.8448 },
 ];
 
 export const CATEGORIES = [
@@ -60,17 +58,19 @@ export const MOCK_USERS = {
     createdAt: '2024-06-20T14:00:00Z',
   },
   officer: {
-    id: 'officer-012',
+    id: 'officer-008',
     name: 'Suresh Patil',
     email: 'suresh.patil@bmc.gov.in',
-    phone: '+91 22 2416 6000',
+    phone: '+91-22-24100008',
     role: 'officer',
-    ward: 12,
-    wardName: 'K/E Ward – Andheri (East)',
+    ward: 8,
+    wardName: 'G/N Ward – Bandra (North)',
     department: 'Roads & Infrastructure',
-    employeeId: 'BMC/KE/2021/047',
+    employeeId: 'BMC/GN/2020/008',
+    badgeNumber: 'B-008',
     avatarInitials: 'SP',
-    createdAt: '2021-07-01T09:00:00Z',
+    password: 'BandraN@2024',
+    createdAt: '2020-07-01T09:00:00Z',
   },
   admin: {
     id: 'admin-001',
@@ -120,8 +120,6 @@ export const MOCK_OFFICERS = [
   { id: 'officer-022', name: 'Shweta Ghosalkar', email: 'shweta.ghosalkar@bmc.gov.in', phone: '+91-22-24100022', ward: 22, wardName: 'R/S Ward – Kandivali (West)',               department: 'Sanitation',            employeeId: 'BMC/RS/2021/022',  status: 'Available', assignedCount: 6,  resolvedCount: 145, avgResolutionDays: 4.1, rating: 4.0, password: 'KandivW@2024',  joinedAt: '2021-05-15T09:00:00Z', avatarInitials: 'SG' },
   { id: 'officer-023', name: 'Mahesh Wagh',      email: 'mahesh.wagh@bmc.gov.in',      phone: '+91-22-24100023', ward: 23, wardName: 'S Ward – Mulund',                           department: 'Roads & Infrastructure',employeeId: 'BMC/S/2017/023',   status: 'Busy',      assignedCount: 19, resolvedCount: 378, avgResolutionDays: 3.3, rating: 4.5, password: 'Mulund@2024',    joinedAt: '2017-10-01T09:00:00Z', avatarInitials: 'MW' },
   { id: 'officer-024', name: 'Tanvi Bhosale',    email: 'tanvi.bhosale@bmc.gov.in',    phone: '+91-22-24100024', ward: 24, wardName: 'T Ward – Bhandup, Nahur',                  department: 'Electrical',            employeeId: 'BMC/T/2022/024',   status: 'Available', assignedCount: 4,  resolvedCount: 67,  avgResolutionDays: 4.8, rating: 3.9, password: 'Bhandup@2024',  joinedAt: '2022-06-01T09:00:00Z', avatarInitials: 'TB' },
-  { id: 'officer-025', name: 'Pratap Rane',      email: 'pratap.rane@bmc.gov.in',      phone: '+91-22-24100025', ward: 25, wardName: 'RC Ward – Borivali (East)',                 department: 'Building & Permits',    employeeId: 'BMC/RC2/2020/025', status: 'Available', assignedCount: 8,  resolvedCount: 156, avgResolutionDays: 3.9, rating: 4.1, password: 'Borivali@2024', joinedAt: '2020-02-01T09:00:00Z', avatarInitials: 'PR' },
-  { id: 'officer-026', name: 'Devika Naik',      email: 'devika.naik@bmc.gov.in',      phone: '+91-22-24100026', ward: 26, wardName: 'RS Ward – Malad',                           department: 'Sanitation',            employeeId: 'BMC/RS2/2019/026', status: 'Busy',      assignedCount: 14, resolvedCount: 213, avgResolutionDays: 3.5, rating: 4.3, password: 'Malad@2024',     joinedAt: '2019-12-01T09:00:00Z', avatarInitials: 'DN' },
 ];
 
 // ─── Mock Complaints (one or two per ward for demo) ───────────────────────────

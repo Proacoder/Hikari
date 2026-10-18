@@ -80,8 +80,14 @@ export const login = async ({ email, password }) => {
   const res = await apiClient.post('/auth/login', { email, password });
   if (res.data.data?.token) {
     localStorage.setItem('kaiser_token', res.data.data.token);
-    if (res.data.data?.user) {
-      localStorage.setItem('kaiser_user', JSON.stringify(res.data.data.user));
+    const user = res.data.data?.user;
+    if (user) {
+      localStorage.setItem('kaiser_user', JSON.stringify(user));
+      if (user.role === 'officer' && user.id) {
+        localStorage.setItem('kaiser_officer_id', user.id);
+      } else if (user.role === 'citizen' && user.id) {
+        localStorage.setItem('kaiser_citizen_id', user.id);
+      }
     }
   }
   return res.data;
@@ -132,8 +138,12 @@ export const register = async (payload) => {
   const res = await apiClient.post('/auth/register', payload);
   if (res.data.data?.token) {
     localStorage.setItem('kaiser_token', res.data.data.token);
-    if (res.data.data?.user) {
-      localStorage.setItem('kaiser_user', JSON.stringify(res.data.data.user));
+    const user = res.data.data?.user;
+    if (user) {
+      localStorage.setItem('kaiser_user', JSON.stringify(user));
+      if (user.role === 'citizen' && user.id) {
+        localStorage.setItem('kaiser_citizen_id', user.id);
+      }
     }
   }
   return res.data;
@@ -156,7 +166,7 @@ export const verifyToken = async () => {
         localStorage.setItem('kaiser_user', JSON.stringify(user));
         return successResponse({ user });
       }
-      const user = { ...MOCK_USERS.officer, role: 'officer' };
+      const user = { ...MOCK_OFFICERS[0], role: 'officer' };
       localStorage.setItem('kaiser_user', JSON.stringify(user));
       return successResponse({ user });
     }
@@ -183,9 +193,21 @@ export const verifyToken = async () => {
 
     return successResponse({ user: MOCK_USERS.citizen });
   }
+
+  const token = localStorage.getItem('kaiser_token');
+  if (!token) {
+    throw new Error('No authentication token found');
+  }
+
   const res = await apiClient.get('/auth/verify');
-  if (res.data.data?.user) {
-    localStorage.setItem('kaiser_user', JSON.stringify(res.data.data.user));
+  const user = res.data.data?.user;
+  if (user) {
+    localStorage.setItem('kaiser_user', JSON.stringify(user));
+    if (user.role === 'officer' && user.id) {
+      localStorage.setItem('kaiser_officer_id', user.id);
+    } else if (user.role === 'citizen' && user.id) {
+      localStorage.setItem('kaiser_citizen_id', user.id);
+    }
   }
   return res.data;
 };

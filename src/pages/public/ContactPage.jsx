@@ -10,7 +10,7 @@ import { Input } from '../../components/common/Input';
 import { Button } from '../../components/common/Button';
 import { Badge } from '../../components/common/Badge';
 import { MUMBAI_WARDS } from '../../utils/mockData';
-import { getStoredComplaints } from '../../api/complaints.api';
+import { getStoredComplaints, getComplaintById } from '../../api/complaints.api';
 
 const EMERGENCY_NUMBERS = [
   { title: 'BMC Central Disaster Control', number: '1916', desc: 'Toll-free 24x7 monsoon & civic emergencies', primary: true },
@@ -31,6 +31,7 @@ export const ContactPage = () => {
   const [trackingId, setTrackingId] = useState('');
   const [trackResult, setTrackResult] = useState(null);
   const [trackError, setTrackError] = useState(false);
+  const [isTrackLoading, setIsTrackLoading] = useState(false);
 
   // Form State
   const [formData, setFormData] = useState({
@@ -59,23 +60,38 @@ export const ContactPage = () => {
     return matchesSearch;
   });
 
-  const handleTrackSubmit = (e) => {
+  const handleTrackSubmit = async (e) => {
     e.preventDefault();
     setTrackError(false);
-    const cleanId = trackingId.trim().toLowerCase();
+    const cleanId = trackingId.trim();
     if (!cleanId) return;
 
+    setIsTrackLoading(true);
+    try {
+      const res = await getComplaintById(cleanId);
+      const found = res?.data || res;
+      if (found && found.id) {
+        setTrackResult(found);
+        setTrackError(false);
+        setIsTrackLoading(false);
+        return;
+      }
+    } catch {
+      // Graceful fallback to local stores
+    }
+
     const allComplaints = getStoredComplaints();
-    const found = allComplaints.find((c) => c.id?.toLowerCase() === cleanId);
-    if (found) {
-      setTrackResult(found);
+    const foundLocal = allComplaints.find((c) => c.id?.toLowerCase() === cleanId.toLowerCase());
+    if (foundLocal) {
+      setTrackResult(foundLocal);
       setTrackError(false);
+      setIsTrackLoading(false);
       return;
     }
 
     try {
       const allInquiries = JSON.parse(localStorage.getItem('kaiser_inquiries_store') || '[]');
-      const foundInquiry = allInquiries.find((i) => i.refNumber?.toLowerCase() === cleanId);
+      const foundInquiry = allInquiries.find((i) => i.refNumber?.toLowerCase() === cleanId.toLowerCase());
       if (foundInquiry) {
         setTrackResult({
           id: foundInquiry.refNumber,
@@ -88,10 +104,12 @@ export const ContactPage = () => {
           description: foundInquiry.message,
         });
         setTrackError(false);
+        setIsTrackLoading(false);
         return;
       }
     } catch {}
 
+    setIsTrackLoading(false);
     setTrackError(true);
     setTrackResult(null);
   };
@@ -133,7 +151,7 @@ export const ContactPage = () => {
           </div>
 
           <h1 className="text-3xl sm:text-5xl font-extrabold text-neutral-900 tracking-tight">
-            Contact Kaiser AI & <span className="text-brand-600">26 Ward Directory</span>
+            Contact Kaiser AI & <span className="text-brand-600">24 Ward Directory</span>
           </h1>
 
           <p className="text-base text-neutral-600 max-w-2xl mx-auto font-normal">
@@ -200,9 +218,11 @@ export const ContactPage = () => {
                 </div>
                 <button
                   type="submit"
-                  className="px-6 py-3 bg-brand-600 hover:bg-brand-500 text-white font-bold text-xs rounded-xl shadow-brand transition-colors cursor-pointer shrink-0 flex items-center justify-center gap-1.5"
+                  disabled={isTrackLoading}
+                  className="px-6 py-3 bg-brand-600 hover:bg-brand-500 disabled:opacity-60 text-white font-bold text-xs rounded-xl shadow-brand transition-colors cursor-pointer shrink-0 flex items-center justify-center gap-1.5"
                 >
-                  <Search size={14} /> Track Status
+                  <Search size={14} className={isTrackLoading ? 'animate-spin' : ''} />
+                  {isTrackLoading ? 'Searching...' : 'Track Status'}
                 </button>
               </form>
 
@@ -462,7 +482,7 @@ export const ContactPage = () => {
                   <LifeBuoy size={14} /> Citizen Lokshahi Din (Public Hearings)
                 </div>
                 <p className="text-sky-700 text-[11px] leading-relaxed">
-                  Every 1st Monday of the month from 10:00 AM to 12:00 PM, all 26 Assistant Commissioners personally hear unresolved civic grievances at their respective ward offices.
+                  Every 1st Monday of the month from 10:00 AM to 12:00 PM, all 24 Assistant Commissioners personally hear unresolved civic grievances at their respective ward offices.
                 </p>
               </div>
             </Card>
@@ -534,7 +554,7 @@ export const ContactPage = () => {
               <span>Full Administrative Mapping</span>
             </div>
             <h2 className="text-2xl sm:text-3xl font-extrabold text-neutral-900 tracking-tight">
-              26 Municipal Ward Directory
+              24 Municipal Ward Directory
             </h2>
             <p className="text-xs sm:text-sm text-neutral-500 max-w-xl">
               Find your designated Assistant Commissioner, control room phone lines, and physical ward office address across Greater Mumbai.
