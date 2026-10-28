@@ -66,7 +66,7 @@ ALLOWED_MIME_TYPES = {"image/jpeg", "image/png", "image/webp", "image/gif"}
 MAX_UPLOAD_BYTES = 10 * 1024 * 1024  # 10 MB
 
 # Valid complaint statuses
-VALID_STATUSES = {"reported", "in_progress", "resolved", "reopened", "escalated"}
+VALID_STATUSES = {"reported", "in_progress", "resolved", "reopened", "escalated", "assigned", "duplicate"}
 
 
 @asynccontextmanager
@@ -187,6 +187,7 @@ class ComplaintUpdateRequest(BaseModel):
     resolvedImageUrl: Optional[str] = None
     assignedOfficerId: Optional[str] = None
     notes: Optional[str] = None
+    officerRemarks: Optional[str] = None
     officerLatitude: Optional[float] = None
     officerLongitude: Optional[float] = None
 
@@ -444,6 +445,26 @@ def serialize_complaint(c: ComplaintModel, db: Session) -> dict:
 
     comm_count = db.query(CommentModel).filter(CommentModel.complaint_id == c.id).count()
 
+    audit_records = (
+        db.query(ResolutionAuditModel)
+        .filter(ResolutionAuditModel.complaint_id == c.id)
+        .order_by(ResolutionAuditModel.created_at.desc())
+        .all()
+    )
+    audits = [
+        {
+            "id": a.id,
+            "officerId": a.officer_id,
+            "officerName": a.officer_name,
+            "previousStatus": a.previous_status,
+            "newStatus": a.new_status,
+            "notes": a.notes,
+            "imageUrl": a.image_url,
+            "createdAt": a.created_at.isoformat() if a.created_at else None,
+        }
+        for a in audit_records
+    ]
+
     return {
         "id": c.id,
         "title": c.title,
@@ -480,6 +501,8 @@ def serialize_complaint(c: ComplaintModel, db: Session) -> dict:
         "rating": c.rating,
         "feedbackTags": c.feedback_tags.split(",") if c.feedback_tags else [],
         "feedbackComment": c.feedback_comment,
+        "notes": audits[0]["notes"] if audits else None,
+        "audits": audits,
     }
 
 
@@ -819,7 +842,8 @@ async def update_complaint(
                 except Exception as e:
                     logger.warning(f"Geofence distance notice: {e}")
 
-        base_notes = body.notes or f"Status updated to '{body.status}' by {current_user.name}."
+        notes_input = body.notes if body.notes is not None else body.officerRemarks
+        base_notes = notes_input or f"Status updated to '{body.status}' by {current_user.name}."
         db.add(ResolutionAuditModel(
             id=f"audit-{uuid.uuid4().hex[:10]}",
             complaint_id=complaint_id,
@@ -1692,5 +1716,6 @@ if os.path.exists(frontend_dist):
 if __name__ == "__main__":
     import uvicorn
     port = int(os.getenv("PORT", 5000))
+    dev_reload = os.getenv("DEV_RELOAD", "false").lower() in ("1", "true", "yes")
     logger.info(f"Starting Kaiser AI Unified Platform on port {port}...")
-    uvicorn.run("app:app", host="0.0.0.0", port=port, reload=True)
+    uvicorn.run("app:app", host="0.0.0.0", port=port, reload=dev_reload)

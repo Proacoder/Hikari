@@ -19,6 +19,7 @@ import { Modal } from '../components/common/Modal';
 import { LeafletMap } from '../components/map/LeafletMap';
 import { SkeletonKpiCard, SkeletonRow } from '../components/common/Skeleton';
 import { useAuth } from '../context/AuthContext';
+import { useNotifications } from '../context/NotificationContext';
 import { FieldInspectionModal } from '../components/officer/FieldInspectionModal';
 import { formatDate } from '../utils/formatters';
 import toast from 'react-hot-toast';
@@ -125,9 +126,10 @@ const ComplaintDetailModal = ({ complaint, onClose, onUpdate, onInspect }) => {
     if (!complaint) return;
     setSaving(true);
     try {
+      // Bug D fix: backend reads `notes`, not `officerRemarks`
       await onUpdate(complaint.id, {
         status,
-        officerRemarks: remarks,
+        notes: remarks,
         updatedAt: new Date().toISOString(),
       });
       onClose();
@@ -195,8 +197,8 @@ const ComplaintDetailModal = ({ complaint, onClose, onUpdate, onInspect }) => {
               <p className="text-purple-700 font-bold mb-1 text-[11px] uppercase tracking-wide flex items-center gap-1">
                 <Sparkles size={11} /> AI Assessment
               </p>
-              <p className="text-neutral-900 font-semibold">Match Confidence: {Math.round((complaint.aiAnalysis?.confidence || 0.94) * 100)}%</p>
-              <p className="text-neutral-500 mt-0.5">AQI: {complaint.aiAnalysis?.aqiAtLocation || 112}</p>
+              <p className="text-neutral-900 font-semibold">Match Confidence: {complaint.aiAnalysis?.confidence ? `${Math.round(complaint.aiAnalysis.confidence * 100)}%` : '—'}</p>
+              <p className="text-neutral-500 mt-0.5">AQI: {complaint.aiAnalysis?.aqiAtLocation ?? '—'}</p>
             </div>
           </div>
 
@@ -212,6 +214,7 @@ const ComplaintDetailModal = ({ complaint, onClose, onUpdate, onInspect }) => {
               <option value="assigned">ASSIGNED – Inspection Team Dispatched</option>
               <option value="in_progress">IN PROGRESS – Ground Crew Repairing Issue</option>
               <option value="resolved">RESOLVED – Municipal Action Completed ✓</option>
+              <option value="escalated">ESCALATED – Referred to Senior Authority</option>
               <option value="duplicate">DUPLICATE – Marked as Duplicate</option>
             </select>
           </div>
@@ -387,50 +390,58 @@ const ProfileTab = ({ officer }) => {
 };
 
 // ── Notifications Tab ──────────────────────────────────────────────────────────
-const NotificationsTab = ({ officerName, wardComplaints }) => {
-  const criticalCount = wardComplaints.filter(c => c.severity >= 80 && c.status !== 'resolved').length;
-  const pendingCount  = wardComplaints.filter(c => c.status === 'reported').length;
-
-  const items = [
-    { id: 1, type: 'critical', title: `${criticalCount} Critical grievances require immediate inspection`, body: `High-priority issues reported by citizens in your ward require dispatch, ${officerName}.`, time: 'Just now', read: false },
-    { id: 2, type: 'update',   title: 'Citizen uploaded new photo evidence', body: 'A citizen attached photographic evidence for an assigned pothole grievance.', time: '2h ago', read: false },
-    { id: 3, type: 'assigned', title: `${pendingCount} new grievances dispatched via GPS auto-routing`, body: 'System AI has classified citizen reports into your ward queue.', time: '4h ago', read: false },
-    { id: 4, type: 'resolved', title: 'Citizen confirmed resolution feedback', body: 'Civic repair action acknowledged by citizen with 5-star rating.', time: '1 day ago', read: true },
-    { id: 5, type: 'reminder', title: 'SLA target approaching (24-hour window)', body: '2 issues are within 4 hours of their municipal SLA target.', time: '2 days ago', read: true },
-  ];
+const NotificationsTab = ({ officerName }) => {
+  const { notifications, markRead } = useNotifications();
 
   const TYPE_CFG = {
     critical: { cls: 'bg-red-50 border-red-200 text-red-600',     icon: AlertTriangle },
+    alert:    { cls: 'bg-red-50 border-red-200 text-red-600',     icon: AlertTriangle },
     update:   { cls: 'bg-sky-50 border-sky-200 text-sky-600',      icon: RefreshCw     },
+    status_update: { cls: 'bg-sky-50 border-sky-200 text-sky-600', icon: RefreshCw    },
     resolved: { cls: 'bg-emerald-50 border-emerald-200 text-emerald-600', icon: CheckCircle2 },
     assigned: { cls: 'bg-brand-50 border-brand-200 text-brand-600',icon: FileText      },
     reminder: { cls: 'bg-amber-50 border-amber-200 text-amber-600',icon: Clock         },
   };
 
+  const unreadCount = notifications.filter(i => !i.isRead).length;
+
   return (
     <div className="space-y-3 max-w-3xl">
       <div className="flex items-center justify-between mb-1">
         <h3 className="font-bold text-sm text-neutral-900">Notifications for {officerName}</h3>
-        <span className="text-xs text-neutral-400">{items.filter(i => !i.read).length} unread</span>
+        <span className="text-xs text-neutral-400">{unreadCount} unread</span>
       </div>
-      {items.map((n) => {
-        const { cls, icon: Icon } = TYPE_CFG[n.type] || TYPE_CFG.update;
-        return (
-          <Card key={n.id} className={`flex items-start gap-3 p-4 bg-white border border-neutral-200 shadow-sm transition-all ${!n.read ? 'ring-1 ring-brand-200' : ''}`} padding="">
-            <div className={`w-8 h-8 rounded-xl border flex items-center justify-center shrink-0 ${cls}`}>
-              <Icon size={14} />
-            </div>
-            <div className="flex-1 min-w-0">
-              <div className="flex items-center gap-2">
-                <span className="font-bold text-neutral-900 text-xs">{n.title}</span>
-                {!n.read && <span className="w-1.5 h-1.5 bg-brand-600 rounded-full shrink-0" />}
+      {notifications.length === 0 ? (
+        <Card className="text-center py-12 space-y-2 bg-white border border-neutral-200" padding="p-8">
+          <CheckCircle2 size={36} className="mx-auto text-neutral-300" />
+          <p className="font-bold text-neutral-700 text-sm">No notifications</p>
+          <p className="text-xs text-neutral-400">All notifications for this account have been caught up.</p>
+        </Card>
+      ) : (
+        notifications.map((n) => {
+          const { cls, icon: Icon } = TYPE_CFG[n.type] || TYPE_CFG.update;
+          return (
+            <Card
+              key={n.id}
+              onClick={() => !n.isRead && markRead(n.id)}
+              className={`flex items-start gap-3 p-4 bg-white border border-neutral-200 shadow-sm transition-all cursor-pointer ${!n.isRead ? 'ring-1 ring-brand-200' : ''}`}
+              padding=""
+            >
+              <div className={`w-8 h-8 rounded-xl border flex items-center justify-center shrink-0 ${cls}`}>
+                <Icon size={14} />
               </div>
-              <p className="text-[11px] text-neutral-500 mt-0.5 leading-relaxed">{n.body}</p>
-            </div>
-            <span className="text-[10px] text-neutral-400 shrink-0 mt-0.5">{n.time}</span>
-          </Card>
-        );
-      })}
+              <div className="flex-1 min-w-0">
+                <div className="flex items-center gap-2">
+                  <span className="font-bold text-neutral-900 text-xs">{n.title}</span>
+                  {!n.isRead && <span className="w-1.5 h-1.5 bg-brand-600 rounded-full shrink-0" />}
+                </div>
+                <p className="text-[11px] text-neutral-500 mt-0.5 leading-relaxed">{n.body}</p>
+              </div>
+              <span className="text-[10px] text-neutral-400 shrink-0 mt-0.5">{daysAgo(n.createdAt)}</span>
+            </Card>
+          );
+        })
+      )}
     </div>
   );
 };
@@ -441,8 +452,8 @@ const PerformanceTab = ({ officer, perfData, monthlyData }) => (
     <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
       {[
         { label: 'Total Resolved', value: perfData.totalResolved,          icon: CheckCircle2, cls: 'bg-emerald-50 border-emerald-100 text-emerald-700' },
-        { label: 'Avg Resolution', value: `${perfData.avgResolutionDays}d`,icon: Clock,        cls: 'bg-sky-50 border-sky-100 text-sky-700'             },
-        { label: 'This Month',     value: perfData.lastMonthResolved,       icon: TrendingUp,   cls: 'bg-amber-50 border-amber-100 text-amber-700'       },
+        { label: 'Avg Resolution', value: `${perfData.avgResolutionDays}d (estimated)`, icon: Clock, cls: 'bg-sky-50 border-sky-100 text-sky-700' },
+        { label: 'This Month',     value: `${perfData.lastMonthResolved} (estimated)`,  icon: TrendingUp, cls: 'bg-amber-50 border-amber-100 text-amber-700' },
         { label: 'Citizen Rating', value: `${perfData.satisfactionRatio}/5`,icon: Star,         cls: 'bg-brand-50 border-brand-100 text-brand-700'       },
       ].map(({ label, value, icon: Icon, cls }) => (
         <Card key={label} className={`p-4 border bg-white ${cls} shadow-sm`} padding="">
@@ -450,7 +461,7 @@ const PerformanceTab = ({ officer, perfData, monthlyData }) => (
             <Icon size={14} />
             <span className="text-[11px] font-semibold uppercase tracking-wide opacity-70">{label}</span>
           </div>
-          <div className="text-2xl font-bold">{value}</div>
+          <div className="text-xl font-bold">{value}</div>
         </Card>
       ))}
     </div>
@@ -458,19 +469,30 @@ const PerformanceTab = ({ officer, perfData, monthlyData }) => (
     <div className="grid md:grid-cols-2 gap-5">
       <Card className="p-5 space-y-3 bg-white border-neutral-200 shadow-sm" padding="">
         <div className="flex items-center justify-between">
-          <h3 className="font-bold text-sm text-neutral-900">Weekly Resolutions — {officer?.name}</h3>
+          <div className="flex items-center gap-2">
+            <h3 className="font-bold text-sm text-neutral-900">Weekly Resolutions — {officer?.name}</h3>
+            <span className="text-[10px] font-semibold text-neutral-400 bg-neutral-100 px-2 py-0.5 rounded-full border border-neutral-200">estimated</span>
+          </div>
           <Badge variant="success">+{perfData.trend}% ↑</Badge>
         </div>
         <WeeklyChart data={perfData.weeklyResolved} />
       </Card>
       <Card className="p-5 space-y-3 bg-white border-neutral-200 shadow-sm" padding="">
-        <h3 className="font-bold text-sm text-neutral-900">Category Breakdown</h3>
+        <div className="flex items-center justify-between">
+          <h3 className="font-bold text-sm text-neutral-900">Category Breakdown</h3>
+          {perfData.isCategoryEstimated && (
+            <span className="text-[10px] font-semibold text-neutral-400 bg-neutral-100 px-2 py-0.5 rounded-full border border-neutral-200">estimated</span>
+          )}
+        </div>
         <CategoryDonut data={perfData.categoryBreakdown} />
       </Card>
     </div>
 
     <Card className="p-5 space-y-3 bg-white border-neutral-200 shadow-sm" padding="">
-      <h3 className="font-bold text-sm text-neutral-900">6-Month Resolution Trend</h3>
+      <div className="flex items-center justify-between">
+        <h3 className="font-bold text-sm text-neutral-900">6-Month Resolution Trend</h3>
+        <span className="text-[10px] font-semibold text-neutral-400 bg-neutral-100 px-2 py-0.5 rounded-full border border-neutral-200">estimated</span>
+      </div>
       <MonthlyTrend data={monthlyData} />
     </Card>
 
@@ -532,6 +554,7 @@ const MapTab = ({ complaints, officer }) => {
 // ── MAIN Officer Dashboard ─────────────────────────────────────────────────────
 export const OfficerDashboard = ({ activeTabOverride }) => {
   const { user } = useAuth();
+  const { unreadCount } = useNotifications();
   const { officerId } = useParams();
   const location = useLocation();
   const navigate = useNavigate();
@@ -604,38 +627,45 @@ export const OfficerDashboard = ({ activeTabOverride }) => {
   const [filterCat,        setFilterCat]        = useState('all');
   const [searchQ,          setSearchQ]          = useState('');
   const [loading,          setLoading]          = useState(true);
+  const [complaintsError,  setComplaintsError]  = useState(null);
+  const [page,             setPage]             = useState(1);
+  const [totalComplaints,  setTotalComplaints]  = useState(0);
+  const PAGE_LIMIT = 100;
 
-  // Load ward complaints and weather
+  // Named loadWardData — called by useEffect AND the Refresh button (Bug A + B fix)
+  const loadWardData = useCallback(async () => {
+    if (!officerProfile) return;
+    setLoading(true);
+    setComplaintsError(null);
+
+    const wardObj = MUMBAI_WARDS.find((w) => w.id === officerProfile.ward);
+    const lat = wardObj?.lat || 19.076;
+    const lng = wardObj?.lng || 72.877;
+
+    // Bug A: load weather and complaints independently so one failure doesn't block the other
+    getWeatherAQI(lat, lng).then((res) => {
+      setWeather(res?.data || null);
+    }).catch(() => {
+      setWeather(null);
+    });
+
+    try {
+      const complaintsRes = await getComplaints({ ward: officerProfile.ward, limit: PAGE_LIMIT, page });
+      setComplaints(complaintsRes.data || []);
+      setTotalComplaints(complaintsRes.meta?.total || (complaintsRes.data || []).length);
+    } catch (e) {
+      console.error('Failed to load ward complaints:', e);
+      setComplaintsError('Failed to load complaints. Please try again.');
+    } finally {
+      setLoading(false);
+    }
+  }, [officerProfile, page]);
+
   useEffect(() => {
     let ignore = false;
-    async function loadData() {
-      if (!officerProfile) return;
-      try {
-        const wardObj = MUMBAI_WARDS.find((w) => w.id === officerProfile.ward);
-        const lat = wardObj?.lat || 19.076;
-        const lng = wardObj?.lng || 72.877;
-
-        const [weatherRes, complaintsRes] = await Promise.all([
-          getWeatherAQI(lat, lng),
-          getComplaints({ ward: officerProfile.ward }),
-        ]);
-        if (!ignore) {
-          setWeather(weatherRes.data || null);
-          setComplaints(complaintsRes.data || []);
-        }
-      } catch (e) {
-        console.error('Failed to load officer dashboard data:', e);
-      } finally {
-        if (!ignore) {
-          setLoading(false);
-        }
-      }
-    }
-    loadData();
-    return () => {
-      ignore = true;
-    };
-  }, [officerProfile]);
+    loadWardData().catch(() => { if (!ignore) setLoading(false); });
+    return () => { ignore = true; };
+  }, [loadWardData]);
 
   // Handle switching tabs
   const handleTabClick = (tabId) => {
@@ -735,6 +765,7 @@ export const OfficerDashboard = ({ activeTabOverride }) => {
       satisfactionRatio: officerProfile?.rating            || OFFICER_PERFORMANCE.satisfactionRatio,
       categoryBreakdown: dynamicCategoryBreakdown,
       weeklyResolved:    dynamicWeeklyResolved,
+      isCategoryEstimated: complaints.length === 0,
     };
   }, [officerProfile, complaints, dynamicCategoryBreakdown, dynamicWeeklyResolved]);
 
@@ -755,7 +786,7 @@ export const OfficerDashboard = ({ activeTabOverride }) => {
     { id: 'performance',   label: 'My Performance'                            },
     { id: 'map',           label: 'Ward Map'                                  },
     { id: 'profile',       label: 'My Profile'                                },
-    { id: 'notifications', label: 'Notifications', count: 3                   },
+    { id: 'notifications', label: 'Notifications', count: unreadCount         },
   ];
 
   const grad = DEPT_GRADIENT[officerProfile?.department] || 'from-brand-500 to-blue-600';
@@ -915,39 +946,71 @@ export const OfficerDashboard = ({ activeTabOverride }) => {
             </div>
           </div>
 
-          {/* Queue Table */}
-          {filteredComplaints.length === 0 ? (
+          {/* Queue Table — Bug A: show error vs empty vs results; Bug E: pagination */}
+          {complaintsError ? (
+            <div className="text-center py-16 space-y-3">
+              <AlertTriangle size={36} className="mx-auto text-red-400" />
+              <p className="font-bold text-neutral-800 text-sm">Failed to load complaints</p>
+              <p className="text-xs text-neutral-400">{complaintsError}</p>
+              <button
+                onClick={loadWardData}
+                className="mt-2 px-4 py-2 bg-brand-600 text-white text-xs font-semibold rounded-xl hover:bg-brand-700 transition-colors"
+              >
+                Retry
+              </button>
+            </div>
+          ) : filteredComplaints.length === 0 ? (
             <div className="text-center py-16 space-y-2">
               <CheckCircle2 size={36} className="mx-auto text-emerald-500" />
               <p className="font-bold text-neutral-800 text-sm">No complaints found</p>
               <p className="text-xs text-neutral-400">All grievances matching filters in {officerProfile?.name}'s ward are clear.</p>
             </div>
           ) : (
-            <div className="overflow-x-auto">
-              <table className="w-full text-left">
-                <thead className="bg-neutral-50/80 border-b border-neutral-200 text-neutral-500 text-[11px] font-semibold uppercase tracking-wider">
-                  <tr>
-                    <th className="px-4 py-3">ID</th>
-                    <th className="px-4 py-3">Grievance & Evidence Photo</th>
-                    <th className="px-4 py-3">Citizen</th>
-                    <th className="px-4 py-3">Severity</th>
-                    <th className="px-4 py-3">Status</th>
-                    <th className="px-4 py-3">Upvotes</th>
-                    <th className="px-4 py-3 text-right">Action</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-neutral-100 text-xs">
-                  {filteredComplaints.map((item) => (
-                    <ComplaintRow
-                      key={item.id}
-                      item={item}
-                      onView={setSelectedTicket}
-                      onInspect={setInspectionTicket}
-                    />
-                  ))}
-                </tbody>
-              </table>
-            </div>
+            <>
+              <div className="overflow-x-auto">
+                <table className="w-full text-left">
+                  <thead className="bg-neutral-50/80 border-b border-neutral-200 text-neutral-500 text-[11px] font-semibold uppercase tracking-wider">
+                    <tr>
+                      <th className="px-4 py-3">ID</th>
+                      <th className="px-4 py-3">Grievance & Evidence Photo</th>
+                      <th className="px-4 py-3">Citizen</th>
+                      <th className="px-4 py-3">Severity</th>
+                      <th className="px-4 py-3">Status</th>
+                      <th className="px-4 py-3">Upvotes</th>
+                      <th className="px-4 py-3 text-right">Action</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-neutral-100 text-xs">
+                    {filteredComplaints.map((item) => (
+                      <ComplaintRow
+                        key={item.id}
+                        item={item}
+                        onView={setSelectedTicket}
+                        onInspect={setInspectionTicket}
+                      />
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+              {/* Pagination — Bug E */}
+              {totalComplaints > PAGE_LIMIT && (
+                <div className="flex items-center justify-between px-4 py-3 border-t border-neutral-100 text-xs text-neutral-500">
+                  <span>Showing {Math.min(page * PAGE_LIMIT, totalComplaints)} of {totalComplaints} complaints</span>
+                  <div className="flex gap-2">
+                    <button
+                      onClick={() => setPage((p) => Math.max(1, p - 1))}
+                      disabled={page === 1}
+                      className="px-3 py-1.5 rounded-lg border border-neutral-200 font-semibold disabled:opacity-40 hover:bg-neutral-50"
+                    >← Prev</button>
+                    <button
+                      onClick={() => setPage((p) => p + 1)}
+                      disabled={page * PAGE_LIMIT >= totalComplaints}
+                      className="px-3 py-1.5 rounded-lg border border-neutral-200 font-semibold disabled:opacity-40 hover:bg-neutral-50"
+                    >Next →</button>
+                  </div>
+                </div>
+              )}
+            </>
           )}
         </Card>
       )}
@@ -969,7 +1032,7 @@ export const OfficerDashboard = ({ activeTabOverride }) => {
 
       {/* ── Tab: Notifications ── */}
       {activeTab === 'notifications' && (
-        <NotificationsTab officerName={officerProfile?.name || 'Officer'} wardComplaints={complaints} />
+        <NotificationsTab officerName={officerProfile?.name || 'Officer'} />
       )}
 
       {/* ── Complaint Detail Modal with Image Lightbox ── */}

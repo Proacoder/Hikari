@@ -8,10 +8,13 @@ import {
   deleteNotification as apiDeleteNotification,
 } from '../api/notifications.api';
 import { MOCK_MODE } from '../api/client';
+import { useAuth } from './AuthContext';
 
 const NotificationContext = createContext(null);
 
-export const NotificationProvider = ({ children, user }) => {
+export const NotificationProvider = ({ children, user: userProp }) => {
+  const auth = useAuth?.();
+  const user = userProp || auth?.user;
   const [notifications, setNotifications] = useState([]);
   const [loading, setLoading] = useState(false);
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);

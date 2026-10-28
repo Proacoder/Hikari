@@ -21,20 +21,20 @@ export const getCurrentSessionUser = () => {
 // POST /api/auth/login
 export const login = async ({ email, password }) => {
   if (MOCK_MODE) {
+    console.warn('[SECURITY NOTICE] Running in development mock mode (VITE_MOCK_MODE=true). No passwords stored or validated in bundle.');
     await mockDelay();
 
     // Standardize inputs
     const cleanEmail = sanitizeInput(email).toLowerCase();
-    const cleanPassword = password;
 
     // Basic validation
-    if (!cleanEmail || !cleanPassword) {
+    if (!cleanEmail || !password) {
       throw new Error('Email and password are required.');
     }
 
-    // ── Officer login: match by email + password ─────────────────────────
+    // ── Officer login: match by email in mock mode ─────────────────────────
     const matchedOfficer = MOCK_OFFICERS.find(
-      (o) => o.email.toLowerCase() === cleanEmail && o.password === cleanPassword
+      (o) => o.email.toLowerCase() === cleanEmail
     );
     if (matchedOfficer) {
       const user = {
@@ -50,22 +50,21 @@ export const login = async ({ email, password }) => {
     }
 
     // ── Admin login ───────────────────────────────────────────────────────
-    if (cleanEmail === MOCK_USERS.admin.email.toLowerCase() && cleanPassword === MOCK_USERS.admin.password) {
-      const user = MOCK_USERS.admin;
+    if (cleanEmail === MOCK_USERS.admin.email.toLowerCase()) {
+      const user = { ...MOCK_USERS.admin };
       const token = `mock-jwt-admin-token-${Date.now()}`;
       localStorage.setItem('kaiser_token', token);
       localStorage.setItem('kaiser_user', JSON.stringify(user));
       return successResponse({ user, token });
     }
 
-    // ── Citizen login: match by email + password (both demo accounts) ────
+    // ── Citizen login: match by email (both demo accounts) ────
     const allCitizens = DEMO_CITIZENS;
     const matchedCitizen = allCitizens.find(
-      (c) => c.email.toLowerCase() === cleanEmail && c.password === cleanPassword
+      (c) => c.email.toLowerCase() === cleanEmail
     );
     if (matchedCitizen) {
       const user = { ...matchedCitizen };
-      delete user.password; // Never send password in response
       const token = `mock-jwt-citizen-${matchedCitizen.id}-token-${Date.now()}`;
       localStorage.setItem('kaiser_token', token);
       localStorage.setItem('kaiser_citizen_id', matchedCitizen.id);
@@ -74,7 +73,7 @@ export const login = async ({ email, password }) => {
     }
 
     // ── No match: invalid credentials ────────────────────────────────────
-    throw new Error('Invalid email or password. Please check your credentials and try again.');
+    throw new Error('Invalid email or user not found in mock database.');
   }
 
   const res = await apiClient.post('/auth/login', { email, password });
