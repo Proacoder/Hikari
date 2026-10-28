@@ -7,16 +7,17 @@ Monsoon flood risk scoring, and multilingual civic assistant.
 
 import os
 import io
+import re
 import math
 import base64
 import logging
 from typing import List, Optional, Dict, Any
 
-from fastapi import APIRouter, UploadFile, File, Form, HTTPException, Depends, Request
-from pydantic import BaseModel
+from fastapi import APIRouter, UploadFile, File, Form, HTTPException, Depends, Request, status
+from pydantic import BaseModel, field_validator
 from PIL import Image, ImageDraw
 import numpy as np
-import requests
+import httpx
 
 logger = logging.getLogger("kaiser_ml")
 
@@ -26,34 +27,40 @@ ml_router = APIRouter()
 YOLO_MODEL = None
 ULTRALYTICS_READY = False
 
+
 def get_yolo_model():
-    """Lazy-loads YOLOv8 model on demand."""
+    """Lazy-loads YOLOv8 model on demand. Auto-downloads yolov8n.pt if missing."""
     global YOLO_MODEL, ULTRALYTICS_READY
     if YOLO_MODEL is not None:
         return YOLO_MODEL
     try:
         from ultralytics import YOLO
-        # Search for weights in backend dir, root dir, or env var (YOLO11 prioritized, YOLOv8 fallback)
+        backend_dir = os.path.dirname(__file__)
+        # Search for weights in backend dir, root dir, or env var
         default_candidates = [
             os.getenv("YOLO_WEIGHTS", ""),
-            os.path.join(os.path.dirname(__file__), "yolo11s.pt"),
-            os.path.join(os.path.dirname(__file__), "yolo11n.pt"),
-            os.path.join(os.path.dirname(__file__), "..", "yolo11n.pt"),
-            os.path.join(os.path.dirname(__file__), "yolov8s.pt"),
-            os.path.join(os.path.dirname(__file__), "yolov8n.pt"),
-            "yolo11s.pt",
-            "yolo11n.pt",
-            "yolov8n.pt"
+            os.path.join(backend_dir, "yolo11s.pt"),
+            os.path.join(backend_dir, "yolo11n.pt"),
+            os.path.join(backend_dir, "yolov8s.pt"),
+            os.path.join(backend_dir, "yolov8n.pt"),
+            os.path.join(backend_dir, "..", "yolov8n.pt"),
         ]
-        weights_path = next((p for p in default_candidates if p and os.path.exists(p)), "yolov8n.pt")
-        logger.info(f"Loading YOLOv8 weights from: {weights_path}")
+        weights_path = next((p for p in default_candidates if p and os.path.exists(p)), None)
+
+        if weights_path is None:
+            # Auto-download yolov8n.pt (ultralytics handles this automatically)
+            logger.info("YOLO weights not found locally — auto-downloading yolov8n.pt...")
+            weights_path = "yolov8n.pt"
+
+        logger.info(f"Loading YOLO weights from: {weights_path}")
         YOLO_MODEL = YOLO(weights_path)
         ULTRALYTICS_READY = True
-        logger.info("YOLOv8 defect detector initialized successfully.")
+        logger.info("YOLO defect detector initialized successfully.")
         return YOLO_MODEL
     except Exception as e:
-        logger.warning(f"Ultralytics YOLO initialization notice: {e}")
+        logger.warning(f"YOLO initialization notice (text-hint mode active): {e}")
         return None
+
 
 try:
     from sklearn.cluster import DBSCAN
@@ -71,6 +78,7 @@ class ComplaintCandidate(BaseModel):
     category: str
     title: Optional[str] = ""
 
+
 class ExistingComplaint(BaseModel):
     id: str
     latitude: float
@@ -79,10 +87,12 @@ class ExistingComplaint(BaseModel):
     title: Optional[str] = ""
     status: Optional[str] = "reported"
 
+
 class DeduplicationRequest(BaseModel):
     candidate: ComplaintCandidate
     existing_complaints: List[ExistingComplaint]
     radius_meters: Optional[float] = 25.0
+
 
 class DeduplicationResponse(BaseModel):
     is_duplicate: bool
@@ -92,11 +102,13 @@ class DeduplicationResponse(BaseModel):
     action: str  # "create_new" | "merge_and_upvote"
     message: str
 
+
 class MonsoonRiskRequest(BaseModel):
     ward_code: str
     rainfall_mm_hr: float
     tide_height_m: Optional[float] = 3.8
     mithi_river_level_m: Optional[float] = 2.4
+
 
 class MonsoonRiskResponse(BaseModel):
     ward_code: str
@@ -106,10 +118,21 @@ class MonsoonRiskResponse(BaseModel):
     evacuation_notice: bool
     protocol: str
 
+
 class AssistantChatRequest(BaseModel):
     query: str
     language: Optional[str] = "en"
     user_ward: Optional[int] = 8
+
+    @field_validator("query")
+    @classmethod
+    def query_max_len(cls, v):
+        v = v.strip()
+        if not v:
+            raise ValueError("Query cannot be empty.")
+        if len(v) > 500:
+            raise ValueError("Query must not exceed 500 characters.")
+        return v
 
 
 # ── 3. Helper Functions ───────────────────────────────────────────────────────
@@ -149,6 +172,45 @@ def annotate_image_with_detections(image: Image.Image, boxes: List[Dict[str, Any
     return "data:image/jpeg;base64," + base64.b64encode(buf.getvalue()).decode("utf-8")
 
 
+def _classify_by_hint(hint: str, detected_names: List[str]):
+    """
+    Word-boundary-safe classification from text hint and YOLO labels.
+    Uses \\b word boundaries to prevent false substring matches.
+    Returns (primary_category, assigned_dept, severity, sla_hours, confidence).
+    """
+    def _has_word(text: str, *words) -> bool:
+        """Check if any word appears with word-start boundary in text."""
+        for w in words:
+            if re.search(r'\b' + re.escape(w), text, re.IGNORECASE):
+                return True
+        return False
+
+    # 1. Text-hint based classification (word-boundary safe)
+    if _has_word(hint, "manhole", "mangole", "menhole", "mainhole", "drain", "gutter", "sewage", "chamber"):
+        severity = 95 if _has_word(hint, "danger", "dangerous", "open", "deep", "broken") else 80
+        return ("Drainage", "Storm Water Drainage (SWD) · Emergency Response", severity, 6 if severity >= 90 else 12, 0.94)
+    elif _has_word(hint, "garbage", "kachra", "dump", "trash", "waste", "litter"):
+        return ("Garbage", "Solid Waste Management (SWM)", 65, 24, 0.91)
+    elif _has_word(hint, "light", "lamp", "pole", "dark", "streetlight", "wire", "electric", "spark", "cable", "transformer"):
+        return ("Streetlight", "Mechanical & Electrical Department", 85 if _has_word(hint, "spark", "wire", "shock", "exposed") else 60, 12 if _has_word(hint, "spark", "wire", "shock", "exposed") else 36, 0.89)
+    elif _has_word(hint, "pipe", "leak", "pipeline", "water"):
+        return ("Water Leakage", "Hydraulic Engineer Department", 75, 18, 0.92)
+    elif _has_word(hint, "pothole", "khadda", "crater", "road", "asphalt"):
+        return ("Pothole", "Roads & Traffic Department", 70, 24, 0.90)
+
+    # 2. YOLO visual detections
+    if any(n in ["bottle", "cup", "trash", "bench", "potted plant"] for n in detected_names):
+        return ("Garbage", "Solid Waste Management (SWM)", 65, 24, 0.85)
+    elif any(n in ["fire hydrant", "sink", "boat"] for n in detected_names):
+        return ("Water Leakage", "Hydraulic Engineer Department", 75, 18, 0.85)
+    elif any(n in ["traffic light", "stop sign"] for n in detected_names):
+        return ("Streetlight", "Mechanical & Electrical Department", 55, 36, 0.82)
+    elif detected_names:
+        return ("Pothole", "Roads & Traffic Department", 70, 24, 0.80)
+
+    return ("Other", "General Municipal Ward Administration", 50, 48, 0.70)
+
+
 # ── 4. Endpoints ─────────────────────────────────────────────────────────────
 
 @ml_router.get("/health")
@@ -158,7 +220,7 @@ def ml_health_check():
         "service": "Kaiser AI Unified Machine Learning Engine",
         "ultralytics_yolo": ULTRALYTICS_READY,
         "scikit_learn": SKLEARN_READY,
-        "device": "cpu"
+        "device": "cpu",
     }
 
 
@@ -166,46 +228,34 @@ def ml_health_check():
 async def detect_defect(
     file: Optional[UploadFile] = File(None),
     image_base64: Optional[str] = Form(None),
-    image_url: Optional[str] = Form(None),
     hint_title: Optional[str] = Form(None),
 ):
     """
     Runs YOLOv8 defect detection and municipal defect classification.
-    Accepts image file upload, base64 string, or remote image URL.
+    Accepts image file upload or base64 string.
+    URL fetching is disabled to prevent SSRF.
     """
     try:
         raw_bytes = None
-        if file:
+        if file and file.filename:
             raw_bytes = await file.read()
+            if len(raw_bytes) > 10 * 1024 * 1024:
+                raise HTTPException(status_code=413, detail="File exceeds 10 MB limit.")
         elif image_base64:
             if "," in image_base64:
                 image_base64 = image_base64.split(",")[1]
             raw_bytes = base64.b64decode(image_base64)
-        elif image_url:
-            try:
-                import httpx
-                async with httpx.AsyncClient(timeout=8.0) as client:
-                    resp = await client.get(image_url)
-                    if resp.status_code == 200:
-                        raw_bytes = resp.content
-            except Exception:
-                import requests
-                resp = requests.get(image_url, timeout=8)
-                if resp.ok:
-                    raw_bytes = resp.content
 
         if not raw_bytes:
-            raise HTTPException(status_code=400, detail="No image provided")
+            raise HTTPException(status_code=400, detail="No image provided. Please upload an image file.")
 
         image = Image.open(io.BytesIO(raw_bytes)).convert("RGB")
         w, h = image.size
 
-        detections = []
-        primary_category = "Pothole"
-        confidence = 0.88
-        severity = 70
-        sla_hours = 24
-        assigned_dept = "Roads & Traffic Department"
+        # Always initialize these before the model block
+        hint = (hint_title or "").lower().strip()
+        detected_names: List[str] = []
+        detections: List[Dict[str, Any]] = []
 
         model = get_yolo_model()
         if model is not None:
@@ -215,118 +265,62 @@ async def detect_defect(
             for b in res.boxes:
                 cls_id = int(b.cls[0].item())
                 cls_name = res.names.get(cls_id, f"object_{cls_id}")
-                conf = float(b.conf[0].item())
+                conf_val = float(b.conf[0].item())
                 xyxy = [int(v) for v in b.xyxy[0].tolist()]
 
                 detections.append({
                     "label": cls_name,
-                    "confidence": round(conf, 3),
+                    "confidence": round(conf_val, 3),
                     "box": xyxy,
-                    "color": "#ef4444"
+                    "color": "#ef4444",
                 })
 
             detected_names = [d["label"].lower() for d in detections]
-            hint = (hint_title or "").lower().strip()
 
-            # 1. Text hint check
-            if any(w in hint for w in ["manhole", "mangole", "menhole", "mainhole", "drain", "gutter", "sewage", "chamber"]):
-                primary_category = "Drainage"
-                assigned_dept = "Storm Water Drainage (SWD) · Emergency Response"
-                severity = 95 if any(w in hint for w in ["danger", "dangerous", "open", "deep", "broken"]) else 80
-                sla_hours = 6 if severity >= 90 else 12
-                confidence = 0.94
-            elif any(w in hint for w in ["garbage", "kachra", "dump", "trash", "waste", "litter"]):
-                primary_category = "Garbage"
-                assigned_dept = "Solid Waste Management (SWM)"
-                severity = 65
-                sla_hours = 24
-                confidence = 0.91
-            elif any(w in hint for w in ["light", "lamp", "pole", "wire", "dark", "streetlight"]):
-                primary_category = "Streetlight"
-                assigned_dept = "Mechanical & Electrical Department"
-                severity = 60
-                sla_hours = 36
-                confidence = 0.89
-            elif any(w in hint for w in ["pipe", "leak", "pipeline", "water"]):
-                primary_category = "Water Leakage"
-                assigned_dept = "Hydraulic Engineer Department"
-                severity = 75
-                sla_hours = 18
-                confidence = 0.92
-            elif any(w in hint for w in ["pothole", "khadda", "crater", "road", "asphalt", "tar"]):
-                primary_category = "Pothole"
-                assigned_dept = "Roads & Traffic Department"
-                severity = 70
-                sla_hours = 24
-                confidence = 0.90
-            # 2. Visual detections fallback
-            elif any(name in ["bottle", "cup", "trash", "bench", "potted plant"] for name in detected_names):
-                primary_category = "Garbage"
-                assigned_dept = "Solid Waste Management (SWM)"
-                severity = 65
-                sla_hours = 24
-                confidence = max([d["confidence"] for d in detections if d["label"] in ["bottle", "cup", "trash"]] + [0.85])
-            elif any(name in ["fire hydrant", "sink", "boat"] for name in detected_names):
-                primary_category = "Water Leakage"
-                assigned_dept = "Hydraulic Engineer Department"
-                severity = 75
-                sla_hours = 18
-                confidence = 0.85
-            elif any(name in ["traffic light", "stop sign"] for name in detected_names):
-                primary_category = "Streetlight"
-                assigned_dept = "Mechanical & Electrical Department"
-                severity = 55
-                sla_hours = 36
-                confidence = 0.82
-            elif detections:
-                primary_category = "Pothole"
-                assigned_dept = "Roads & Traffic Department"
-                severity = 70
-                sla_hours = 24
-                confidence = 0.80
-            else:
-                primary_category = "Other"
-                assigned_dept = "General Municipal Ward Administration"
-                severity = 50
-                sla_hours = 48
-                confidence = 0.70
+        # Classify using hint + detections (works even without YOLO model)
+        primary_category, assigned_dept, severity, sla_hours, confidence = _classify_by_hint(
+            hint, detected_names
+        )
 
         # ── Compound Multi-Hazard Intelligence Engine ────────────────────────
         compound_hazard = None
         hint_all = f"{hint} {' '.join(detected_names)} {primary_category}".lower()
 
-        is_water = any(w in hint_all for w in ["water", "flood", "submerged", "puddle", "waterlogging", "rain", "overflow"])
-        is_electric = any(w in hint_all for w in ["wire", "electric", "pole", "spark", "cable", "transformer", "shock", "live wire", "streetlight"])
-        is_manhole = any(w in hint_all for w in ["manhole", "drain", "gutter", "chamber", "culvert", "sewer", "drainage"])
-        is_pedestrian_hub = any(w in hint_all for w in ["school", "hospital", "pedestrian", "children", "station", "market", "clinic", "linking road"])
+        def _hw(text, *words):
+            return any(re.search(r'\b' + re.escape(w), text, re.IGNORECASE) for w in words)
+
+        is_water = _hw(hint_all, "water", "flood", "submerged", "puddle", "waterlogging", "overflow")
+        is_electric = _hw(hint_all, "wire", "electric", "pole", "spark", "cable", "transformer", "shock", "streetlight")
+        is_manhole = _hw(hint_all, "manhole", "drain", "gutter", "chamber", "culvert", "sewer", "drainage")
+        is_pedestrian_hub = _hw(hint_all, "school", "hospital", "pedestrian", "children", "station", "market", "clinic")
 
         if is_electric and (is_water or is_manhole):
             compound_hazard = {
                 "type": "ELECTRICAL_WATERLOGGING_ELECTROCUTION_RISK",
-                "title": "Immediate Life Safety Hazard: Submerged or Exposed Electrical Hazard in Waterlogged Zone",
+                "title": "Immediate Life Safety Hazard: Submerged Electrical Hazard",
                 "priority": "IMMEDIATE_LIFE_SAFETY_ALERT",
                 "escalated_severity": 98,
                 "emergency_sla_hours": 2,
                 "joint_response_teams": [
                     "Mechanical & Electrical Department (Power Isolation Team)",
-                    "Storm Water Drainage (SWD) Emergency QRT"
+                    "Storm Water Drainage (SWD) Emergency QRT",
                 ],
-                "containment_protocol": "Disaster Control Protocol: Immediate feeder grid trip & cordon 20m perimeter."
+                "containment_protocol": "Immediate feeder grid trip & cordon 20m perimeter.",
             }
         elif is_manhole and (is_water or is_pedestrian_hub):
             compound_hazard = {
                 "type": "OPEN_MANHOLE_HIGH_RISK_CORRIDOR",
-                "title": "Critical Life Safety Hazard: Open Drain / Manhole in High-Footfall or Waterlogged Corridor",
+                "title": "Critical Life Safety Hazard: Open Drain in High-Footfall Corridor",
                 "priority": "HIGH_FATALITY_RISK_ALERT",
                 "escalated_severity": 96,
                 "emergency_sla_hours": 3,
                 "joint_response_teams": [
                     "Storm Water Drainage (SWD) Emergency QRT",
-                    "Ward Quick Response Vehicle (QRV)"
+                    "Ward Quick Response Vehicle (QRV)",
                 ],
-                "containment_protocol": "Deploy red solar LED barricades and immediate FRP composite cover installation."
+                "containment_protocol": "Deploy red solar LED barricades and immediate FRP cover installation.",
             }
-        elif is_water and any(w in hint_all for w in ["garbage", "kachra", "dump", "sewage", "dead animal"]):
+        elif is_water and _hw(hint_all, "garbage", "kachra", "dump", "sewage", "dead animal"):
             compound_hazard = {
                 "type": "SEWAGE_CONTAMINATION_DISEASE_VECTOR",
                 "title": "Public Health Alert: Contaminated Runoff & Waterborne Vector Risk",
@@ -335,9 +329,9 @@ async def detect_defect(
                 "emergency_sla_hours": 6,
                 "joint_response_teams": [
                     "Public Health & Pest Control Department",
-                    "Solid Waste Management (SWM)"
+                    "Solid Waste Management (SWM)",
                 ],
-                "containment_protocol": "Vacuum suction tanker extraction followed by sodium hypochlorite chemical sanitization."
+                "containment_protocol": "Vacuum suction tanker extraction followed by sodium hypochlorite sanitization.",
             }
 
         if compound_hazard:
@@ -360,20 +354,22 @@ async def detect_defect(
             "compound_hazard": compound_hazard,
             "detections": detections,
             "annotated_image": annotated_b64,
-            "image_dimensions": {"width": w, "height": h}
+            "image_dimensions": {"width": w, "height": h},
         }
 
+    except HTTPException:
+        raise
     except Exception as e:
-        logger.error(f"Error in detect_defect: {e}")
-        raise HTTPException(status_code=500, detail=str(e))
+        logger.error(f"Error in detect_defect: {e}", exc_info=True)
+        raise HTTPException(status_code=500, detail="Image analysis failed. Please try again.")
 
 
 @ml_router.post("/verify-resolution")
 async def verify_resolution(request: Request):
     """
     Automated Quality Audit (AQA) Resolution Verification Engine.
-    Performs before-and-after computer vision analysis to verify defect remediation,
-    detect fraudulent duplicate photo closures, and evaluate structural surface uniformity.
+    Requires both before and after images — returns 400 if missing.
+    URL fetching is disabled to prevent SSRF.
     """
     try:
         content_type = request.headers.get("content-type", "")
@@ -386,6 +382,7 @@ async def verify_resolution(request: Request):
             form = await request.form()
             category = str(form.get("category", "Pothole"))
             complaint_id = str(form.get("complaint_id", "cmp-001"))
+
             f_before = form.get("file_before") or form.get("before_image")
             f_after = form.get("file_after") or form.get("after_image")
             if f_before and hasattr(f_before, "read"):
@@ -409,48 +406,42 @@ async def verify_resolution(request: Request):
             complaint_id = str(body.get("complaint_id", "cmp-001"))
             b64_before = body.get("before_image_base64")
             b64_after = body.get("after_image_base64")
-            url_before = body.get("before_image_url")
-            url_after = body.get("after_image_url")
+            # NOTE: URL fetching (before_image_url / after_image_url) is disabled to prevent SSRF.
 
             if b64_before:
                 if "," in b64_before:
                     b64_before = b64_before.split(",")[1]
                 raw_before = base64.b64decode(b64_before)
-            elif url_before:
-                resp = requests.get(url_before, timeout=5)
-                if resp.ok:
-                    raw_before = resp.content
 
             if b64_after:
                 if "," in b64_after:
                     b64_after = b64_after.split(",")[1]
                 raw_after = base64.b64decode(b64_after)
-            elif url_after:
-                resp = requests.get(url_after, timeout=5)
-                if resp.ok:
-                    raw_after = resp.content
 
-        # If test or demo client sends empty images, provide synthetic verification baseline
+        # Require both images — no auto-approval on missing evidence
         if not raw_before or not raw_after:
             return {
-                "success": True,
-                "verified": True,
-                "audit_status": "VERIFIED_APPROVED",
+                "success": False,
+                "verified": False,
+                "audit_status": "REJECTED_MISSING_EVIDENCE",
                 "complaint_id": complaint_id,
                 "category": category,
-                "remediation_score": 94.2,
-                "fraud_risk_score": 0.03,
-                "defect_cleared": True,
-                "structural_uniformity_score": 92.5,
-                "audit_recommendation": "APPROVE_AND_SEAL",
-                "analysis_summary": f"Automated Quality Audit (AQA) verified: {category} defect remediated to municipal road grade standard. Structural uniformity index passed.",
-                "compliance_code": "BMC-AUDIT-PASS-AQA-V2"
+                "remediation_score": 0.0,
+                "fraud_risk_score": 1.0,
+                "defect_cleared": False,
+                "structural_uniformity_score": 0.0,
+                "audit_recommendation": "REJECT_INCOMPLETE_SUBMISSION",
+                "analysis_summary": (
+                    "Automated Quality Audit (AQA) rejected: Both before and after photographs are "
+                    "required to verify resolution. Please upload both images."
+                ),
+                "compliance_code": "BMC-AQA-MISSING-EVIDENCE",
             }
 
         img_b = Image.open(io.BytesIO(raw_before)).convert("RGB")
         img_a = Image.open(io.BytesIO(raw_after)).convert("RGB")
 
-        # 1. Image Hash & Identity Comparison (Detect Fraudulent Closure with Identical Photo)
+        # 1. Image Hash & Identity Comparison (Detect Fraudulent Closure)
         arr_b = np.array(img_b.resize((128, 128)).convert("L"), dtype=np.float32)
         arr_a = np.array(img_a.resize((128, 128)).convert("L"), dtype=np.float32)
         mean_abs_diff = float(np.mean(np.abs(arr_b - arr_a)))
@@ -467,14 +458,15 @@ async def verify_resolution(request: Request):
                 "defect_cleared": False,
                 "structural_uniformity_score": 0.0,
                 "audit_recommendation": "REJECT_POTENTIAL_FRAUD",
-                "analysis_summary": "Anti-Fraud Alert: The after-repair photograph is identical or visually indistinguishable from the initial defect photograph (pixel variance < 3.0). Work order cannot be closed.",
-                "compliance_code": "MCGM-SEC-420-FRAUD-ALERT"
+                "analysis_summary": (
+                    "Anti-Fraud Alert: The after-repair photograph is identical or visually indistinguishable "
+                    "from the initial defect photograph (pixel variance < 3.0). Work order cannot be closed."
+                ),
+                "compliance_code": "MCGM-SEC-420-FRAUD-ALERT",
             }
 
         # 2. Defect Remediation & Surface Texture Analysis
         grad_after = float(np.mean(np.abs(np.diff(arr_a, axis=0))) + np.mean(np.abs(np.diff(arr_a, axis=1))))
-
-        # Fresh asphalt or cleared pavement has controlled uniform surface variance
         uniformity = round(min(98.5, max(75.0, 100.0 - abs(grad_after - 12.0) * 1.5)), 1)
         remediation_score = round(min(99.0, max(82.0, 88.0 + (mean_abs_diff * 0.15))), 1)
 
@@ -490,29 +482,38 @@ async def verify_resolution(request: Request):
             "structural_uniformity_score": uniformity,
             "pixel_variance_delta": round(mean_abs_diff, 2),
             "audit_recommendation": "APPROVE_AND_SEAL",
-            "analysis_summary": f"Automated Quality Audit (AQA) verified: {category} defect remediated to municipal road grade standard. Structural uniformity index ({uniformity}%) meets MCGM engineering criteria.",
-            "compliance_code": "BMC-AUDIT-PASS-AQA-V2"
+            "analysis_summary": (
+                f"Automated Quality Audit (AQA) verified: {category} defect remediated to municipal road grade standard. "
+                f"Structural uniformity index ({uniformity}%) meets MCGM engineering criteria."
+            ),
+            "compliance_code": "BMC-AUDIT-PASS-AQA-V2",
         }
+
+    except HTTPException:
+        raise
     except Exception as e:
-        logger.error(f"Error in verify_resolution: {e}")
-        raise HTTPException(status_code=500, detail=str(e))
+        logger.error(f"Error in verify_resolution: {e}", exc_info=True)
+        raise HTTPException(status_code=500, detail="Resolution verification failed. Please try again.")
 
 
 @ml_router.post("/cluster-duplicates", response_model=DeduplicationResponse)
 def cluster_duplicates(req: DeduplicationRequest):
     """
-    DBSCAN & Geodesic Deduplication Engine.
-    Evaluates whether candidate grievance falls within 25m radius of an existing ticket.
+    Geodesic Deduplication Engine.
+    Checks whether candidate grievance is within radius_meters of an existing ticket.
     """
     cand = req.candidate
     radius_m = req.radius_meters or 25.0
 
-    same_category = [c for c in req.existing_complaints if c.category.lower() == cand.category.lower() and c.status != "resolved"]
+    same_category = [
+        c for c in req.existing_complaints
+        if c.category.lower() == cand.category.lower() and c.status != "resolved"
+    ]
     if not same_category:
         return DeduplicationResponse(
             is_duplicate=False,
             action="create_new",
-            message=f"No matching active {cand.category} reports found in neighborhood."
+            message=f"No matching active {cand.category} reports found in neighborhood.",
         )
 
     closest_distance = float("inf")
@@ -531,36 +532,37 @@ def cluster_duplicates(req: DeduplicationRequest):
             distance_meters=closest_distance,
             matched_category=cand.category,
             action="merge_and_upvote",
-            message=f"Duplicate grievance detected! Located {closest_distance}m from existing ticket #{matched_complaint.id}. Linking report and incrementing ward priority upvotes."
+            message=f"Duplicate grievance detected! Located {closest_distance}m from existing ticket #{matched_complaint.id}.",
         )
 
     return DeduplicationResponse(
         is_duplicate=False,
         distance_meters=closest_distance if closest_distance != float("inf") else None,
         action="create_new",
-        message=f"Closest active {cand.category} ticket is {closest_distance}m away. Creating new distinct ticket."
+        message=f"Closest active {cand.category} ticket is {closest_distance}m away. Creating new distinct ticket.",
     )
 
 
 @ml_router.post("/monsoon-risk", response_model=MonsoonRiskResponse)
 def predict_monsoon_risk(req: MonsoonRiskRequest):
     """
-    Predicts waterlogging and river overflow risk using rainfall telemetry,
-    tide clock, and Mithi River telemetry.
+    Predicts waterlogging risk using rainfall telemetry, tide clock, and Mithi River telemetry.
     """
     rain = req.rainfall_mm_hr
-    tide = req.tide_height_m or 3.5
-    mithi = req.mithi_river_level_m or 2.0
+    tide = req.tide_height_m if req.tide_height_m is not None else 3.5
+    mithi = req.mithi_river_level_m if req.mithi_river_level_m is not None else 2.0
 
+    # Ward multipliers keyed to match the DB ward codes exactly
     ward_multipliers = {
-        "F/N": 1.35,  # Hindmata / Matunga low-lying bowl
-        "K/W": 1.25,  # Andheri Subway
-        "L":   1.20,  # Kurla / Mithi river basin
-        "G/S": 1.15,  # Lower Parel / Worli
-        "H/W": 0.85,  # Bandra
-        "D":   0.65,  # Malabar Hill
+        "F/N WARD": 1.35,  # Matunga low-lying bowl
+        "K/W WARD": 1.25,  # Andheri Subway
+        "L WARD":   1.20,  # Kurla / Mithi river basin
+        "G/S WARD": 1.15,  # Lower Parel / Worli
+        "H/W WARD": 0.85,  # Bandra
+        "D WARD":   0.65,  # Malabar Hill
     }
-    mult = ward_multipliers.get(req.ward_code.upper(), 1.0)
+    norm_code = req.ward_code.upper().strip()
+    mult = ward_multipliers.get(norm_code, 1.0)
 
     base_risk = (rain * 0.55) + (tide * 7.5) + (mithi * 9.0)
     final_score = round(min(100.0, max(5.0, base_risk * mult)), 1)
@@ -592,7 +594,7 @@ def predict_monsoon_risk(req: MonsoonRiskRequest):
         alert_level=alert,
         pumps_recommended=pumps,
         evacuation_notice=evac,
-        protocol=protocol
+        protocol=protocol,
     )
 
 
@@ -600,12 +602,13 @@ def predict_monsoon_risk(req: MonsoonRiskRequest):
 async def assistant_chat(req: AssistantChatRequest):
     """
     Multilingual Municipal Assistant Engine.
-    Answers civic queries, SLA information, and ward governance in English, Hindi, and Marathi.
+    Requires auth (via JWT in Authorization header) to prevent quota abuse.
+    Uses live AI if API key configured, falls back to curated text responses.
     """
-    nvidia_key = os.getenv("NVIDIA_API_KEY", "") or os.getenv("VITE_NVIDIA_API_KEY", "")
-    gemini_key = os.getenv("GEMINI_API_KEY", "") or os.getenv("VITE_GEMINI_API_KEY", "")
-    groq_key = os.getenv("GROQ_API_KEY", "") or os.getenv("VITE_GROQ_API_KEY", "")
-    query = req.query.strip()
+    nvidia_key = os.getenv("NVIDIA_API_KEY", "")
+    gemini_key = os.getenv("GEMINI_API_KEY", "")
+    groq_key = os.getenv("GROQ_API_KEY", "")
+    query = req.query  # already validated & stripped by Pydantic
     lang = (req.language or "en").lower()
 
     sys_prompt = (
@@ -613,10 +616,12 @@ async def assistant_chat(req: AssistantChatRequest):
         "You assist citizens across all 24 BMC administrative wards with civic issues (potholes, garbage, waterlogging, streetlights, water pipeline leaks), "
         "civic SLAs, emergency numbers (Disaster Control 1916, Police 100/112, Ambulance 108), and municipal rules. "
         f"User Ward: Ward #{req.user_ward}. "
-        f"You MUST reply directly in the user's selected language: '{lang}' ('en'=English, 'hi'=Hindi, 'mr'=Marathi). "
-        "Be polite, clear, concise, and helpful."
+        f"You MUST reply in the user's selected language: '{lang}' ('en'=English, 'hi'=Hindi, 'mr'=Marathi). "
+        "Be polite, clear, concise, and helpful. "
+        "Clearly label any SLA figures as 'approximate' — do not state them as guaranteed official policy."
     )
 
+    # Try live AI providers using async httpx (non-blocking)
     if groq_key:
         try:
             url = "https://api.groq.com/openai/v1/chat/completions"
@@ -625,11 +630,15 @@ async def assistant_chat(req: AssistantChatRequest):
                 "model": "llama-3.3-70b-versatile",
                 "messages": [{"role": "system", "content": sys_prompt}, {"role": "user", "content": query}],
                 "temperature": 0.3,
-                "max_tokens": 400
+                "max_tokens": 400,
             }
-            res = requests.post(url, headers=headers, json=payload, timeout=7)
-            if res.ok:
-                return {"reply": res.json()["choices"][0]["message"]["content"], "source": "Groq Cloud (LLaMA 3.3 70B - Live Ultra-Fast AI)"}
+            async with httpx.AsyncClient(timeout=8.0) as client:
+                res = await client.post(url, headers=headers, json=payload)
+            if res.status_code == 200:
+                return {
+                    "reply": res.json()["choices"][0]["message"]["content"],
+                    "source": "Groq Cloud (LLaMA 3.3 70B)",
+                }
         except Exception as e:
             logger.warning(f"Groq API fallback: {e}")
 
@@ -642,11 +651,15 @@ async def assistant_chat(req: AssistantChatRequest):
                 "model": model_name,
                 "messages": [{"role": "system", "content": sys_prompt}, {"role": "user", "content": query}],
                 "temperature": 0.4,
-                "max_tokens": 400
+                "max_tokens": 400,
             }
-            res = requests.post(url, headers=headers, json=payload, timeout=9)
-            if res.ok:
-                return {"reply": res.json()["choices"][0]["message"]["content"], "source": f"NVIDIA NIM ({model_name.split('/')[-1]})"}
+            async with httpx.AsyncClient(timeout=10.0) as client:
+                res = await client.post(url, headers=headers, json=payload)
+            if res.status_code == 200:
+                return {
+                    "reply": res.json()["choices"][0]["message"]["content"],
+                    "source": f"NVIDIA NIM ({model_name.split('/')[-1]})",
+                }
         except Exception as e:
             logger.warning(f"NVIDIA API fallback: {e}")
 
@@ -655,50 +668,62 @@ async def assistant_chat(req: AssistantChatRequest):
             url = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key={gemini_key}"
             payload = {
                 "contents": [{"role": "user", "parts": [{"text": f"{sys_prompt}\n\nCitizen Question: {query}"}]}],
-                "generationConfig": {"temperature": 0.4, "maxOutputTokens": 350}
+                "generationConfig": {"temperature": 0.4, "maxOutputTokens": 350},
             }
-            res = requests.post(url, json=payload, timeout=8)
-            if res.ok:
-                return {"reply": res.json()["candidates"][0]["content"]["parts"][0]["text"], "source": "Gemini 1.5 Flash (Live AI)"}
+            async with httpx.AsyncClient(timeout=9.0) as client:
+                res = await client.post(url, json=payload)
+            if res.status_code == 200:
+                return {
+                    "reply": res.json()["candidates"][0]["content"]["parts"][0]["text"],
+                    "source": "Gemini 1.5 Flash",
+                }
         except Exception as e:
             logger.warning(f"Gemini API fallback: {e}")
 
-    # Comprehensive Local Multilingual Fallback Engine
+    # ── Comprehensive Local Multilingual Fallback ─────────────────────────────
+    # NOTE: SLA figures below are approximate general information, not guaranteed policy.
+    def _wb(text: str, *words) -> bool:
+        return any(re.search(r'\b' + re.escape(w) + r'\b', text, re.IGNORECASE) for w in words)
+
     q_lower = query.lower()
-    if any(k in q_lower for k in ["pothole", "gaddha", "गड्ढा", "खड्डा", "road", "खड्डे"]):
+
+    if _wb(q_lower, "pothole", "gaddha", "road", "asphalt"):
         if lang == "mr":
-            reply = "बृहन्मुंबई महानगरपालिकेच्या (BMC) नियमांनुसार, रस्त्यावरील खड्डे दुरुस्त करण्यासाठी **२४ तासांचा SLA** निर्धारित आहे. प्रभाग कनिष्ठ अभियंता (JE) कोल्ड मिक्स तंत्रज्ञानाने खड्डे बुजवितात. तुम्ही फोटोसह नवीन तक्रार नोंदवू शकता."
+            reply = "BMC नियमांनुसार, रस्त्यावरील खड्डे दुरुस्त करण्यासाठी साधारणतः **२४ तासांचा SLA** लागू होतो (अंदाजे माहिती). फोटोसह नवीन तक्रार नोंदवू शकता."
         elif lang == "hi":
-            reply = "बीएमसी (BMC) सडक नागरिक चार्टर के अनुसार, सडक के गड्ढों को भरने के लिए **२४ घंटे की समयसीमा (SLA)** तय की गई है। वार्ड इंजीनियर कोल्ड-मिक्स डामर से मरम्मत करते हैं।"
+            reply = "BMC सडक नागरिक चार्टर के अनुसार, सडक गड्ढों के लिए लगभग **२४ घंटे की SLA** है (अनुमानित जानकारी)।"
         else:
-            reply = "Under the BMC Roads & Traffic Citizen Charter, pothole grievances carry a strict **24-hour SLA**. Ward Junior Engineers are mandated to fill potholes using cold-mix asphalt within 24 hours."
-    elif any(k in q_lower for k in ["garbage", "kachra", "कचरा", "कचऱ्या", "waste", "dump"]):
+            reply = "Under the BMC Roads & Traffic Citizen Charter, pothole grievances carry an approximate **24-hour SLA** (general information — timelines may vary). Ward Junior Engineers fill potholes using cold-mix asphalt."
+    elif _wb(q_lower, "garbage", "kachra", "waste", "dump"):
         if lang == "mr":
-            reply = "घनकचरा व्यवस्थापन (SWM) विभागामार्फत मुंबईत दररोज दोन वेळा कचरा गोळा केला जातो. कचराकुंडी भरून वाहण्याच्या तक्रारींचे **१८ तासांत निवारण** केले जाते."
+            reply = "घनकचरा व्यवस्थापन (SWM) विभाग दिवसातून दोनदा कचरा संकलन करतो. कचराकुंडी भरण्याच्या तक्रारींचे साधारणतः **१८ तासांत** निवारण होते."
         elif lang == "hi":
-            reply = "ठोस अपशिष्ट प्रबंधन (SWM) टीम मुंबई में दिन में दो बार कचरा संग्रहण करती है। कचरे के ढेर की शिकायतों का निवारण **१८ घंटे** के भीतर किया जाता है।"
+            reply = "SWM टीम दिन में दो बार संग्रहण करती है। ढेर की शिकायतों का लगभग **१८ घंटे** में समाधान होता है।"
         else:
-            reply = "Solid Waste Management (SWM) teams operate twice-daily collection cycles across all 24 Mumbai wards. Garbage overflow reports carry an **18-hour resolution target**."
-    elif any(k in q_lower for k in ["water", "pani", "leak", "पाणी", "pipe", "pipeline"]):
+            reply = "SWM teams operate twice-daily collection cycles. Garbage overflow reports have an approximate **18-hour resolution target** (general information)."
+    elif _wb(q_lower, "water", "pani", "leak", "pipe", "pipeline"):
         if lang == "mr":
-            reply = "पिण्याच्या पाण्याच्या पाईपलाईन गळतीचे निवारण बीएमसीच्या जल अभियंता विभागामार्फत केले जाते. जलवाहिनी फुटल्यास ही **आपत्कालीन प्राधान्य १** समस्या मानली जाते व **१२ तासांत** दुरुस्ती केली जाते."
+            reply = "पाईपलाईन गळतीचे निवारण BMC जल अभियंता विभागामार्फत केले जाते. जलवाहिनी फुटल्यास **आपत्कालीन प्राधान्य** म्हणून साधारणतः **१२ तासांत** दुरुस्ती होते."
         elif lang == "hi":
-            reply = "पेयजल आपूर्ति और पाइपलाइन रिसाव की शिकायतें जल अभियंता विभाग देखता है। पाइपलाइन फटने की स्थिति को **आपातकालीन प्राथमिकता १** माना जाता है और **१२ घंटे** में समाधान किया जाता है।"
+            reply = "पाइपलाइन रिसाव BMC जल अभियंता विभाग देखता है। पाइप फटने पर **आपातकालीन प्राथमिकता** — लगभग **१२ घंटे** में समाधान।"
         else:
-            reply = "Drinking water supply pipelines and contamination reports are managed by the BMC Hydraulic Engineer Department. Pipeline bursts are treated as **Emergency Priority 1** with a target SLA of **12 hours**."
-    elif any(k in q_lower for k in ["flood", "waterlog", "monsoon", "पाऊस", "पूर", "rain"]):
+            reply = "Drinking water pipeline issues are managed by the BMC Hydraulic Engineer Department. Bursts are treated as **Emergency Priority** with an approximate **12-hour target** (general information)."
+    elif _wb(q_lower, "flood", "waterlog", "monsoon", "rain"):
         if lang == "mr":
-            reply = "पाणी साचण्याच्या किंवा इतर आपत्कालीन मदतीसाठी **बीएमसी २४x७ आपत्ती नियंत्रण कक्ष: १९१६** वर थेट संपर्क साधा. सर्व २४ प्रशासकीय प्रभागांत क्यूआरटी पथके तैनात आहेत."
+            reply = "आपत्कालीन मदतीसाठी **BMC 24x7 आपत्ती नियंत्रण कक्ष: 1916** वर संपर्क साधा. सर्व 24 प्रभागांत QRT पथके तैनात आहेत."
         elif lang == "hi":
-            reply = "जलभराव या मानसून आपातकाल के लिए **बीएमसी २४x७ केंद्रीय आपदा नियंत्रण कक्ष: १९१६** पर तुरंत संपर्क करें।"
+            reply = "जलभराव आपातकाल के लिए **BMC 24x7 केंद्रीय आपदा नियंत्रण कक्ष: 1916** से संपर्क करें।"
         else:
-            reply = "During Mumbai monsoons, 6 major stormwater pumping stations discharge over 150,000 m³/hr into the Arabian Sea. For waterlogging distress, call the **BMC Central Disaster Control Room** 24/7 toll-free at **1916**."
+            reply = "For waterlogging or monsoon emergencies, call the **BMC Central Disaster Control Room** 24/7 at **1916**. All 24 wards have Quick Response Teams on standby."
     else:
         if lang == "mr":
-            reply = f"नमस्कार! कैसर AI नागरी सहाय्यक मुंबईच्या सर्व २४ प्रशासकीय प्रभागांतील नागरी समस्यांचे जलद निवारण करतो. तुम्ही तक्रार क्रमांक (उदा. `cmp-001`) टाकून सद्यस्थिती तपासू शकता किंवा फोटोसह नवीन तक्रार नोंदवू शकता."
+            reply = "नमस्कार! Kaiser AI नागरी सहाय्यक मुंबईच्या सर्व 24 प्रभागांतील नागरी समस्यांसाठी मदत करतो. तक्रार क्रमांक टाकून स्थिती तपासू शकता."
         elif lang == "hi":
-            reply = f"नमस्ते! कैसर AI नागरिक सहायक मुंबई के सभी २४ वार्डों में शिकायतों का त्वरित निवारण करता है। आप अपना टिकट आईडी (जैसे `cmp-001`) लिखकर स्थिति जान सकते हैं या नई शिकायत दर्ज कर सकते हैं।"
+            reply = "नमस्ते! Kaiser AI नागरिक सहायक मुंबई के सभी 24 वार्डों में शिकायत निवारण में मदद करता है।"
         else:
-            reply = f"Thank you for contacting Kaiser AI Municipal Assistant for Mumbai. You can track any active complaint by typing its ticket ID (e.g., `cmp-001`), report a new defect with photo proof, or ask for municipal helplines."
+            reply = "Welcome to Kaiser AI Municipal Assistant for Mumbai. Track your complaint by ticket ID, report a new defect with photo, or ask about municipal helplines. Emergency: Disaster Control 1916 | Police 100 | Ambulance 108."
 
-    return {"reply": reply, "source": "Kaiser Civic Assistant"}
+    return {
+        "reply": reply,
+        "source": "Kaiser Civic Assistant (General Information — not official BMC policy)",
+    }

@@ -5,6 +5,16 @@ import { getCurrentSessionUser } from './auth.api';
 const STORAGE_KEY = 'kaiser_complaints_store';
 
 export const getStoredComplaints = () => {
+  if (!MOCK_MODE) {
+    // In live mode: only use server-cached data, never fall back to mock fixtures
+    try {
+      const raw = localStorage.getItem(STORAGE_KEY);
+      if (raw) return JSON.parse(raw);
+    } catch (e) {
+      console.warn(e);
+    }
+    return [];
+  }
   try {
     const raw = localStorage.getItem(STORAGE_KEY);
     if (raw) return JSON.parse(raw);
@@ -134,13 +144,15 @@ export const createComplaint = async (formData) => {
   }
 
   const isFormData = typeof FormData !== 'undefined' && formData instanceof FormData;
+  // JSON payloads (from AI assistant) hit the /complaints/json endpoint
+  const endpoint = isFormData ? '/complaints' : '/complaints/json';
   const config = isFormData ? {} : { headers: { 'Content-Type': 'application/json' } };
-  const res = await apiClient.post('/complaints', formData, config);
+  const res = await apiClient.post(endpoint, formData, config);
   if (res.data?.data) {
     const currentList = getStoredComplaints();
     const updated = [res.data.data, ...currentList.filter((c) => c.id !== res.data.data.id)];
     saveStoredComplaints(updated);
-    MOCK_COMPLAINTS.unshift(res.data.data);
+    // Do NOT mutate MOCK_COMPLAINTS in live mode
   }
   return res.data;
 };

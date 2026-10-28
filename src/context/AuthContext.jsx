@@ -62,10 +62,15 @@ export const AuthProvider = ({ children }) => {
   }, []);
 
   const logout = useCallback(async () => {
-    await apiLogout();
-    setUser(null);
-    setRole(null);
-    setToken(null);
+    try {
+      await apiLogout();
+    } catch {
+      // Network error is fine — we still clear local state
+    } finally {
+      setUser(null);
+      setRole(null);
+      setToken(null);
+    }
   }, []);
 
   return (

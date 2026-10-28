@@ -34,10 +34,10 @@ const MunicipalReportModalContent = ({ onClose, complaints = [], _analytics = {}
     ? complaints
     : complaints.filter((c) => String(c.ward) === String(selectedWard));
 
-  const totalReported = filtered.length || 48;
-  const totalResolved = filtered.filter((c) => c.status === 'resolved').length || 38;
-  const resolutionRate = ((totalResolved / (totalReported || 1)) * 100).toFixed(1);
-  const criticalCount = filtered.filter((c) => (c.severity || 0) >= 80).length || 6;
+  const totalReported = filtered.length;
+  const totalResolved = filtered.filter((c) => c.status === 'resolved').length;
+  const resolutionRate = totalReported > 0 ? ((totalResolved / totalReported) * 100).toFixed(1) : '0.0';
+  const criticalCount = filtered.filter((c) => (c.severity || 0) >= 80).length;
 
   // Download CSV using Blob (reliable for special characters)
   const handleExportCSV = () => {
@@ -67,6 +67,14 @@ const MunicipalReportModalContent = ({ onClose, complaints = [], _analytics = {}
       toast.error('Failed to export CSV.');
     }
   };
+
+  // XSS-safe HTML escaper for all user-supplied values injected into document.write()
+  const escapeHtml = (str) => String(str ?? '')
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#x27;');
 
   // Print / Save as PDF
   const handlePrint = () => {
@@ -158,12 +166,12 @@ const MunicipalReportModalContent = ({ onClose, complaints = [], _analytics = {}
           <tbody>
             ${(filtered.length ? filtered : complaints).slice(0, 10).map((c) => `
               <tr>
-                <td style="font-family: monospace; font-weight: 700; color: #16a34a;">${c.id}</td>
-                <td><strong>${c.title || 'Civic Issue'}</strong></td>
-                <td>${c.category || 'N/A'}</td>
-                <td style="font-family: monospace;">Ward #${c.ward || 'N/A'}</td>
-                <td style="font-weight: 700; color: #dc2626;">${c.severity || 60}/100</td>
-                <td><span class="status-badge ${c.status === 'resolved' ? 'status-resolved' : 'status-pending'}">${c.status || 'reported'}</span></td>
+                <td style="font-family: monospace; font-weight: 700; color: #16a34a;">${escapeHtml(c.id)}</td>
+                <td><strong>${escapeHtml(c.title || 'Civic Issue')}</strong></td>
+                <td>${escapeHtml(c.category || 'N/A')}</td>
+                <td style="font-family: monospace;">Ward #${escapeHtml(c.ward || 'N/A')}</td>
+                <td style="font-weight: 700; color: #dc2626;">${escapeHtml(c.severity || 60)}/100</td>
+                <td><span class="status-badge ${c.status === 'resolved' ? 'status-resolved' : 'status-pending'}">${escapeHtml(c.status || 'reported')}</span></td>
               </tr>
             `).join('')}
           </tbody>
@@ -232,7 +240,7 @@ const MunicipalReportModalContent = ({ onClose, complaints = [], _analytics = {}
               onChange={(e) => setSelectedWard(e.target.value)}
               className="bg-white border border-neutral-300 rounded-lg px-2.5 py-1 text-xs font-medium text-neutral-800 focus:ring-2 focus:ring-brand-500/20"
             >
-              <option value="ALL">All 24 Mumbai Administrative Wards</option>
+              <option value="ALL">All 26 Mumbai Administrative Wards</option>
               {MUMBAI_WARDS.map((w) => (
                 <option key={w.id} value={w.id}>
                   Ward #{w.id} · {w.name} – {w.area}

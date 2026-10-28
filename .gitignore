@@ -43,4 +43,16 @@ ml_service/models/*.pt
 # Temporary / Extracted directories
 Hikari-main/
 
+# Environment secrets — NEVER commit .env
+.env
+.env.local
+.env.production
+
+# User uploads (stored in S3 or local; never in git)
+backend/uploads/
+
+# Backend cache
+backend/__pycache__/
+backend/*.db
+
 

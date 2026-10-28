@@ -9,28 +9,36 @@ services:
       - "5000:5000"
     environment:
       - PORT=5000
-      - DATABASE_URL=postgresql://kaiser_user:kaiser_secure_pass@db:5432/kaiser_civic
-      - REDIS_URL=redis://redis:6379/0
+      - DATABASE_URL=postgresql://kaiser_user:${DB_PASSWORD}@db:5432/kaiser_civic
+      - JWT_SECRET=${JWT_SECRET}
       - YOLO_WEIGHTS=/app/backend/yolov8n.pt
-      - JWT_SECRET=kaiser_jwt_secret_key_2026_mumbai_civic
+      # S3 (set in .env or CI secrets)
+      - AWS_ACCESS_KEY_ID=${AWS_ACCESS_KEY_ID}
+      - AWS_SECRET_ACCESS_KEY=${AWS_SECRET_ACCESS_KEY}
+      - AWS_DEFAULT_REGION=${AWS_DEFAULT_REGION:-ap-south-1}
+      - S3_BUCKET_NAME=${S3_BUCKET_NAME}
+      # AI Keys (set in .env or CI secrets)
+      - GROQ_API_KEY=${GROQ_API_KEY}
+      - GEMINI_API_KEY=${GEMINI_API_KEY}
+      - NVIDIA_API_KEY=${NVIDIA_API_KEY}
+      # CORS
+      - ALLOWED_ORIGINS=${ALLOWED_ORIGINS}
     volumes:
       - grievance_uploads:/app/backend/uploads
     depends_on:
       db:
         condition: service_healthy
-      redis:
-        condition: service_started
     restart: unless-stopped
 
   # ── PostgreSQL with PostGIS Spatial Extensions ──────────────────────────────
   db:
     image: postgis/postgis:16-3.4
     container_name: kaiser_postgis_db
-    ports:
-      - "5432:5432"
+    # NOTE: Port 5432 is NOT exposed to the host for security.
+    # Access via the Docker network only (web service connects via hostname 'db').
     environment:
       - POSTGRES_USER=kaiser_user
-      - POSTGRES_PASSWORD=kaiser_secure_pass
+      - POSTGRES_PASSWORD=${DB_PASSWORD}
       - POSTGRES_DB=kaiser_civic
     volumes:
       - postgis_data:/var/lib/postgresql/data
@@ -39,14 +47,6 @@ services:
       interval: 5s
       timeout: 5s
       retries: 5
-    restart: unless-stopped
-
-  # ── Redis Cache & Queue ─────────────────────────────────────────────────────
-  redis:
-    image: redis:7-alpine
-    container_name: kaiser_redis
-    ports:
-      - "6379:6379"
     restart: unless-stopped
 
 volumes:

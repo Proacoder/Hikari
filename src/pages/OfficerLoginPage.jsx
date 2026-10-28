@@ -288,19 +288,10 @@ export const OfficerLoginPage = () => {
                   </button>
                 </form>
 
-                {/* Pre-filled Demo helper for this specific officer */}
-                <div className="p-3 bg-neutral-50 border border-neutral-200 rounded-xl flex items-center justify-between text-xs">
-                  <div>
-                    <span className="text-[10px] text-neutral-400 uppercase tracking-wider block font-bold">Officer Demo Key</span>
-                    <span className="font-mono font-bold text-neutral-800">{selectedOfficer.password}</span>
-                  </div>
-                  <button
-                    type="button"
-                    onClick={() => setPassword(selectedOfficer.password)}
-                    className="px-2.5 py-1 bg-brand-50 hover:bg-brand-100 text-brand-700 border border-brand-200 rounded-lg text-[11px] font-semibold transition-colors"
-                  >
-                    Auto-Fill
-                  </button>
+                {/* Demo hint: email only — user must type password */}
+                <div className="p-3 bg-neutral-50 border border-neutral-200 rounded-xl text-xs text-neutral-500">
+                  <span className="text-[10px] text-neutral-400 uppercase tracking-wider block font-bold mb-1">Demo Access</span>
+                  <span>Email pre-filled. Please type your assigned password to sign in.</span>
                 </div>
               </div>
             )}
@@ -368,7 +359,7 @@ export const OfficerLoginPage = () => {
               </button>
             </form>
 
-            {/* Quick Demo Helper for Municipal Admin */}
+            {/* Quick Demo Helper for Municipal Admin — email only */}
             <div className="p-3 bg-amber-50/70 border border-amber-200 rounded-xl space-y-1.5">
               <div className="flex items-center justify-between text-[11px] font-bold text-amber-900">
                 <span className="flex items-center gap-1.5"><UserCheck size={13} /> Official Admin Demo Access</span>
@@ -378,7 +369,6 @@ export const OfficerLoginPage = () => {
                 type="button"
                 onClick={() => {
                   setAdminEmail('r.mehta@bmc.gov.in');
-                  setPassword('Admin@2024');
                   setError('');
                 }}
                 className="w-full flex items-center justify-between px-3 py-2 bg-white hover:bg-amber-100/60 border border-amber-200 rounded-xl text-left transition-colors"
@@ -388,10 +378,7 @@ export const OfficerLoginPage = () => {
                   <span className="text-[10px] text-neutral-500 block">r.mehta@bmc.gov.in</span>
                 </div>
                 <div className="text-right">
-                  <span className="text-[11px] font-mono bg-amber-100 text-amber-900 px-2 py-0.5 rounded font-bold">
-                    Admin@2024
-                  </span>
-                  <span className="block text-[10px] text-amber-700 mt-0.5">Click to fill →</span>
+                  <span className="text-[11px] text-amber-700 px-2 py-0.5 rounded font-medium">Click to fill email →</span>
                 </div>
               </button>
             </div>

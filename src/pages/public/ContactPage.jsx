@@ -545,7 +545,7 @@ export const ContactPage = () => {
         </div>
       </section>
 
-      {/* ── Searchable 24 Municipal Wards Directory ──────────────────────────── */}
+      {/* ── Searchable 26 Municipal Wards Directory ──────────────────────────── */}
       <section className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 space-y-8">
         <div className="flex flex-col md:flex-row md:items-end justify-between gap-4">
           <div className="space-y-2">

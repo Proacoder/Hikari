@@ -3,20 +3,25 @@ import io
 import json
 import uuid
 import logging
+import hashlib
+import hmac
+import re
 from datetime import datetime, timezone, timedelta
+from contextlib import asynccontextmanager
 from typing import List, Optional, Dict, Any
 
-from fastapi import FastAPI, UploadFile, File, Form, HTTPException, Depends, Header, Request, status
+from fastapi import (
+    FastAPI, UploadFile, File, Form, HTTPException,
+    Depends, Header, Request, status
+)
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
 from fastapi.responses import FileResponse, JSONResponse
-from pydantic import BaseModel
+from pydantic import BaseModel, field_validator
 from sqlalchemy.orm import Session
 from dotenv import load_dotenv
 import jwt
-import hashlib
-import hmac
-import requests
+import httpx
 
 # Load environment variables
 load_dotenv()
@@ -30,49 +35,88 @@ current_dir = os.path.dirname(os.path.abspath(__file__))
 if current_dir not in sys.path:
     sys.path.insert(0, current_dir)
 
-# Import Database Models & Lifecycle
 from database import (
     get_db, init_db, WardModel, UserModel, ComplaintModel,
-    CommentModel, NotificationModel, ResolutionAuditModel, find_nearby_complaints
+    CommentModel, NotificationModel, ResolutionAuditModel,
+    UpvoteModel, find_nearby_complaints
 )
 from ml_router import ml_router
 
-app = FastAPI(
-    title="Kaiser AI Municipal Backend & Vision Engine",
-    version="2.0.0",
-    description="Unified Python backend & AI engine for Kaiser AI Municipal Grievance Platform"
-)
-
-# Enable CORS for Vite frontend
-app.add_middleware(
-    CORSMiddleware,
-    allow_origin_regex=r"^https?://(localhost|127\.0\.0\.1)(:\d+)?$",
-    allow_credentials=True,
-    allow_methods=["*"],
-    allow_headers=["*"],
-)
-
-# JWT Secret & Configuration
-JWT_SECRET = os.getenv("JWT_SECRET", "kaiser_jwt_secret_key_2026_mumbai_civic")
+# ──────────────────────────────────────────────────────────────────────────────
+# JWT Secret — MUST be set via environment variable. No hardcoded fallback.
+# ──────────────────────────────────────────────────────────────────────────────
+JWT_SECRET = os.getenv("JWT_SECRET")
+if not JWT_SECRET:
+    raise RuntimeError(
+        "FATAL: JWT_SECRET environment variable is not set. "
+        "Generate a strong secret with: python -c \"import secrets; print(secrets.token_hex(32))\" "
+        "and add it to your .env file."
+    )
 JWT_ALGORITHM = "HS256"
 
-# Initialize database schema and baseline records on startup
-@app.on_event("startup")
-def startup_event():
+# S3 configuration
+S3_BUCKET = os.getenv("S3_BUCKET_NAME", "")
+S3_REGION = os.getenv("AWS_DEFAULT_REGION", "ap-south-1")
+AWS_ACCESS_KEY = os.getenv("AWS_ACCESS_KEY_ID", "")
+AWS_SECRET_KEY = os.getenv("AWS_SECRET_ACCESS_KEY", "")
+USE_S3 = bool(S3_BUCKET and AWS_ACCESS_KEY and AWS_SECRET_KEY)
+
+# Allowed MIME types for uploads
+ALLOWED_MIME_TYPES = {"image/jpeg", "image/png", "image/webp", "image/gif"}
+MAX_UPLOAD_BYTES = 10 * 1024 * 1024  # 10 MB
+
+# Valid complaint statuses
+VALID_STATUSES = {"reported", "in_progress", "resolved", "reopened", "escalated"}
+
+
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    """Modern FastAPI lifespan handler replacing deprecated @app.on_event."""
     try:
         init_db()
         logger.info("Database initialized and verified.")
     except Exception as e:
-        logger.warning(f"Database initialization notice: {e}")
+        logger.error(f"Database initialization failed: {e}")
+        raise
+    yield
+
+
+app = FastAPI(
+    title="Kaiser AI Municipal Backend & Vision Engine",
+    version="2.1.0",
+    description="Production-hardened unified backend for Kaiser AI Municipal Grievance Platform",
+    lifespan=lifespan,
+)
+
+# CORS — allow only localhost in dev; configure ALLOWED_ORIGINS env var in production
+_raw_origins = os.getenv("ALLOWED_ORIGINS", "")
+if _raw_origins:
+    _origins = [o.strip() for o in _raw_origins.split(",") if o.strip()]
+    app.add_middleware(
+        CORSMiddleware,
+        allow_origins=_origins,
+        allow_credentials=True,
+        allow_methods=["*"],
+        allow_headers=["*"],
+    )
+else:
+    app.add_middleware(
+        CORSMiddleware,
+        allow_origin_regex=r"^https?://(localhost|127\.0\.0\.1)(:\d+)?$",
+        allow_credentials=True,
+        allow_methods=["*"],
+        allow_headers=["*"],
+    )
 
 
 # ==============================================================================
-# Request & Response Schemas
+# Request & Response Schemas (Pydantic v2)
 # ==============================================================================
 
 class LoginRequest(BaseModel):
     email: str
     password: str
+
 
 class RegisterRequest(BaseModel):
     name: str
@@ -80,7 +124,29 @@ class RegisterRequest(BaseModel):
     password: str
     phone: Optional[str] = ""
     ward: Optional[int] = 8
-    wardName: Optional[str] = "G/N Ward – Bandra (North)"
+    wardName: Optional[str] = "G/N Ward"
+
+    @field_validator("name")
+    @classmethod
+    def name_min_len(cls, v):
+        if len(v.strip()) < 2:
+            raise ValueError("Name must be at least 2 characters.")
+        return v.strip()
+
+    @field_validator("email")
+    @classmethod
+    def email_valid(cls, v):
+        if "@" not in v or "." not in v.split("@")[-1]:
+            raise ValueError("Please enter a valid email address.")
+        return v.strip().lower()
+
+    @field_validator("password")
+    @classmethod
+    def password_min_len(cls, v):
+        if len(v) < 6:
+            raise ValueError("Password must be at least 6 characters.")
+        return v
+
 
 class ComplaintCreateRequest(BaseModel):
     title: str
@@ -93,44 +159,108 @@ class ComplaintCreateRequest(BaseModel):
     landmark: Optional[str] = ""
     imageUrl: Optional[str] = None
 
+    @field_validator("severity")
+    @classmethod
+    def severity_range(cls, v):
+        if v is not None and not (0 <= v <= 100):
+            raise ValueError("severity must be between 0 and 100.")
+        return v
+
+    @field_validator("latitude")
+    @classmethod
+    def lat_range(cls, v):
+        if not (-90 <= v <= 90):
+            raise ValueError("latitude must be between -90 and 90.")
+        return v
+
+    @field_validator("longitude")
+    @classmethod
+    def lng_range(cls, v):
+        if not (-180 <= v <= 180):
+            raise ValueError("longitude must be between -180 and 180.")
+        return v
+
+
 class ComplaintUpdateRequest(BaseModel):
     status: Optional[str] = None
     severity: Optional[int] = None
     resolvedImageUrl: Optional[str] = None
     assignedOfficerId: Optional[str] = None
     notes: Optional[str] = None
+    officerLatitude: Optional[float] = None
+    officerLongitude: Optional[float] = None
+
+    @field_validator("status")
+    @classmethod
+    def status_valid(cls, v):
+        if v is not None and v not in VALID_STATUSES:
+            raise ValueError(f"status must be one of: {', '.join(VALID_STATUSES)}")
+        return v
+
+    @field_validator("severity")
+    @classmethod
+    def severity_range(cls, v):
+        if v is not None and not (0 <= v <= 100):
+            raise ValueError("severity must be between 0 and 100.")
+        return v
+
 
 class CommentCreateRequest(BaseModel):
     text: str
-    author: Optional[str] = None
+
+    @field_validator("text")
+    @classmethod
+    def text_not_empty(cls, v):
+        v = v.strip()
+        if not v:
+            raise ValueError("Comment text cannot be empty.")
+        if len(v) > 1000:
+            raise ValueError("Comment must not exceed 1000 characters.")
+        return v
+
+
+class FeedbackRequest(BaseModel):
+    rating: int
+    tags: Optional[List[str]] = []
+    comment: Optional[str] = ""
+
+    @field_validator("rating")
+    @classmethod
+    def rating_range(cls, v):
+        if not (1 <= v <= 5):
+            raise ValueError("Rating must be between 1 and 5.")
+        return v
 
 
 # ==============================================================================
-# Authentication & Cryptographic Security Helpers
+# Authentication & Security Helpers
 # ==============================================================================
 
 def hash_password(password: str) -> str:
     """Generates a salted PBKDF2-HMAC-SHA256 password hash."""
     salt = os.urandom(16).hex()
-    hashed = hashlib.pbkdf2_hmac("sha256", password.encode("utf-8"), salt.encode("utf-8"), 100000).hex()
+    hashed = hashlib.pbkdf2_hmac(
+        "sha256", password.encode("utf-8"), salt.encode("utf-8"), 100000
+    ).hex()
     return f"pbkdf2:sha256:100000${salt}${hashed}"
 
 
 def verify_password(password: str, stored_hash: str) -> bool:
-    """Verifies a password against PBKDF2 hash or legacy seeded credentials."""
-    if not stored_hash:
+    """Verifies a password against a PBKDF2 hash. No plaintext fallback."""
+    if not stored_hash or not stored_hash.startswith("pbkdf2:sha256:"):
         return False
-    if stored_hash.startswith("pbkdf2:sha256:"):
-        try:
-            parts = stored_hash.split("$")
-            salt = parts[1]
-            expected = parts[2]
-            actual = hashlib.pbkdf2_hmac("sha256", password.encode("utf-8"), salt.encode("utf-8"), 100000).hex()
-            return hmac.compare_digest(expected, actual)
-        except Exception:
+    try:
+        parts = stored_hash.split("$")
+        if len(parts) != 3:
             return False
-    # Legacy fallback for demo accounts
-    return hmac.compare_digest(stored_hash, password)
+        salt = parts[1]
+        expected = parts[2]
+        actual = hashlib.pbkdf2_hmac(
+            "sha256", password.encode("utf-8"), salt.encode("utf-8"), 100000
+        ).hex()
+        return hmac.compare_digest(expected, actual)
+    except Exception:
+        return False
 
 
 def create_jwt_token(user: UserModel) -> str:
@@ -148,7 +278,7 @@ def create_jwt_token(user: UserModel) -> str:
 
 
 def serialize_user(user: UserModel) -> dict:
-    """Serializes a user record for the frontend client."""
+    """Serializes a user record for the frontend. Never includes password."""
     return {
         "id": user.id,
         "name": user.name,
@@ -169,14 +299,14 @@ def get_current_user_from_token(
     db: Session = Depends(get_db)
 ) -> Optional[UserModel]:
     """
-    Decodes Bearer token from the Authorization header.
-    Supports standard JWT tokens and legacy mock-jwt tokens.
+    Decodes Bearer JWT token from the Authorization header.
+    SECURITY: Only real JWTs signed with JWT_SECRET are accepted.
+    No mock-token or keyword-based fallbacks.
     """
     if not authorization or not authorization.startswith("Bearer "):
         return None
     raw_token = authorization.split(" ", 1)[1].strip()
 
-    # 1. Attempt standard JWT decoding
     try:
         decoded = jwt.decode(raw_token, JWT_SECRET, algorithms=[JWT_ALGORITHM])
         user_id = decoded.get("sub")
@@ -184,32 +314,19 @@ def get_current_user_from_token(
             user = db.query(UserModel).filter(UserModel.id == user_id).first()
             if user:
                 return user
-    except Exception:
-        pass
-
-    # 2. Support mock token format: mock-jwt-{role}-{id}-token-{timestamp}
-    parts = raw_token.split("-")
-    if len(parts) >= 4 and parts[0] == "mock" and parts[1] == "jwt":
-        # Format can be: mock-jwt-officer-{id}-token-... or mock-jwt-citizen-{id}-token-... or mock-jwt-admin-token-...
-        role = parts[2]
-        if role == "admin":
-            return db.query(UserModel).filter(UserModel.role == "admin").first()
-        elif len(parts) >= 5:
-            user_id = f"{parts[3]}-{parts[4]}" if parts[3] in ["user", "officer"] else parts[3]
-            user = db.query(UserModel).filter(UserModel.id == user_id).first()
-            if user:
-                return user
-
-    # 3. Fallback: match by role if token specifies it
-    if "admin" in raw_token:
-        return db.query(UserModel).filter(UserModel.role == "admin").first()
-    if "officer" in raw_token:
-        return db.query(UserModel).filter(UserModel.role == "officer").first()
+    except jwt.ExpiredSignatureError:
+        logger.debug("Rejected expired JWT token")
+    except jwt.InvalidTokenError:
+        logger.debug("Rejected invalid JWT token")
+    except Exception as e:
+        logger.debug(f"JWT decode error: {e}")
 
     return None
 
 
-def require_auth(current_user: Optional[UserModel] = Depends(get_current_user_from_token)) -> UserModel:
+def require_auth(
+    current_user: Optional[UserModel] = Depends(get_current_user_from_token)
+) -> UserModel:
     if not current_user:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
@@ -218,128 +335,103 @@ def require_auth(current_user: Optional[UserModel] = Depends(get_current_user_fr
     return current_user
 
 
-# ==============================================================================
-# Authentication Endpoints (Supports both JSON and Form data)
-# ==============================================================================
-
-@app.post("/api/auth/login")
-async def login(
-    request: Request,
-    db: Session = Depends(get_db)
-):
-    content_type = request.headers.get("content-type", "")
-    if "application/json" in content_type:
-        body = await request.json()
-        email = body.get("email", "").strip().lower()
-        password = body.get("password", "")
-    else:
-        form = await request.form()
-        email = str(form.get("email", "")).strip().lower()
-        password = str(form.get("password", ""))
-
-    if not email or not password:
-        raise HTTPException(status_code=400, detail="Email and password are required.")
-
-    user = db.query(UserModel).filter(UserModel.email == email).first()
-    if not user or not verify_password(password, user.password):
-        raise HTTPException(status_code=401, detail="Invalid email or password. Please check your credentials.")
-
-    token = create_jwt_token(user)
-    return {
-        "success": True,
-        "data": {
-            "user": serialize_user(user),
-            "token": token
-        }
-    }
-
-
-@app.post("/api/auth/register")
-async def register(
-    request: Request,
-    db: Session = Depends(get_db)
-):
-    content_type = request.headers.get("content-type", "")
-    if "application/json" in content_type:
-        body = await request.json()
-        name = str(body.get("name", "")).strip()
-        email = str(body.get("email", "")).strip().lower()
-        phone = str(body.get("phone", "")).strip()
-        password = str(body.get("password", ""))
-        ward_id = body.get("ward")
-        ward_name = body.get("wardName", "")
-    else:
-        form = await request.form()
-        name = str(form.get("name", "")).strip()
-        email = str(form.get("email", "")).strip().lower()
-        phone = str(form.get("phone", "")).strip()
-        password = str(form.get("password", ""))
-        ward_id = form.get("ward")
-        ward_name = form.get("wardName", "")
-
-    if not name or len(name) < 2:
-        raise HTTPException(status_code=400, detail="Name must be at least 2 characters.")
-    if not email or "@" not in email:
-        raise HTTPException(status_code=400, detail="Please enter a valid email address.")
-    if not password or len(password) < 6:
-        raise HTTPException(status_code=400, detail="Password must be at least 6 characters.")
-
-    existing = db.query(UserModel).filter(UserModel.email == email).first()
-    if existing:
-        raise HTTPException(status_code=400, detail="An account with this email already exists.")
-
-    user_id = f"user-{uuid.uuid4().hex[:8]}"
-    new_user = UserModel(
-        id=user_id,
-        name=name,
-        email=email,
-        phone=phone or "+91 98000 00000",
-        password=hash_password(password),
-        role="citizen",
-        ward_id=int(ward_id) if ward_id else 8,
-        ward_name=ward_name or "G/N Ward – Bandra (North)",
-        avatar_initials=''.join([part[0] for part in name.split()[:2]]).upper()[:2],
-    )
-    db.add(new_user)
-    db.commit()
-    db.refresh(new_user)
-
-    token = create_jwt_token(new_user)
-    return {
-        "success": True,
-        "data": {
-            "user": serialize_user(new_user),
-            "token": token
-        }
-    }
-
-
-@app.get("/api/auth/verify")
-async def verify_token(
-    current_user: Optional[UserModel] = Depends(get_current_user_from_token),
-    db: Session = Depends(get_db)
-):
-    if not current_user:
+def require_officer_or_admin(
+    current_user: UserModel = Depends(require_auth)
+) -> UserModel:
+    if current_user.role not in ("officer", "admin"):
         raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="No active or valid session. Please log in."
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Access forbidden: Requires officer or admin role."
         )
-
-    return {
-        "success": True,
-        "data": {
-            "user": serialize_user(current_user)
-        }
-    }
+    return current_user
 
 
-@app.post("/api/auth/logout")
-async def logout():
-    return {"success": True, "data": {"message": "Logged out successfully"}}
+def require_admin(
+    current_user: UserModel = Depends(require_auth)
+) -> UserModel:
+    if current_user.role != "admin":
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Access forbidden: Requires admin role."
+        )
+    return current_user
 
 
 # ==============================================================================
-# Complaints Grievance Endpoints
+# File Upload Helper (S3 or local filesystem)
+# ==============================================================================
+
+async def store_upload(contents: bytes, original_filename: str, prefix: str = "uploads") -> str:
+    """
+    Stores uploaded file. Uses S3 if configured, otherwise local filesystem.
+    Returns a public URL or local path.
+    Validates file type by magic bytes; generates random filenames.
+    """
+    if len(contents) > MAX_UPLOAD_BYTES:
+        raise HTTPException(status_code=413, detail="File exceeds 10 MB limit.")
+
+    # Validate by magic bytes (first 4 bytes)
+    magic = contents[:4]
+    if magic[:2] == b'\xff\xd8':
+        ext = "jpg"
+    elif magic[:4] == b'\x89PNG':
+        ext = "png"
+    elif magic[:4] == b'RIFF' or magic[:4] == b'WEBP':
+        ext = "webp"
+    elif magic[:6] in (b'GIF87a', b'GIF89a'):
+        ext = "gif"
+    else:
+        raise HTTPException(status_code=415, detail="Unsupported file type. Only JPEG, PNG, WebP, and GIF are allowed.")
+
+    safe_filename = f"{prefix}/{uuid.uuid4().hex}.{ext}"
+
+    if USE_S3:
+        try:
+            import boto3
+            s3 = boto3.client(
+                "s3",
+                region_name=S3_REGION,
+                aws_access_key_id=AWS_ACCESS_KEY,
+                aws_secret_access_key=AWS_SECRET_KEY,
+            )
+            s3.put_object(
+                Bucket=S3_BUCKET,
+                Key=safe_filename,
+                Body=contents,
+                ContentType=f"image/{ext}",
+                ACL="public-read",
+            )
+            return f"https://{S3_BUCKET}.s3.{S3_REGION}.amazonaws.com/{safe_filename}"
+        except Exception as e:
+            logger.error(f"S3 upload failed: {e}")
+            raise HTTPException(status_code=500, detail="File storage failed. Please try again.")
+    else:
+        # Local filesystem fallback
+        upload_dir = os.path.join(os.path.dirname(__file__), "uploads")
+        os.makedirs(upload_dir, exist_ok=True)
+        local_path = os.path.join(upload_dir, os.path.basename(safe_filename))
+        with open(local_path, "wb") as f:
+            f.write(contents)
+        return f"/uploads/{os.path.basename(safe_filename)}"
+
+
+# ==============================================================================
+# HTML escape utility (for report printout XSS protection)
+# ==============================================================================
+
+def _escape_html(s: str) -> str:
+    return (
+        str(s)
+        .replace("&", "&amp;")
+        .replace("<", "&lt;")
+        .replace(">", "&gt;")
+        .replace('"', "&quot;")
+        .replace("'", "&#x27;")
+    )
+
+
+# ==============================================================================
+# Complaint Serializer
 # ==============================================================================
 
 def serialize_complaint(c: ComplaintModel, db: Session) -> dict:
@@ -368,28 +460,96 @@ def serialize_complaint(c: ComplaintModel, db: Session) -> dict:
         "upvoteCount": c.upvote_count,
         "commentCount": comm_count,
         "createdBy": {
-            "id": c.created_by_id or "user-001",
+            "id": c.created_by_id or "",
             "name": c.created_by_name or "Citizen",
-            "email": c.created_by_email or "citizen@kaiser.ai",
+            "email": c.created_by_email or "",
             "ward": c.created_by_ward or c.ward_id,
         },
         "assignedOfficer": assigned,
         "aiAnalysis": {
             "categoryDetected": c.ai_category or c.category,
-            "confidence": c.ai_confidence or 0.92,
+            "confidence": c.ai_confidence or 0.0,
         },
         "createdAt": c.created_at.isoformat() if c.created_at else datetime.now(timezone.utc).isoformat(),
         "resolvedAt": c.resolved_at.isoformat() if c.resolved_at else None,
-        "reopenCount": getattr(c, "reopen_count", 0) or 0,
-        "reopenedAt": c.reopened_at.isoformat() if getattr(c, "reopened_at", None) else None,
-        "reopenReason": getattr(c, "reopen_reason", None),
-        "reopenPhotoUrl": getattr(c, "reopen_photo_url", None),
-        "isPermanentlyLocked": bool(getattr(c, "is_permanently_locked", False)),
-        "rating": getattr(c, "rating", None),
-        "feedbackTags": c.feedback_tags.split(",") if getattr(c, "feedback_tags", None) else [],
-        "feedbackComment": getattr(c, "feedback_comment", None),
+        "reopenCount": c.reopen_count or 0,
+        "reopenedAt": c.reopened_at.isoformat() if c.reopened_at else None,
+        "reopenReason": c.reopen_reason,
+        "reopenPhotoUrl": c.reopen_photo_url,
+        "isPermanentlyLocked": bool(c.is_permanently_locked),
+        "rating": c.rating,
+        "feedbackTags": c.feedback_tags.split(",") if c.feedback_tags else [],
+        "feedbackComment": c.feedback_comment,
     }
 
+
+# ==============================================================================
+# Authentication Endpoints
+# ==============================================================================
+
+@app.post("/api/auth/login")
+async def login(body: LoginRequest, db: Session = Depends(get_db)):
+    email = body.email.strip().lower()
+    password = body.password
+
+    if not email or not password:
+        raise HTTPException(status_code=400, detail="Email and password are required.")
+
+    user = db.query(UserModel).filter(UserModel.email == email).first()
+    if not user or not verify_password(password, user.password):
+        raise HTTPException(status_code=401, detail="Invalid email or password.")
+
+    token = create_jwt_token(user)
+    return {"success": True, "data": {"user": serialize_user(user), "token": token}}
+
+
+@app.post("/api/auth/register")
+async def register(body: RegisterRequest, db: Session = Depends(get_db)):
+    existing = db.query(UserModel).filter(UserModel.email == body.email).first()
+    if existing:
+        raise HTTPException(status_code=400, detail="An account with this email already exists.")
+
+    user_id = f"user-{uuid.uuid4().hex[:8]}"
+    initials = "".join([part[0] for part in body.name.split()[:2]]).upper()[:2]
+    new_user = UserModel(
+        id=user_id,
+        name=body.name,
+        email=body.email,
+        phone=body.phone or "+91 98000 00000",
+        password=hash_password(body.password),
+        role="citizen",
+        ward_id=body.ward or 8,
+        ward_name=body.wardName or "G/N Ward",
+        avatar_initials=initials,
+    )
+    db.add(new_user)
+    db.commit()
+    db.refresh(new_user)
+
+    token = create_jwt_token(new_user)
+    return {"success": True, "data": {"user": serialize_user(new_user), "token": token}}
+
+
+@app.get("/api/auth/verify")
+async def verify_token(
+    current_user: Optional[UserModel] = Depends(get_current_user_from_token),
+):
+    if not current_user:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="No active or valid session. Please log in.",
+        )
+    return {"success": True, "data": {"user": serialize_user(current_user)}}
+
+
+@app.post("/api/auth/logout")
+async def logout():
+    return {"success": True, "data": {"message": "Logged out successfully"}}
+
+
+# ==============================================================================
+# Complaints Grievance Endpoints
+# ==============================================================================
 
 @app.get("/api/complaints")
 async def get_complaints(
@@ -398,8 +558,14 @@ async def get_complaints(
     status: Optional[str] = None,
     page: int = 1,
     limit: int = 50,
-    db: Session = Depends(get_db)
+    db: Session = Depends(get_db),
 ):
+    # Validate pagination params
+    if page < 1:
+        raise HTTPException(status_code=422, detail="page must be >= 1")
+    if limit < 1 or limit > 100:
+        limit = min(max(1, limit), 100)
+
     query = db.query(ComplaintModel)
 
     if ward and str(ward).strip():
@@ -421,13 +587,17 @@ async def get_complaints(
     return {
         "success": True,
         "data": [serialize_complaint(c, db) for c in records],
-        "meta": {"page": page, "limit": limit, "total": total}
+        "meta": {"page": page, "limit": limit, "total": total},
     }
 
 
 @app.get("/api/complaints/map")
-async def get_map_data(db: Session = Depends(get_db)):
-    records = db.query(ComplaintModel).all()
+async def get_map_data(
+    current_user: Optional[UserModel] = Depends(get_current_user_from_token),
+    db: Session = Depends(get_db),
+):
+    """Returns map pins. For unauthenticated users, returns only public fields."""
+    records = db.query(ComplaintModel).limit(500).all()
     return {
         "success": True,
         "data": [
@@ -440,11 +610,10 @@ async def get_map_data(db: Session = Depends(get_db)):
                 "category": c.category,
                 "status": c.status,
                 "upvoteCount": c.upvote_count,
-                "imageUrl": c.image_url,
                 "ward": c.ward_id,
             }
             for c in records
-        ]
+        ],
     }
 
 
@@ -458,125 +627,145 @@ async def get_complaint_by_id(complaint_id: str, db: Session = Depends(get_db)):
 
 @app.post("/api/complaints")
 async def create_complaint(
-    request: Request,
-    current_user: Optional[UserModel] = Depends(get_current_user_from_token),
-    db: Session = Depends(get_db)
+    current_user: UserModel = Depends(require_auth),
+    title: str = Form(...),
+    description: str = Form(""),
+    category: str = Form("Pothole"),
+    severity: int = Form(70),
+    latitude: float = Form(...),
+    longitude: float = Form(...),
+    ward: int = Form(...),
+    landmark: str = Form(""),
+    imageUrl: Optional[str] = Form(None),
+    image: Optional[UploadFile] = File(None),
+    db: Session = Depends(get_db),
 ):
     """
-    Submits a new civic grievance.
-    Accepts both multipart/form-data (photo uploads) and JSON payloads.
-    Automatically assigns the authenticated user session.
+    Submits a new civic grievance. Requires authentication.
+    Accepts multipart/form-data with optional image upload.
     """
-    content_type = request.headers.get("content-type", "")
-    image_url = "https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=600&q=80"
+    # Validate severity range
+    severity = max(0, min(100, severity))
 
-    body = {}
-    form = None
-    if "multipart/form-data" in content_type:
-        try:
-            form = await request.form()
-        except Exception:
-            try:
-                body = await request.json()
-            except Exception:
-                body = {}
-    else:
-        try:
-            body = await request.json()
-        except Exception:
-            try:
-                form = await request.form()
-            except Exception:
-                form = None
+    image_url = imageUrl or "https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=600&q=80"
 
-    if form:
-        title = str(form.get("title", "Civic Grievance"))
-        description = str(form.get("description", ""))
-        category = str(form.get("category", "Pothole"))
-        lat = float(form.get("latitude") or form.get("lat") or 19.0760)
-        lng = float(form.get("longitude") or form.get("lng") or 72.8777)
-        ward_id = int(form.get("ward") or 1)
-        landmark = str(form.get("landmark", ""))
-        severity = int(form.get("severity") or 70)
-        image_url = str(form.get("imageUrl") or image_url)
+    # Handle file upload
+    if image and image.filename:
+        contents = await image.read()
+        image_url = await store_upload(contents, image.filename, prefix="complaints")
 
-        uploaded_file = form.get("image") or form.get("file")
-        if uploaded_file and hasattr(uploaded_file, "filename") and uploaded_file.filename:
-            upload_dir = os.path.join(os.path.dirname(__file__), "uploads")
-            os.makedirs(upload_dir, exist_ok=True)
-            filename = f"{int(datetime.now().timestamp())}_{uploaded_file.filename}"
-            filepath = os.path.join(upload_dir, filename)
-            contents = await uploaded_file.read()
-            with open(filepath, "wb") as f:
-                f.write(contents)
-            image_url = f"/uploads/{filename}"
-    else:
-        title = str(body.get("title", "Civic Grievance"))
-        description = str(body.get("description", ""))
-        category = str(body.get("category", "Pothole"))
-        lat = float(body.get("latitude") or 19.0760)
-        lng = float(body.get("longitude") or 72.8777)
-        ward_id = int(body.get("ward") or 1)
-        landmark = str(body.get("landmark", ""))
-        severity = int(body.get("severity") or 70)
-        image_url = body.get("imageUrl") or image_url
-
-    # Check for dedicated ward officer to automatically route the grievance
+    # Route to ward officer
     assigned_officer = db.query(UserModel).filter(
         UserModel.role == "officer",
-        UserModel.ward_id == ward_id
+        UserModel.ward_id == ward
     ).first()
 
     complaint_id = f"cmp-{int(datetime.now().timestamp())}-{uuid.uuid4().hex[:4]}"
 
-    # Determine creator from authenticated user or fallback
-    c_id = current_user.id if current_user else "user-001"
-    c_name = current_user.name if current_user else "Priya Nair"
-    c_email = current_user.email if current_user else "priya.nair@example.com"
-    c_ward = current_user.ward_id if current_user else ward_id
-
     new_comp = ComplaintModel(
         id=complaint_id,
-        title=title,
-        description=description,
+        title=title[:255],
+        description=description[:2000],
         category=category,
         severity=severity,
         status="reported",
-        latitude=lat,
-        longitude=lng,
-        ward_id=ward_id,
-        landmark=landmark,
+        latitude=latitude,
+        longitude=longitude,
+        ward_id=ward,
+        landmark=landmark[:255],
         image_url=image_url,
         upvote_count=1,
-        created_by_id=c_id,
-        created_by_name=c_name,
-        created_by_email=c_email,
-        created_by_ward=c_ward,
+        created_by_id=current_user.id,
+        created_by_name=current_user.name,
+        created_by_email=current_user.email,
+        created_by_ward=current_user.ward_id,
         assigned_officer_id=assigned_officer.id if assigned_officer else None,
         ai_category=category,
         ai_confidence=0.94,
     )
     db.add(new_comp)
 
-    # Add initial creation audit log
     db.add(ResolutionAuditModel(
         id=f"audit-{uuid.uuid4().hex[:10]}",
         complaint_id=complaint_id,
-        officer_id=c_id,
-        officer_name=c_name,
+        officer_id=current_user.id,
+        officer_name=current_user.name,
         previous_status=None,
         new_status="reported",
-        notes=f"Grievance filed by {c_name} and routed to Ward #{ward_id}.",
+        notes=f"Grievance filed by {current_user.name} and routed to Ward #{ward}.",
         image_url=image_url,
     ))
 
-    # Add user notification
     db.add(NotificationModel(
         id=f"notif-{uuid.uuid4().hex[:10]}",
-        user_id=c_id,
+        user_id=current_user.id,
         type="alert",
         title=f"Grievance Submitted: {title[:40]}",
-        body=f"Your ticket #{complaint_id} was successfully routed to Ward {ward_id} municipal officers.",
+        body=f"Your ticket #{complaint_id} was routed to Ward {ward} municipal officers.",
+        complaint_id=complaint_id,
+        is_read=False,
+    ))
+
+    db.commit()
+    db.refresh(new_comp)
+    return {"success": True, "data": serialize_complaint(new_comp, db)}
+
+
+@app.post("/api/complaints/json")
+async def create_complaint_json(
+    body: ComplaintCreateRequest,
+    current_user: UserModel = Depends(require_auth),
+    db: Session = Depends(get_db),
+):
+    """JSON variant of complaint creation (for AI assistant etc.)."""
+    assigned_officer = db.query(UserModel).filter(
+        UserModel.role == "officer",
+        UserModel.ward_id == body.ward
+    ).first()
+
+    complaint_id = f"cmp-{int(datetime.now().timestamp())}-{uuid.uuid4().hex[:4]}"
+    image_url = body.imageUrl or "https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=600&q=80"
+
+    new_comp = ComplaintModel(
+        id=complaint_id,
+        title=body.title[:255],
+        description=(body.description or "")[:2000],
+        category=body.category,
+        severity=body.severity or 70,
+        status="reported",
+        latitude=body.latitude,
+        longitude=body.longitude,
+        ward_id=body.ward or 8,
+        landmark=(body.landmark or "")[:255],
+        image_url=image_url,
+        upvote_count=1,
+        created_by_id=current_user.id,
+        created_by_name=current_user.name,
+        created_by_email=current_user.email,
+        created_by_ward=current_user.ward_id,
+        assigned_officer_id=assigned_officer.id if assigned_officer else None,
+        ai_category=body.category,
+        ai_confidence=0.94,
+    )
+    db.add(new_comp)
+
+    db.add(ResolutionAuditModel(
+        id=f"audit-{uuid.uuid4().hex[:10]}",
+        complaint_id=complaint_id,
+        officer_id=current_user.id,
+        officer_name=current_user.name,
+        previous_status=None,
+        new_status="reported",
+        notes=f"Grievance filed via AI assistant by {current_user.name}.",
+        image_url=image_url,
+    ))
+
+    db.add(NotificationModel(
+        id=f"notif-{uuid.uuid4().hex[:10]}",
+        user_id=current_user.id,
+        type="alert",
+        title=f"Grievance Submitted: {body.title[:40]}",
+        body=f"Your ticket #{complaint_id} was routed to Ward {body.ward} municipal officers.",
         complaint_id=complaint_id,
         is_read=False,
     ))
@@ -589,74 +778,75 @@ async def create_complaint(
 @app.patch("/api/complaints/{complaint_id}")
 async def update_complaint(
     complaint_id: str,
-    request: Request,
-    current_user: Optional[UserModel] = Depends(get_current_user_from_token),
-    db: Session = Depends(get_db)
+    body: ComplaintUpdateRequest,
+    current_user: UserModel = Depends(require_officer_or_admin),
+    db: Session = Depends(get_db),
 ):
-    if current_user and current_user.role not in ("officer", "admin"):
-        raise HTTPException(
-            status_code=403,
-            detail="Access forbidden: Grievance resolutions and status updates are restricted to authorized municipal officers"
-        )
-
+    """
+    SECURITY: Requires officer or admin authentication.
+    Officers are scoped to their own ward.
+    """
     complaint = db.query(ComplaintModel).filter(ComplaintModel.id == complaint_id).first()
     if not complaint:
         raise HTTPException(status_code=404, detail="Complaint not found")
 
-    payload = await request.json()
+    # Ward scope check for officers (admins exempt)
+    if current_user.role == "officer" and current_user.ward_id != complaint.ward_id:
+        raise HTTPException(
+            status_code=403,
+            detail=f"Access denied: You are assigned to Ward {current_user.ward_id} and cannot update complaints in Ward {complaint.ward_id}.",
+        )
+
+    # Save previous status BEFORE any mutation
     prev_status = complaint.status
 
-    if "status" in payload:
-        new_status = payload["status"]
-        complaint.status = new_status
-        geofence_note = ""
-        if new_status == "resolved":
+    geofence_note = ""
+    if body.status is not None:
+        complaint.status = body.status
+        if body.status == "resolved":
             complaint.resolved_at = datetime.now(timezone.utc)
-            off_lat = payload.get("officerLatitude") or payload.get("latitude")
-            off_lng = payload.get("officerLongitude") or payload.get("longitude")
-            if off_lat is not None and off_lng is not None:
+            if body.officerLatitude is not None and body.officerLongitude is not None:
                 try:
                     from ml_router import haversine_distance_m
-                    dist_m = haversine_distance_m(complaint.latitude, complaint.longitude, float(off_lat), float(off_lng))
+                    dist_m = haversine_distance_m(
+                        complaint.latitude, complaint.longitude,
+                        float(body.officerLatitude), float(body.officerLongitude)
+                    )
                     if dist_m > 300:
-                        geofence_note = f" [GEOFENCE AUDIT: Resolved {dist_m}m from incident site - variance logged for supervisory review]"
+                        geofence_note = f" [GEOFENCE AUDIT: Resolved {dist_m:.0f}m from incident — variance logged.]"
                     else:
-                        geofence_note = f" [GEOFENCE VERIFIED: On-site verification at {dist_m}m]"
+                        geofence_note = f" [GEOFENCE VERIFIED: On-site at {dist_m:.0f}m]"
                 except Exception as e:
                     logger.warning(f"Geofence distance notice: {e}")
 
-        # Record resolution audit entry
-        officer_name = current_user.name if current_user else "Municipal Officer"
-        officer_id = current_user.id if current_user else complaint.assigned_officer_id
-        base_notes = payload.get("notes") or f"Status updated to '{new_status}' by {officer_name}."
+        base_notes = body.notes or f"Status updated to '{body.status}' by {current_user.name}."
         db.add(ResolutionAuditModel(
             id=f"audit-{uuid.uuid4().hex[:10]}",
             complaint_id=complaint_id,
-            officer_id=officer_id,
-            officer_name=officer_name,
+            officer_id=current_user.id,
+            officer_name=current_user.name,
             previous_status=prev_status,
-            new_status=new_status,
+            new_status=body.status,
             notes=f"{base_notes}{geofence_note}",
-            image_url=payload.get("resolvedImageUrl"),
+            image_url=body.resolvedImageUrl,
         ))
 
-        # Notify the complaint creator
         db.add(NotificationModel(
             id=f"notif-{uuid.uuid4().hex[:10]}",
             user_id=complaint.created_by_id,
             type="status_update",
             title=f"Status Update on #{complaint_id}",
-            body=f"Your ticket '{complaint.title[:35]}' is now {new_status.replace('_', ' ').title()}.",
+            body=f"Your ticket '{complaint.title[:35]}' is now {body.status.replace('_', ' ').title()}.",
             complaint_id=complaint_id,
             is_read=False,
         ))
 
-    if "severity" in payload:
-        complaint.severity = int(payload["severity"])
-    if "resolvedImageUrl" in payload:
-        complaint.resolved_image_url = payload["resolvedImageUrl"]
-    if "assignedOfficerId" in payload:
-        complaint.assigned_officer_id = payload["assignedOfficerId"]
+    if body.severity is not None:
+        complaint.severity = body.severity
+    if body.resolvedImageUrl is not None:
+        complaint.resolved_image_url = body.resolvedImageUrl
+    if body.assignedOfficerId is not None:
+        complaint.assigned_officer_id = body.assignedOfficerId
 
     db.commit()
     db.refresh(complaint)
@@ -664,13 +854,33 @@ async def update_complaint(
 
 
 @app.post("/api/complaints/{complaint_id}/upvote")
-async def upvote_complaint(complaint_id: str, db: Session = Depends(get_db)):
+async def upvote_complaint(
+    complaint_id: str,
+    current_user: UserModel = Depends(require_auth),
+    db: Session = Depends(get_db),
+):
+    """Requires authentication. Prevents duplicate upvotes per user."""
     complaint = db.query(ComplaintModel).filter(ComplaintModel.id == complaint_id).first()
     if not complaint:
         raise HTTPException(status_code=404, detail="Complaint not found")
-    complaint.upvote_count += 1
+
+    # Check if already upvoted
+    existing = db.query(UpvoteModel).filter(
+        UpvoteModel.user_id == current_user.id,
+        UpvoteModel.complaint_id == complaint_id
+    ).first()
+
+    if existing:
+        raise HTTPException(status_code=409, detail="You have already upvoted this complaint.")
+
+    db.add(UpvoteModel(
+        id=f"upvote-{uuid.uuid4().hex[:10]}",
+        user_id=current_user.id,
+        complaint_id=complaint_id,
+    ))
+    complaint.upvote_count = (complaint.upvote_count or 0) + 1
     db.commit()
-    return {"success": True, "data": {"upvoteCount": complaint.upvote_count}}
+    return {"success": True, "data": {"upvoteCount": complaint.upvote_count, "hasUpvoted": True}}
 
 
 # ==============================================================================
@@ -681,35 +891,38 @@ async def upvote_complaint(complaint_id: str, db: Session = Depends(get_db)):
 async def reopen_complaint(
     complaint_id: str,
     request: Request,
-    current_user: Optional[UserModel] = Depends(get_current_user_from_token),
-    db: Session = Depends(get_db)
+    current_user: UserModel = Depends(require_auth),
+    db: Session = Depends(get_db),
 ):
     complaint = db.query(ComplaintModel).filter(ComplaintModel.id == complaint_id).first()
     if not complaint:
         raise HTTPException(status_code=404, detail="Complaint not found")
 
-    # Anti-Abuse Rule 1: Supervisory Permanent Lock
-    if getattr(complaint, "is_permanently_locked", False):
+    # Ownership check: only the citizen who filed may contest
+    if complaint.created_by_id != current_user.id:
         raise HTTPException(
-            status_code=400,
-            detail="Resolution Final: This grievance has been audited and permanently affirmed by the Superintending Municipal Engineer. It cannot be reopened."
+            status_code=403,
+            detail="Access denied: Only the citizen who filed this grievance may contest its resolution.",
         )
 
-    # Anti-Abuse Rule 2: Single Re-open Limit per ticket
-    if (getattr(complaint, "reopen_count", 0) or 0) >= 1:
+    if complaint.is_permanently_locked:
         raise HTTPException(
             status_code=400,
-            detail="Civic Anti-Abuse Limit Reached: Under MCGM Grievance Bylaws, a resolution may only be contested once. Further disputes must be presented in person at the monthly Ward Lokshahi Din hearing."
+            detail="Resolution Final: This grievance has been permanently affirmed and cannot be reopened.",
         )
 
-    # Anti-Abuse Rule 3: Must be in 'resolved' status
+    if (complaint.reopen_count or 0) >= 1:
+        raise HTTPException(
+            status_code=400,
+            detail="Anti-Abuse Limit: A resolution may only be contested once per MCGM Bylaws.",
+        )
+
     if complaint.status != "resolved":
         raise HTTPException(
             status_code=400,
-            detail=f"Only resolved grievances can be contested. Current status is '{complaint.status}'."
+            detail=f"Only resolved grievances can be contested. Current status is '{complaint.status}'.",
         )
 
-    # Anti-Abuse Rule 4: 48-Hour SLA Contest Window
     if complaint.resolved_at:
         now = datetime.now(timezone.utc)
         res_at = complaint.resolved_at
@@ -718,56 +931,53 @@ async def reopen_complaint(
         if (now - res_at).total_seconds() > 48 * 3600:
             raise HTTPException(
                 status_code=400,
-                detail="Contest Window Expired: Under MCGM regulations, grievances must be contested within 48 hours of resolution."
+                detail="Contest Window Expired: Grievances must be contested within 48 hours of resolution.",
             )
 
-    # Anti-Abuse Rule 5: Mandatory Photo Evidence & Justification (min 10 characters)
-    payload = await request.json()
+    try:
+        payload = await request.json()
+    except Exception:
+        raise HTTPException(status_code=422, detail="Invalid JSON body.")
+
     reason = str(payload.get("reason", "")).strip()
     photo_url = str(payload.get("photoUrl", "")).strip()
 
     if len(reason) < 10:
         raise HTTPException(
             status_code=400,
-            detail="Mandatory Justification: Please provide at least 10 characters detailing why the repair remains deficient."
+            detail="Please provide at least 10 characters detailing why the repair remains deficient.",
         )
     if not photo_url:
         raise HTTPException(
             status_code=400,
-            detail="Mandatory Photographic Evidence: You must provide a photo demonstrating the continuing defect to reopen a ticket."
+            detail="Photographic evidence is mandatory to reopen a ticket.",
         )
 
-    # Apply Re-open
     prev_status = complaint.status
     complaint.status = "reopened"
-    complaint.reopen_count = (getattr(complaint, "reopen_count", 0) or 0) + 1
+    complaint.reopen_count = (complaint.reopen_count or 0) + 1
     complaint.reopened_at = datetime.now(timezone.utc)
     complaint.reopen_reason = reason
     complaint.reopen_photo_url = photo_url
 
-    c_name = current_user.name if current_user else "Citizen"
-    c_id = current_user.id if current_user else "citizen"
-
-    # Add resolution audit trail
     db.add(ResolutionAuditModel(
         id=f"audit-{uuid.uuid4().hex[:10]}",
         complaint_id=complaint_id,
-        officer_id=c_id,
-        officer_name=c_name,
+        officer_id=current_user.id,
+        officer_name=current_user.name,
         previous_status=prev_status,
         new_status="reopened",
         notes=f"Citizen contested resolution with photo evidence: {reason}",
         image_url=photo_url,
     ))
 
-    # Dispatch urgent alert to assigned ward officer
     if complaint.assigned_officer_id:
         db.add(NotificationModel(
             id=f"notif-{uuid.uuid4().hex[:10]}",
             user_id=complaint.assigned_officer_id,
             type="alert",
             title=f"URGENT: Grievance #{complaint_id} Contested",
-            body=f"Citizen contested repair with photo evidence in Ward {complaint.ward_id}. Reason: {reason[:80]}. Re-inspection required.",
+            body=f"Citizen contested repair in Ward {complaint.ward_id}. Reason: {reason[:80]}. Re-inspection required.",
             complaint_id=complaint_id,
             is_read=False,
         ))
@@ -781,22 +991,28 @@ async def reopen_complaint(
 async def affirm_resolution(
     complaint_id: str,
     request: Request,
-    current_user: Optional[UserModel] = Depends(get_current_user_from_token),
-    db: Session = Depends(get_db)
+    current_user: UserModel = Depends(require_officer_or_admin),
+    db: Session = Depends(get_db),
 ):
-    if not current_user or current_user.role not in ("officer", "admin"):
-        raise HTTPException(
-            status_code=403,
-            detail="Access forbidden: Only authorized Municipal Officers or Administrators can issue a Supervisory Final Affirmation."
-        )
-
     complaint = db.query(ComplaintModel).filter(ComplaintModel.id == complaint_id).first()
     if not complaint:
         raise HTTPException(status_code=404, detail="Complaint not found")
 
-    payload = await request.json()
-    supervisor_notes = str(payload.get("notes", "Supervisory field audit confirmed repair meets MCGM municipal standards. Reopen dismissed as vexatious.")).strip()
+    # Ward scope for officers
+    if current_user.role == "officer" and current_user.ward_id != complaint.ward_id:
+        raise HTTPException(
+            status_code=403,
+            detail=f"Access denied: You cannot affirm complaints outside Ward {current_user.ward_id}.",
+        )
 
+    try:
+        payload = await request.json()
+    except Exception:
+        payload = {}
+
+    supervisor_notes = str(payload.get("notes", "Supervisory field audit confirmed repair meets MCGM standards.")).strip()
+
+    prev_status = complaint.status
     complaint.status = "resolved"
     complaint.is_permanently_locked = True
     complaint.resolved_at = datetime.now(timezone.utc)
@@ -806,20 +1022,19 @@ async def affirm_resolution(
         complaint_id=complaint_id,
         officer_id=current_user.id,
         officer_name=f"{current_user.name} (Supervisory Engineer)",
-        previous_status=complaint.status,
+        previous_status=prev_status,
         new_status="resolved",
         notes=f"Supervisory Affirmation & Lock: {supervisor_notes}",
         image_url=payload.get("auditPhotoUrl") or complaint.resolved_image_url,
     ))
 
-    # Notify citizen of final determination
     if complaint.created_by_id:
         db.add(NotificationModel(
             id=f"notif-{uuid.uuid4().hex[:10]}",
             user_id=complaint.created_by_id,
             type="status_update",
             title=f"Supervisory Determination on #{complaint_id}",
-            body=f"Executive Engineer reviewed repair. Resolution affirmed and permanently finalized.",
+            body="Executive Engineer reviewed repair. Resolution affirmed and permanently finalized.",
             complaint_id=complaint_id,
             is_read=False,
         ))
@@ -832,30 +1047,27 @@ async def affirm_resolution(
 @app.post("/api/complaints/{complaint_id}/feedback")
 async def submit_feedback(
     complaint_id: str,
-    request: Request,
-    current_user: Optional[UserModel] = Depends(get_current_user_from_token),
-    db: Session = Depends(get_db)
+    body: FeedbackRequest,
+    current_user: UserModel = Depends(require_auth),
+    db: Session = Depends(get_db),
 ):
     complaint = db.query(ComplaintModel).filter(ComplaintModel.id == complaint_id).first()
     if not complaint:
         raise HTTPException(status_code=404, detail="Complaint not found")
 
-    payload = await request.json()
-    rating = int(payload.get("rating", 5))
-    if rating < 1 or rating > 5:
-        raise HTTPException(status_code=400, detail="Rating must be between 1 and 5 stars.")
+    if complaint.created_by_id != current_user.id:
+        raise HTTPException(
+            status_code=403,
+            detail="Access denied: Only the citizen who filed this grievance may submit feedback.",
+        )
 
-    tags = payload.get("tags", [])
-    if isinstance(tags, list):
-        tags_str = ",".join(tags)
-    else:
-        tags_str = str(tags)
+    if complaint.status != "resolved":
+        raise HTTPException(status_code=400, detail="Feedback can only be submitted on resolved grievances.")
 
-    comment = str(payload.get("comment", "")).strip()
-
-    complaint.rating = rating
+    tags_str = ",".join(body.tags) if isinstance(body.tags, list) else ""
+    complaint.rating = body.rating
     complaint.feedback_tags = tags_str
-    complaint.feedback_comment = comment
+    complaint.feedback_comment = (body.comment or "").strip()
 
     db.commit()
     db.refresh(complaint)
@@ -889,20 +1101,19 @@ async def get_whatsapp_telemetry(complaint_id: str, db: Session = Depends(get_db
         f"• *Ticket ID:* #{complaint.id}\n"
         f"• *Issue:* {complaint.title}\n"
         f"• *Category:* {complaint.category}\n"
-        f"• *Ward Jurisdiction:* {ward_name}\n"
+        f"• *Ward:* {ward_name}\n"
         f"• *Status:* {status_text}\n"
-        f"• *Assigned Officer:* {officer_name}\n"
-        f"• *Severity Index:* {complaint.severity}/100\n"
+        f"• *Officer:* {officer_name}\n"
+        f"• *Severity:* {complaint.severity}/100\n"
         f"• *Landmark:* {complaint.landmark or 'Greater Mumbai'}\n"
-        f"• *Live Portal Tracker:* https://kaiser.mcgm.gov.in/app/complaints/{complaint.id}\n"
         f"-----------------------------------------\n"
-        f"_Kaiser AI 24x7 Civic Platform • Government of Maharashtra_"
+        f"_Kaiser AI 24x7 Civic Platform_"
     )
 
     import urllib.parse
-    encoded_text = urllib.parse.quote(msg)
-    share_url = f"https://api.whatsapp.com/send?text={encoded_text}"
-    bot_url = f"https://api.whatsapp.com/send?phone=919869407777&text={urllib.parse.quote(f'STATUS {complaint.id}')}"
+    encoded = urllib.parse.quote(msg)
+    share_url = f"https://api.whatsapp.com/send?text={encoded}"
+    bot_url = f"https://api.whatsapp.com/send?phone=919869407777&text={urllib.parse.quote('STATUS ' + complaint.id)}"
 
     return {
         "success": True,
@@ -911,30 +1122,39 @@ async def get_whatsapp_telemetry(complaint_id: str, db: Session = Depends(get_db
             "message": msg,
             "shareUrl": share_url,
             "botUrl": bot_url,
-            "bmcHelpline": "+91 98694 07777"
-        }
+            "bmcHelpline": "+91 98694 07777",
+        },
     }
 
 
+# ==============================================================================
+# Citizen Certificate
+# ==============================================================================
+
 @app.get("/api/citizens/{user_id}/certificate")
-async def get_citizen_certificate(user_id: str, db: Session = Depends(get_db)):
+async def get_citizen_certificate(
+    user_id: str,
+    current_user: UserModel = Depends(require_auth),
+    db: Session = Depends(get_db),
+):
+    """Returns citizen certificate. Citizens may only get their own. Admins can get any."""
+    if current_user.role == "citizen" and current_user.id != user_id:
+        raise HTTPException(status_code=403, detail="Access denied: You may only view your own certificate.")
+
     user = db.query(UserModel).filter(UserModel.id == user_id).first()
     if not user:
-        user = db.query(UserModel).filter(UserModel.email == "priya.nair@example.com").first()
-
-    name = user.name if user else "Priya Nair"
-    ward_name = user.ward_name if user else "G/N Ward – Bandra (North)"
+        raise HTTPException(status_code=404, detail="Citizen not found.")
 
     resolved_count = db.query(ComplaintModel).filter(
-        ComplaintModel.created_by_id == (user.id if user else "user-001"),
+        ComplaintModel.created_by_id == user.id,
         ComplaintModel.status == "resolved"
-    ).count() or 14
+    ).count()
 
     total_count = db.query(ComplaintModel).filter(
-        ComplaintModel.created_by_id == (user.id if user else "user-001")
-    ).count() or 18
+        ComplaintModel.created_by_id == user.id
+    ).count()
 
-    karma = 840 + (resolved_count * 50)
+    karma = resolved_count * 50 + total_count * 10
     hash_seed = f"MCGM-HONOR-{user_id}-{karma}-2026"
     cert_hash = hashlib.sha256(hash_seed.encode("utf-8")).hexdigest()[:12].upper()
     cert_id = f"BMC-CIVIC-2026-{cert_hash[:6]}"
@@ -943,17 +1163,16 @@ async def get_citizen_certificate(user_id: str, db: Session = Depends(get_db)):
         "success": True,
         "data": {
             "certificateId": cert_id,
-            "citizenName": name,
-            "wardName": ward_name,
+            "citizenName": user.name,
+            "wardName": user.ward_name or "Mumbai Ward",
             "civicKarma": karma,
             "issuesResolved": resolved_count,
             "totalReports": total_count,
             "issueDate": datetime.now().strftime("%B %Y"),
-            "authorizedBy": "Rajendra Mehta, IAS",
-            "designation": "Municipal Commissioner, Greater Mumbai",
+            "authorizedBy": "Municipal Commissioner, Greater Mumbai",
+            "designation": "Brihanmumbai Municipal Corporation",
             "verificationHash": cert_hash,
-            "verificationUrl": f"https://kaiser.mcgm.gov.in/verify-certificate/{cert_id}"
-        }
+        },
     }
 
 
@@ -963,7 +1182,12 @@ async def get_citizen_certificate(user_id: str, db: Session = Depends(get_db)):
 
 @app.get("/api/complaints/{complaint_id}/comments")
 async def get_comments(complaint_id: str, db: Session = Depends(get_db)):
-    comments = db.query(CommentModel).filter(CommentModel.complaint_id == complaint_id).order_by(CommentModel.created_at.asc()).all()
+    comments = (
+        db.query(CommentModel)
+        .filter(CommentModel.complaint_id == complaint_id)
+        .order_by(CommentModel.created_at.asc())
+        .all()
+    )
     return {
         "success": True,
         "data": [
@@ -971,42 +1195,31 @@ async def get_comments(complaint_id: str, db: Session = Depends(get_db)):
                 "id": c.id,
                 "author": {"id": c.author_id or "u-anon", "name": c.author_name, "role": c.author_role},
                 "text": c.text,
-                "createdAt": c.created_at.isoformat() if c.created_at else datetime.now(timezone.utc).isoformat()
+                "createdAt": c.created_at.isoformat() if c.created_at else datetime.now(timezone.utc).isoformat(),
             }
             for c in comments
-        ]
+        ],
     }
 
 
 @app.post("/api/complaints/{complaint_id}/comments")
 async def add_comment(
     complaint_id: str,
-    request: Request,
-    current_user: Optional[UserModel] = Depends(get_current_user_from_token),
-    db: Session = Depends(get_db)
+    body: CommentCreateRequest,
+    current_user: UserModel = Depends(require_auth),
+    db: Session = Depends(get_db),
 ):
-    content_type = request.headers.get("content-type", "")
-    if "application/json" in content_type:
-        body = await request.json()
-        text = str(body.get("text", "")).strip()
-    else:
-        form = await request.form()
-        text = str(form.get("text", "")).strip()
-
-    if not text:
-        raise HTTPException(status_code=400, detail="Comment text cannot be empty.")
-
-    author_id = current_user.id if current_user else "user-001"
-    author_name = current_user.name if current_user else "Priya Nair"
-    author_role = current_user.role if current_user else "citizen"
+    complaint = db.query(ComplaintModel).filter(ComplaintModel.id == complaint_id).first()
+    if not complaint:
+        raise HTTPException(status_code=404, detail="Complaint not found")
 
     new_comment = CommentModel(
         id=f"comm-{uuid.uuid4().hex[:10]}",
         complaint_id=complaint_id,
-        author_id=author_id,
-        author_name=author_name,
-        author_role=author_role,
-        text=text,
+        author_id=current_user.id,
+        author_name=current_user.name,
+        author_role=current_user.role,
+        text=body.text,
     )
     db.add(new_comment)
     db.commit()
@@ -1016,15 +1229,15 @@ async def add_comment(
         "success": True,
         "data": {
             "id": new_comment.id,
-            "author": {"id": author_id, "name": author_name, "role": author_role},
+            "author": {"id": current_user.id, "name": current_user.name, "role": current_user.role},
             "text": new_comment.text,
             "createdAt": new_comment.created_at.isoformat(),
-        }
+        },
     }
 
 
 # ==============================================================================
-# Wards List Endpoint
+# Wards Endpoint
 # ==============================================================================
 
 @app.get("/api/wards")
@@ -1034,87 +1247,85 @@ async def get_wards(db: Session = Depends(get_db)):
         "success": True,
         "data": [
             {
-                "id": w.id,
-                "name": w.name,
-                "code": w.code,
-                "zone": w.zone,
-                "area": w.area,
-                "ac": w.ac_name,
-                "phone": w.phone,
-                "email": w.email,
-                "address": w.address,
-                "lat": w.lat,
-                "lng": w.lng,
+                "id": w.id, "name": w.name, "code": w.code, "zone": w.zone,
+                "area": w.area, "ac": w.ac_name, "phone": w.phone, "email": w.email,
+                "address": w.address, "lat": w.lat, "lng": w.lng,
             }
             for w in wards
-        ]
+        ],
     }
 
 
 # ==============================================================================
-# Notifications Stream Endpoints
+# Notifications Endpoints — all require auth, scoped to current user
 # ==============================================================================
 
 @app.get("/api/notifications")
 async def get_notifications(
-    user_id: Optional[str] = None,
-    current_user: Optional[UserModel] = Depends(get_current_user_from_token),
-    db: Session = Depends(get_db)
+    current_user: UserModel = Depends(require_auth),
+    db: Session = Depends(get_db),
 ):
-    query = db.query(NotificationModel)
-    effective_user = user_id or (current_user.id if current_user else None)
-    if effective_user:
-        query = query.filter(
-            (NotificationModel.user_id == effective_user) |
-            (NotificationModel.user_id.is_(None))
-        )
-    notifs = query.order_by(NotificationModel.created_at.desc()).all()
+    """Returns notifications for the authenticated user only."""
+    notifs = (
+        db.query(NotificationModel)
+        .filter(NotificationModel.user_id == current_user.id)
+        .order_by(NotificationModel.created_at.desc())
+        .limit(50)
+        .all()
+    )
     return {
         "success": True,
         "data": [
             {
-                "id": n.id,
-                "type": n.type,
-                "title": n.title,
-                "body": n.body,
-                "complaintId": n.complaint_id,
-                "isRead": n.is_read,
+                "id": n.id, "type": n.type, "title": n.title, "body": n.body,
+                "complaintId": n.complaint_id, "isRead": n.is_read,
                 "createdAt": n.created_at.isoformat() if n.created_at else datetime.now(timezone.utc).isoformat(),
             }
             for n in notifs
-        ]
+        ],
     }
 
 
 @app.patch("/api/notifications/{notification_id}/read")
-async def mark_notification_read(notification_id: str, db: Session = Depends(get_db)):
+async def mark_notification_read(
+    notification_id: str,
+    current_user: UserModel = Depends(require_auth),
+    db: Session = Depends(get_db),
+):
     notif = db.query(NotificationModel).filter(NotificationModel.id == notification_id).first()
-    if notif:
-        notif.is_read = True
-        db.commit()
-        return {"success": True, "data": {"id": notification_id, "isRead": True}}
-    raise HTTPException(status_code=404, detail="Notification not found")
+    if not notif:
+        raise HTTPException(status_code=404, detail="Notification not found")
+    if notif.user_id != current_user.id:
+        raise HTTPException(status_code=403, detail="Access denied.")
+    notif.is_read = True
+    db.commit()
+    return {"success": True, "data": {"id": notification_id, "isRead": True}}
 
 
 @app.patch("/api/notifications/read-all")
 async def mark_all_notifications_read(
-    current_user: Optional[UserModel] = Depends(get_current_user_from_token),
-    db: Session = Depends(get_db)
+    current_user: UserModel = Depends(require_auth),
+    db: Session = Depends(get_db),
 ):
-    query = db.query(NotificationModel)
-    if current_user:
-        query = query.filter(
-            (NotificationModel.user_id == current_user.id) |
-            (NotificationModel.user_id.is_(None))
-        )
-    query.update({NotificationModel.is_read: True}, synchronize_session=False)
+    db.query(NotificationModel).filter(
+        NotificationModel.user_id == current_user.id
+    ).update({NotificationModel.is_read: True}, synchronize_session=False)
     db.commit()
     return {"success": True, "data": {"message": "All notifications marked as read"}}
 
 
 @app.delete("/api/notifications/{notification_id}")
-async def delete_notification(notification_id: str, db: Session = Depends(get_db)):
-    db.query(NotificationModel).filter(NotificationModel.id == notification_id).delete()
+async def delete_notification(
+    notification_id: str,
+    current_user: UserModel = Depends(require_auth),
+    db: Session = Depends(get_db),
+):
+    notif = db.query(NotificationModel).filter(NotificationModel.id == notification_id).first()
+    if not notif:
+        raise HTTPException(status_code=404, detail="Notification not found")
+    if notif.user_id != current_user.id:
+        raise HTTPException(status_code=403, detail="Access denied.")
+    db.delete(notif)
     db.commit()
     return {"success": True, "data": {"success": True, "id": notification_id}}
 
@@ -1122,27 +1333,24 @@ async def delete_notification(notification_id: str, db: Session = Depends(get_db
 @app.post("/api/notifications")
 async def create_notification(
     request: Request,
-    db: Session = Depends(get_db)
+    current_user: UserModel = Depends(require_auth),
+    db: Session = Depends(get_db),
 ):
+    """Internal notification creation. Always assigned to current user."""
     try:
         body = await request.json()
     except Exception:
-        try:
-            form = await request.form()
-            body = dict(form)
-        except Exception:
-            body = {}
+        body = {}
 
-    title = str(body.get("title", "Civic Alert")).strip()
-    body_text = str(body.get("body", "")).strip()
+    title = str(body.get("title", "Civic Alert")).strip()[:255]
+    body_text = str(body.get("body", "")).strip()[:1000]
     notif_type = str(body.get("type", "status_update"))
     complaint_id = body.get("complaintId") or body.get("complaint_id")
-    user_id = body.get("userId") or body.get("user_id")
 
     notif_id = f"notif-{int(datetime.now().timestamp())}-{uuid.uuid4().hex[:6]}"
     notif = NotificationModel(
         id=notif_id,
-        user_id=user_id,
+        user_id=current_user.id,  # Always current user, never from request body
         type=notif_type,
         title=title,
         body=body_text,
@@ -1156,61 +1364,69 @@ async def create_notification(
     return {
         "success": True,
         "data": {
-            "id": notif.id,
-            "type": notif.type,
-            "title": notif.title,
-            "body": notif.body,
-            "complaintId": notif.complaint_id,
+            "id": notif.id, "type": notif.type, "title": notif.title,
+            "body": notif.body, "complaintId": notif.complaint_id,
             "isRead": notif.is_read,
             "createdAt": notif.created_at.isoformat() if notif.created_at else datetime.now(timezone.utc).isoformat(),
-        }
+        },
     }
 
 
 # ==============================================================================
-# Weather & Air Quality Intelligence Endpoint (Open-Meteo Live Integration)
+# Weather & AQI (Open-Meteo — uses httpx async client)
 # ==============================================================================
 
 REVERSE_GEO_CACHE: Dict[str, Dict[str, Any]] = {}
 
+
 @app.get("/api/weather/{lat}/{lng}")
 async def get_weather_telemetry(lat: float, lng: float):
     """
-    Hyper-local Mumbai weather, rainfall, tidal level, and AQI telemetry.
-    Integrates live zero-key satellite telemetry from Open-Meteo with local meteorological fallback.
+    Hyper-local weather, rainfall, and AQI telemetry via Open-Meteo.
+    Falls back to coordinate-derived estimates clearly labeled as estimates.
     """
+    # Default values (estimate, clearly labeled)
     temp = round(29.5 + ((abs(lat) * 10) % 3) * 0.8, 1)
     humidity = int(72 + ((abs(lng) * 10) % 15))
     wind = round(14.0 + ((abs(lat) * 5) % 6), 1)
     rainfall = round(max(0.0, ((abs(lat) + abs(lng)) * 10 % 8) - 2), 1)
     aqi = int(90 + ((abs(lat) * 100) % 65))
-    source = "Municipal Meteorological Sensor Array (Local)"
+    source = "Local Estimate (Live API unavailable)"
+    live_data = False
 
-    # Live Open-Meteo Free Telemetry (Zero-cost, Zero-key)
     try:
-        w_url = f"https://api.open-meteo.com/v1/forecast?latitude={lat}&longitude={lng}&current=temperature_2m,relative_humidity_2m,precipitation,wind_speed_10m&timezone=auto"
-        w_res = requests.get(w_url, timeout=2.5)
-        if w_res.status_code == 200:
-            curr = w_res.json().get("current", {})
-            if "temperature_2m" in curr and curr["temperature_2m"] is not None:
-                temp = float(curr["temperature_2m"])
-            if "relative_humidity_2m" in curr and curr["relative_humidity_2m"] is not None:
-                humidity = int(curr["relative_humidity_2m"])
-            if "wind_speed_10m" in curr and curr["wind_speed_10m"] is not None:
-                wind = float(curr["wind_speed_10m"])
-            if "precipitation" in curr and curr["precipitation"] is not None:
-                rainfall = float(curr["precipitation"])
-            source = "Open-Meteo Global Satellite & Radar Telemetry (Live)"
+        async with httpx.AsyncClient(timeout=4.0) as client:
+            w_url = (
+                f"https://api.open-meteo.com/v1/forecast"
+                f"?latitude={lat}&longitude={lng}"
+                f"&current=temperature_2m,relative_humidity_2m,precipitation,wind_speed_10m"
+                f"&timezone=auto"
+            )
+            w_res = await client.get(w_url)
+            if w_res.status_code == 200:
+                curr = w_res.json().get("current", {})
+                if curr.get("temperature_2m") is not None:
+                    temp = float(curr["temperature_2m"])
+                if curr.get("relative_humidity_2m") is not None:
+                    humidity = int(curr["relative_humidity_2m"])
+                if curr.get("wind_speed_10m") is not None:
+                    wind = float(curr["wind_speed_10m"])
+                if curr.get("precipitation") is not None:
+                    rainfall = float(curr["precipitation"])
+                live_data = True
+                source = "Open-Meteo Global Satellite & Radar Telemetry (Live)"
 
-        # Live Atmospheric Air Quality (PM10, PM2.5, US AQI)
-        aq_url = f"https://air-quality-api.open-meteo.com/v1/air-quality?latitude={lat}&longitude={lng}&current=pm10,pm2_5,us_aqi"
-        aq_res = requests.get(aq_url, timeout=2.5)
-        if aq_res.status_code == 200:
-            aq_curr = aq_res.json().get("current", {})
-            if "us_aqi" in aq_curr and aq_curr["us_aqi"] is not None:
-                aqi = int(aq_curr["us_aqi"])
+            aq_url = (
+                f"https://air-quality-api.open-meteo.com/v1/air-quality"
+                f"?latitude={lat}&longitude={lng}&current=pm10,pm2_5,us_aqi"
+            )
+            aq_res = await client.get(aq_url)
+            if aq_res.status_code == 200:
+                aq_curr = aq_res.json().get("current", {})
+                if aq_curr.get("us_aqi") is not None:
+                    aqi = int(aq_curr["us_aqi"])
     except Exception as e:
-        logger.debug(f"Live meteorological telemetry notice (using local calculation): {e}")
+        logger.debug(f"Live weather API unavailable, using estimate: {e}")
 
     status_level = "Severe" if aqi > 200 else "Moderate" if aqi > 100 else "Good"
 
@@ -1218,7 +1434,7 @@ async def get_weather_telemetry(lat: float, lng: float):
         "success": True,
         "data": {
             "temperature": temp,
-            "condition": "Humid & Partly Cloudy" if rainfall == 0 else "Intermittent Monsoon Showers" if rainfall < 10 else "Heavy Monsoon Downpour",
+            "condition": "Humid & Partly Cloudy" if rainfall == 0 else "Intermittent Showers" if rainfall < 10 else "Heavy Monsoon",
             "humidity": humidity,
             "windSpeed": wind,
             "rainfallMm": rainfall,
@@ -1232,38 +1448,36 @@ async def get_weather_telemetry(lat: float, lng: float):
             "pm25": int(aqi * 0.42),
             "pm10": int(aqi * 0.78),
             "source": source,
-            "updatedAt": datetime.now(timezone.utc).isoformat()
-        }
+            "isLiveData": live_data,
+            "updatedAt": datetime.now(timezone.utc).isoformat(),
+        },
     }
 
 
 # ==============================================================================
-# Zero-Key OpenStreetMap Nominatim Reverse Geocoding Service
+# Reverse Geocoding (OpenStreetMap Nominatim)
 # ==============================================================================
 
 @app.get("/api/geo/reverse")
 async def reverse_geocode_osm(lat: float, lng: float):
-    """
-    Zero-cost OpenStreetMap Nominatim reverse geocoding service.
-    Resolves GPS coordinates to human-readable Mumbai street address, ward, and PIN code.
-    """
+    """Zero-cost OpenStreetMap Nominatim reverse geocoding."""
     cache_key = f"{round(lat, 4)},{round(lng, 4)}"
     if cache_key in REVERSE_GEO_CACHE:
         return {"success": True, "data": REVERSE_GEO_CACHE[cache_key], "source": "Cache"}
 
     try:
         url = f"https://nominatim.openstreetmap.org/reverse?lat={lat}&lon={lng}&format=json&zoom=18&addressdetails=1"
-        headers = {"User-Agent": "KaiserCivicGov/1.0 (mumbai-civic-intelligence)"}
-        resp = requests.get(url, headers=headers, timeout=4.0)
+        headers = {"User-Agent": "KaiserCivicGov/2.1 (mumbai-civic-intelligence)"}
+        async with httpx.AsyncClient(timeout=4.0) as client:
+            resp = await client.get(url, headers=headers)
         if resp.status_code == 200:
             raw = resp.json()
             addr = raw.get("address", {})
             road = addr.get("road") or addr.get("pedestrian") or addr.get("neighbourhood") or "Municipal Arterial Road"
-            suburb = addr.get("suburb") or addr.get("city_district") or addr.get("county") or "Mumbai"
+            suburb = addr.get("suburb") or addr.get("city_district") or "Mumbai"
             pincode = addr.get("postcode") or "400001"
             display_name = raw.get("display_name", f"{road}, {suburb}, Mumbai {pincode}")
 
-            # Extract BMC ward code if listed or match by known localities
             ward_code = "H/W"
             for k, v in addr.items():
                 if "ward" in str(v).lower():
@@ -1282,11 +1496,10 @@ async def reverse_geocode_osm(lat: float, lng: float):
             if len(REVERSE_GEO_CACHE) > 500:
                 REVERSE_GEO_CACHE.clear()
             REVERSE_GEO_CACHE[cache_key] = result
-            return {"success": True, "data": result, "source": "OpenStreetMap Nominatim (Live Zero-Key)"}
+            return {"success": True, "data": result, "source": "OpenStreetMap Nominatim (Live)"}
     except Exception as e:
         logger.warning(f"Nominatim reverse geocoding notice: {e}")
 
-    # Fallback to local coordinate resolution
     fallback = {
         "displayName": f"Location near ({round(lat, 4)}, {round(lng, 4)}), Mumbai, Maharashtra",
         "road": "Municipal Zone",
@@ -1300,43 +1513,37 @@ async def reverse_geocode_osm(lat: float, lng: float):
 
 
 # ==============================================================================
-# Analytics & Reports Endpoints
+# Analytics & Reports — require officer/admin for dashboard
 # ==============================================================================
 
 @app.get("/api/analytics/dashboard")
 async def get_dashboard_analytics(
-    current_user: Optional[UserModel] = Depends(get_current_user_from_token),
-    db: Session = Depends(get_db)
+    current_user: UserModel = Depends(require_officer_or_admin),
+    db: Session = Depends(get_db),
 ):
-    if current_user and current_user.role == "citizen":
-        raise HTTPException(
-            status_code=403,
-            detail="Access forbidden: Municipal command analytics are restricted to authorized personnel"
-        )
     total = db.query(ComplaintModel).count()
     resolved = db.query(ComplaintModel).filter(ComplaintModel.status == "resolved").count()
     high_priority = db.query(ComplaintModel).filter(
         ComplaintModel.status != "resolved",
-        ComplaintModel.severity >= 80
+        ComplaintModel.severity >= 80,
     ).count()
-    rate = round((resolved / total * 100), 1) if total > 0 else 82.5
-
-    active_officers_count = db.query(UserModel).filter(UserModel.role == "officer").count() or 24
+    rate = round((resolved / total * 100), 1) if total > 0 else 0.0
+    active_officers_count = db.query(UserModel).filter(UserModel.role == "officer").count()
 
     return {
         "success": True,
         "data": {
-            "totalComplaints": total or 14827,
-            "resolvedComplaints": resolved or 11204,
+            "totalComplaints": total,
+            "resolvedComplaints": resolved,
             "resolutionRate": rate,
-            "avgResolutionDays": 3.4,
+            "avgResolutionDays": None,  # Would need timestamps analysis
             "activeOfficers": active_officers_count,
-            "highPriorityOpen": high_priority or 118,
-            "citizenSatisfaction": 4.3,
+            "highPriorityOpen": high_priority,
+            "citizenSatisfaction": None,
             "complaintsThisMonth": total,
-            "complaintsLastMonth": max(1, total - 2),
-            "monthlyGrowth": 17.7,
-        }
+            "complaintsLastMonth": 0,
+            "monthlyGrowth": 0.0,
+        },
     }
 
 
@@ -1349,15 +1556,15 @@ async def get_category_analytics(db: Session = Depends(get_db)):
 
     for cat in categories:
         count = db.query(ComplaintModel).filter(ComplaintModel.category.ilike(cat)).count()
-        resolved = db.query(ComplaintModel).filter(
+        resolved_cnt = db.query(ComplaintModel).filter(
             ComplaintModel.category.ilike(cat),
-            ComplaintModel.status == "resolved"
+            ComplaintModel.status == "resolved",
         ).count()
         results.append({
             "category": cat,
-            "count": count if count > 0 else 12,
-            "resolved": resolved if resolved > 0 else 8,
-            "percentage": round((count / total) * 100, 1) if count > 0 else 16.6
+            "count": count,
+            "resolved": resolved_cnt,
+            "percentage": round((count / total) * 100, 1),
         })
 
     return {"success": True, "data": results}
@@ -1366,68 +1573,103 @@ async def get_category_analytics(db: Session = Depends(get_db)):
 @app.get("/api/analytics/wards")
 @app.get("/api/analytics/by-ward")
 async def get_ward_analytics(db: Session = Depends(get_db)):
-    return {
-        "success": True,
-        "data": [
-            {"ward": "K/E Ward", "wardId": 12, "total": 1247, "resolved": 891, "pending": 356, "avgDays": 3.2, "officers": 6, "rate": 71.4},
-            {"ward": "G/N Ward", "wardId": 8, "total": 1189, "resolved": 967, "pending": 222, "avgDays": 2.8, "officers": 5, "rate": 81.3},
-            {"ward": "R/N Ward", "wardId": 21, "total": 1034, "resolved": 712, "pending": 322, "avgDays": 4.1, "officers": 4, "rate": 68.9},
-            {"ward": "K/W Ward", "wardId": 13, "total": 987, "resolved": 801, "pending": 186, "avgDays": 2.4, "officers": 5, "rate": 81.2},
-            {"ward": "P/N Ward", "wardId": 18, "total": 934, "resolved": 623, "pending": 311, "avgDays": 4.8, "officers": 3, "rate": 66.7},
-            {"ward": "L Ward", "wardId": 14, "total": 891, "resolved": 734, "pending": 157, "avgDays": 3.0, "officers": 4, "rate": 82.4},
-        ]
-    }
+    """Computes real ward-level analytics from the database."""
+    wards = db.query(WardModel).order_by(WardModel.id.asc()).all()
+    results = []
+    for w in wards:
+        ward_total = db.query(ComplaintModel).filter(ComplaintModel.ward_id == w.id).count()
+        ward_resolved = db.query(ComplaintModel).filter(
+            ComplaintModel.ward_id == w.id,
+            ComplaintModel.status == "resolved",
+        ).count()
+        ward_pending = ward_total - ward_resolved
+        officers_count = db.query(UserModel).filter(
+            UserModel.role == "officer",
+            UserModel.ward_id == w.id,
+        ).count()
+        rate = round((ward_resolved / ward_total * 100), 1) if ward_total > 0 else 0.0
+        results.append({
+            "ward": w.name,
+            "wardId": w.id,
+            "total": ward_total,
+            "resolved": ward_resolved,
+            "pending": ward_pending,
+            "avgDays": None,
+            "officers": officers_count,
+            "rate": rate,
+        })
+    return {"success": True, "data": results}
 
 
 @app.get("/api/analytics/resolution-trends")
 @app.get("/api/analytics/trends")
-async def get_resolution_trends():
+async def get_resolution_trends(db: Session = Depends(get_db)):
+    """Returns real monthly complaint counts from the database."""
+    from sqlalchemy import func, extract
+    rows = (
+        db.query(
+            extract("year", ComplaintModel.created_at).label("year"),
+            extract("month", ComplaintModel.created_at).label("month"),
+            func.count(ComplaintModel.id).label("total"),
+            func.count(
+                ComplaintModel.id
+            ).filter(ComplaintModel.status == "resolved").label("resolved_count"),
+        )
+        .group_by("year", "month")
+        .order_by("year", "month")
+        .limit(12)
+        .all()
+    )
+
+    month_names = ["Jan", "Feb", "Mar", "Apr", "May", "Jun",
+                   "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"]
+
+    trends = [
+        {
+            "month": month_names[int(r.month) - 1],
+            "reported": r.total,
+            "resolved": r.resolved_count,
+            "avgDays": None,
+        }
+        for r in rows
+    ]
+
     return {
         "success": True,
         "data": {
-            "trends": [
-                {"month": "Apr", "reported": 892, "resolved": 701, "avgDays": 4.2},
-                {"month": "May", "reported": 1034, "resolved": 812, "avgDays": 3.9},
-                {"month": "Jun", "reported": 1421, "resolved": 987, "avgDays": 4.7},
-                {"month": "Jul", "reported": 1876, "resolved": 1234, "avgDays": 5.1},
-                {"month": "Aug", "reported": 2143, "resolved": 1567, "avgDays": 4.8},
-                {"month": "Sep", "reported": 1987, "resolved": 1645, "avgDays": 3.7},
-            ],
-            "weatherCorrelation": [
-                {"month": "Apr", "complaints": 892,  "avgAQI": 98},
-                {"month": "May", "complaints": 1034, "avgAQI": 112},
-                {"month": "Jun", "complaints": 1421, "avgAQI": 134},
-                {"month": "Jul", "complaints": 1876, "avgAQI": 158},
-                {"month": "Aug", "complaints": 2143, "avgAQI": 167},
-                {"month": "Sep", "complaints": 1987, "avgAQI": 141},
-            ]
-        }
+            "trends": trends,
+            "weatherCorrelation": [],
+        },
     }
 
 
 # ==============================================================================
-# Mount Machine Learning Engine directly on Port 5000 under /api/ml
+# Health Check
 # ==============================================================================
-app.include_router(ml_router, prefix="/api/ml", tags=["Machine Learning"])
-
-
-# ==============================================================================
-# Static File & Uploads Serving
-# ==============================================================================
-
-uploads_dir = os.path.join(os.path.dirname(__file__), "uploads")
-os.makedirs(uploads_dir, exist_ok=True)
-app.mount("/uploads", StaticFiles(directory=uploads_dir), name="uploads")
-
 
 @app.get("/api/health")
 async def health_check():
     return {
         "status": "healthy",
         "service": "Kaiser AI Unified Python Backend",
-        "engine": "FastAPI + PostGIS/SQLite + YOLOv8",
-        "timestamp": datetime.now(timezone.utc).isoformat()
+        "version": "2.1.0",
+        "timestamp": datetime.now(timezone.utc).isoformat(),
     }
+
+
+# ==============================================================================
+# ML Router (mounted at /api/ml)
+# ==============================================================================
+app.include_router(ml_router, prefix="/api/ml", tags=["Machine Learning"])
+
+
+# ==============================================================================
+# Static File & Uploads Serving (local fallback when S3 not configured)
+# ==============================================================================
+
+uploads_dir = os.path.join(os.path.dirname(__file__), "uploads")
+os.makedirs(uploads_dir, exist_ok=True)
+app.mount("/uploads", StaticFiles(directory=uploads_dir), name="uploads")
 
 
 # Serve React production build if available

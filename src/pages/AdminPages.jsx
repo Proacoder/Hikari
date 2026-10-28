@@ -297,7 +297,7 @@ export const AdminDashboard = () => {
         ))}
       </div>
 
-      {/* SECTION: 24-Ward Municipal Scorecard & Grid */}
+      {/* SECTION: 26-Ward Municipal Scorecard & Grid */}
       {activeSection === 'wards' && (
         <div className="space-y-6">
           {/* Header & Controls */}

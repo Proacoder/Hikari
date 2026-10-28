@@ -1,16 +1,22 @@
+# ── Core Backend ──────────────────────────────────────────────────────────────
 fastapi>=0.109.0
 uvicorn>=0.27.0
 python-multipart>=0.0.9
 pydantic>=2.5.0
 sqlalchemy>=2.0.0
 pyjwt>=2.8.0
-passlib>=1.7.4
-bcrypt>=4.0.0
 numpy>=1.24.0
 scikit-learn>=1.3.0
 pillow>=10.0.0
-ultralytics>=8.1.0
 requests>=2.31.0
 python-dotenv>=1.0.0
 httpx>=0.25.0
 psycopg2-binary>=2.9.9
+boto3>=1.34.0
+alembic>=1.13.0
+
+# ── Optional: YOLO Defect Detection (large install ~3 GB, requires torch) ──────
+# Install separately if you want visual AI detection:
+#   pip install ultralytics>=8.1.0
+# Without this, text-hint based classification still works (no YOLO).
+# ultralytics>=8.1.0
