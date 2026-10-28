@@ -232,7 +232,7 @@ const MunicipalReportModalContent = ({ onClose, complaints = [], _analytics = {}
               onChange={(e) => setSelectedWard(e.target.value)}
               className="bg-white border border-neutral-300 rounded-lg px-2.5 py-1 text-xs font-medium text-neutral-800 focus:ring-2 focus:ring-brand-500/20"
             >
-              <option value="ALL">All 26 Mumbai Administrative Wards</option>
+              <option value="ALL">All 24 Mumbai Administrative Wards</option>
               {MUMBAI_WARDS.map((w) => (
                 <option key={w.id} value={w.id}>
                   Ward #{w.id} · {w.name} – {w.area}

@@ -217,7 +217,7 @@ export const AboutPage = () => {
               <h3 className="text-xl sm:text-2xl font-bold text-neutral-900 mt-1">40,000+ Monsoon Hazards & Lost Complaints</h3>
             </div>
             <p className="text-sm text-neutral-600 leading-relaxed">
-              Every monsoon, heavy downpours batter Mumbai's road networks, resulting in thousands of dangerous potholes, overflowing storm drains, and open manholes across 26 disjointed administrative wards.
+              Every monsoon, heavy downpours batter Mumbai's road networks, resulting in thousands of dangerous potholes, overflowing storm drains, and open manholes across 24 disjointed administrative wards.
             </p>
             <div className="space-y-2.5 pt-2 text-xs text-neutral-600 border-t border-neutral-100">
               <div className="flex items-start gap-2">
@@ -423,7 +423,7 @@ export const AboutPage = () => {
           <div className="grid sm:grid-cols-3 gap-6 pt-2">
             <div className="p-5 bg-white/5 backdrop-blur-sm rounded-2xl border border-white/10 space-y-2">
               <div className="text-brand-400 font-bold text-sm flex items-center gap-1.5">
-                <Building2 size={16} /> 26 Administrative Wards
+                <Building2 size={16} /> 24 Administrative Wards
               </div>
               <p className="text-xs text-neutral-400 leading-relaxed">
                 Full administrative mapping from Zone 1 (Colaba) to Zone 7 (Dahisar, Mulund) with localized ward engineer hierarchy and contacts.

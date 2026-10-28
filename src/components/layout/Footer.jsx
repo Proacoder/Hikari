@@ -31,7 +31,7 @@ export const Footer = () => (
             </span>
           </div>
           <p className="text-sm text-neutral-400 leading-relaxed mb-5">
-            AI-powered civic issue reporting and resolution for Mumbai's 26 municipal wards. Making cities responsive, one report at a time.
+            AI-powered civic issue reporting and resolution for Mumbai's 24 municipal wards. Making cities responsive, one report at a time.
           </p>
           <div className="flex items-center gap-2 text-xs text-neutral-500">
             <span className="inline-flex items-center gap-1.5 px-2.5 py-1 bg-neutral-800 rounded-lg text-neutral-400 font-medium">
@@ -109,7 +109,7 @@ export const Footer = () => (
 
       <div className="mt-12 pt-6 border-t border-neutral-800 flex flex-col sm:flex-row justify-between items-center gap-3">
         <p className="text-xs text-neutral-500">
-          © 2026 Kaiser AI Civic Portal. Built to serve Mumbai's 26 Municipal Wards.
+          © 2026 Kaiser AI Civic Portal. Built to serve Mumbai's 24 Municipal Wards.
         </p>
         <p className="text-xs text-neutral-500">
           Independent civic technology initiative operating in alignment with open municipal governance standards.

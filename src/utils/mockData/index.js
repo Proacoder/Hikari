@@ -94,7 +94,7 @@ const makeDateAgo = (days) => {
   return d.toISOString();
 };
 
-// ─── 26 Officers — one per ward ──────────────────────────────────────────────
+// ─── 24 Officers — one per ward ──────────────────────────────────────────────
 export const MOCK_OFFICERS = [
   { id: 'officer-001', name: 'Rohit Sharma',     email: 'rohit.sharma@bmc.gov.in',     phone: '+91-22-24100001', ward: 1,  wardName: 'A Ward – Colaba, Cuffe Parade',              department: 'Roads & Infrastructure', employeeId: 'BMC/A/2019/001',   status: 'Available', assignedCount: 8,  resolvedCount: 142, avgResolutionDays: 3.8, rating: 4.2, password: 'Colaba@2024',   joinedAt: '2019-04-01T09:00:00Z', avatarInitials: 'RS' },
   { id: 'officer-002', name: 'Amol Desai',       email: 'amol.desai@bmc.gov.in',       phone: '+91-22-24100002', ward: 2,  wardName: 'B Ward – Dongri, Mandvi',                   department: 'Sanitation',            employeeId: 'BMC/B/2018/002',   status: 'Busy',      assignedCount: 21, resolvedCount: 234, avgResolutionDays: 3.2, rating: 4.6, password: 'Dongri@2024',   joinedAt: '2018-06-10T09:00:00Z', avatarInitials: 'AD' },
@@ -199,10 +199,10 @@ export const MOCK_COMPLAINTS = [
   makeCmp('cmp-046', 'Drainage overflow Mulund colony',     'Storm drain in Mulund colony unable to handle monsoon flow, flooding.',    'Drainage',      90, 19.1750, 72.9580, 23, DRAIN,   'in_progress','u-046','Laxmi Bhatt',  'officer-023','Mahesh Wagh',   198,28, 5, null),
   makeCmp('cmp-047', 'Garbage near Bhandup station',        'Garbage pile near Bhandup railway station platform entrance.',             'Garbage',       65, 19.1449, 72.9382, 24, GARBAGE, 'resolved',   'u-047','Girish Pawar', 'officer-024','Tanvi Bhosale', 56, 9,18, 5),
   makeCmp('cmp-048', 'Water supply pipeline broken Nahur',  'Main water supply pipeline broken in Nahur causing supply shortage.',      'Water Leakage', 88, 19.1470, 72.9400, 24, WATER,   'assigned',   'u-048','Sheetal Nair', 'officer-024','Tanvi Bhosale', 145,21, 3, null),
-  makeCmp('cmp-049', 'Pothole near Borivali East station',  'Series of potholes near Borivali East station exit causing congestion.',   'Pothole',       79, 19.2292, 72.8660, 25, POTHOLES,'in_progress','u-049','Ramesh Gupta', 'officer-025','Pratap Rane',   120,16, 7, null),
-  makeCmp('cmp-050', 'Drainage block Borivali East market', 'Storm drain block near Borivali East market causing frequent flooding.',   'Drainage',      87, 19.2310, 72.8680, 25, DRAIN,   'reported',   'u-050','Asha Sharma',  null,          null,             134,20, 2, null),
-  makeCmp('cmp-051', 'Overflowing bins near Malad station', 'Municipal bins near Malad railway station overflow daily.',                'Garbage',       70, 19.1875, 72.8448, 26, GARBAGE, 'assigned',   'u-051','Vijay Bhatt',  'officer-026','Devika Naik',   73, 9, 4, null),
-  makeCmp('cmp-052', 'Drainage overflow Malad West market', 'Main storm drain at Malad West market blocked, flooding shops.',           'Drainage',      91, 19.1890, 72.8460, 26, DRAIN,   'in_progress','u-052','Devendra Pawar','officer-026','Devika Naik',  218,32, 2, null),
+  makeCmp('cmp-049', 'Pothole near Borivali East station',  'Series of potholes near Borivali East station exit causing congestion.',   'Pothole',       79, 19.2292, 72.8660, 20, POTHOLES,'in_progress','u-049','Ramesh Gupta', 'officer-020','Harish Gaikwad',120,16, 7, null),
+  makeCmp('cmp-050', 'Drainage block Borivali East market', 'Storm drain block near Borivali East market causing frequent flooding.',   'Drainage',      87, 19.2310, 72.8680, 20, DRAIN,   'reported',   'u-050','Asha Sharma',  null,          null,             134,20, 2, null),
+  makeCmp('cmp-051', 'Overflowing bins near Malad station', 'Municipal bins near Malad railway station overflow daily.',                'Garbage',       70, 19.1875, 72.8448, 22, GARBAGE, 'assigned',   'u-051','Vijay Bhatt',  'officer-022','Shweta Ghosalkar',73, 9, 4, null),
+  makeCmp('cmp-052', 'Drainage overflow Malad West market', 'Main storm drain at Malad West market blocked, flooding shops.',           'Drainage',      91, 19.1890, 72.8460, 22, DRAIN,   'in_progress','u-052','Devendra Pawar','officer-022','Shweta Ghosalkar',218,32, 2, null),
 ];
 
 export const MOCK_NOTIFICATIONS = [
@@ -243,7 +243,7 @@ export const MOCK_ANALYTICS = {
     { ward: 'P/N Ward', wardId: 18, total:  934, resolved: 623,  pending: 311, avgDays: 4.8, officers: 3, rate: 66.7 },
     { ward: 'L Ward',   wardId: 14, total:  891, resolved: 734,  pending: 157, avgDays: 3.0, officers: 4, rate: 82.4 },
     { ward: 'N Ward',   wardId: 17, total:  823, resolved: 612,  pending: 211, avgDays: 3.9, officers: 3, rate: 74.4 },
-    { ward: 'RS Ward',  wardId: 26, total:  798, resolved: 543,  pending: 255, avgDays: 4.3, officers: 3, rate: 68.0 },
+    { ward: 'R/S Ward', wardId: 22, total:  798, resolved: 543,  pending: 255, avgDays: 4.3, officers: 3, rate: 68.0 },
     { ward: 'H/E Ward', wardId: 10, total:  754, resolved: 687,  pending:  67, avgDays: 2.1, officers: 4, rate: 91.1 },
     { ward: 'M/E Ward', wardId: 15, total:  712, resolved: 434,  pending: 278, avgDays: 5.6, officers: 2, rate: 61.0 },
   ],

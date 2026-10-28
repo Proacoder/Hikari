@@ -1,7 +1,7 @@
 # backend/seed_data.py
 """
 Complete seed data for Kaiser AI Civic Platform.
-Contains 26 Mumbai BMC Wards, Administrative Officers, Demo Citizens,
+Contains 24 Mumbai BMC Wards, Administrative Officers, Demo Citizens,
 Baseline Grievances, Notifications, and Audit Trails.
 """
 

@@ -11,7 +11,7 @@
 
 <p align="center">
   <b>Empowering Citizens. Streamlining Municipal Wards. Accelerating Resolution.</b><br />
-  Built for Mumbai’s 26 Municipal Wards (BMC) with intelligent automated triage, live geospatial mapping, and role-tailored dashboards.
+  Built for Mumbai’s 24 Municipal Wards (BMC) with intelligent automated triage, live geospatial mapping, and role-tailored dashboards.
 </p>
 
 [Explore Features](#-key-features) • [Quick Start](#-quick-start) • [Role Portals](#-role-portals) • [Architecture](#-architecture) • [Demo Credentials](#-default-demo-credentials)
@@ -43,7 +43,7 @@ By leveraging **AI classification**, **severity scoring**, and **geospatial rout
 - **Visual Analytics**: Interactive Recharts breakdown of complaint categories and weekly resolution throughput.
 
 ### 🏛️ 3. City Administrator Console (`/admin`)
-- **BMC Command Center**: Macro-level view of grievance inflow across all 26 Mumbai wards.
+- **BMC Command Center**: Macro-level view of grievance inflow across all 24 Mumbai wards.
 - **Ward Performance Heatmaps**: Comparative analytics highlighting top-performing wards and zones lagging behind SLAs.
 - **Officer & Resource Roster**: Manage field officers, reallocate workloads, and audit departmental bottlenecks.
 - **One-Click Audit Reports**: Export summary metrics for municipal executive briefings.
