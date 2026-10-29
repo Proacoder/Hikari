@@ -146,76 +146,34 @@ export const CivicAiAssistant = () => {
     const q = queryText.toLowerCase().trim();
     setIsTyping(true);
 
-    await new Promise((r) => setTimeout(r, 750));
-
-    // Check 1: Ticket Tracking (e.g., cmp-001, cmp-2024-xxx, or "track")
+    // 1. Direct Ticket ID Lookup (e.g. cmp-001)
     const ticketMatch = q.match(/(cmp|ksr)-[a-z0-9-]+/i);
-    if (ticketMatch || q.includes('track') || q.includes('status') || q.includes('स्थिति') || q.includes('तक्रार')) {
+    if (ticketMatch) {
       let found = null;
-      const targetId = ticketMatch ? ticketMatch[0] : null;
-      if (targetId) {
-        try {
-          const res = await getComplaintById(targetId);
-          found = res?.data || res;
-        } catch {}
-      }
+      const targetId = ticketMatch[0];
+      try {
+        const res = await getComplaintById(targetId);
+        found = res?.data || res;
+      } catch { }
       if (!found || !found.id) {
         const complaints = getStoredComplaints();
-        if (targetId) {
-          found = complaints.find((c) => c.id?.toLowerCase() === targetId.toLowerCase());
-        } else {
-          found = complaints[0];
-        }
+        found = complaints.find((c) => c.id?.toLowerCase() === targetId.toLowerCase());
       }
-
       if (found && found.id) {
         setIsTyping(false);
         return createMessage('ai', {
-          text: `Here is the real-time municipal status for **Ticket #${found.id}**:`,
+          text: `Here is the verified real-time status for **Ticket #${found.id}**:`,
           ticketCard: found,
           chips: ['View on Ward Map', 'Report Another Issue'],
         });
       }
     }
 
-    // Check 2: Emergency Helplines
-    if (q.includes('emergency') || q.includes('helpline') || q.includes('help') || q.includes('number') || q.includes('आपात') || q.includes('मदत')) {
-      setIsTyping(false);
-      return createMessage('ai', {
-        text: `Here are the official **BMC 24/7 Disaster & Civic Control Room numbers**:`,
-        helplines: [
-          { name: 'BMC Disaster Control Room', number: '1916 / 022-22694725', desc: 'Central Flood, Tree Fall & Structural Distress' },
-          { name: 'Mumbai Police Control', number: '100 / 112', desc: 'Immediate emergency police dispatch' },
-          { name: 'Fire Brigade Services', number: '101', desc: 'Fire & Rescue emergencies' },
-          { name: 'Ambulance Services', number: '108', desc: 'Government Medical Emergency' },
-          { name: 'Pothole & Roads Special Cell', number: '1800-22-1234', desc: 'BMC Asphalt & Pothole rapid response' },
-        ],
-        chips: ['🚨 Report a Pothole', '📍 Find My Ward Officer'],
-      });
-    }
-
-    // Check 3: Ward Officer Inquiry
-    if (q.includes('officer') || q.includes('ward') || q.includes('अधिकारी') || q.includes('प्रभाग')) {
-      const wardId = user?.ward || 8;
-      const officer = MOCK_OFFICERS.find((o) => o.ward === wardId) || MOCK_OFFICERS[0];
-      const wardObj = MUMBAI_WARDS.find((w) => w.id === wardId) || MUMBAI_WARDS[0];
-
-      setIsTyping(false);
-      return createMessage('ai', {
-        text: `Your registered ward is **${wardObj.name} (${wardObj.area})**. Here are your designated ward officer details:`,
-        officerCard: { officer, ward: wardObj },
-        chips: ['🚨 Report Grievance to this Ward', '📞 View All BMC Contacts'],
-      });
-    }
-
-    // Check 4: Civic Grievance Triage & Instant Filing
-    const civicKeywords = ['pothole', 'garbage', 'drain', 'water', 'leak', 'light', 'lamp', 'traffic', 'गड्ढा', 'कचरा', 'पाणी', 'रस्ता'];
-    const isCivicReport = civicKeywords.some((k) => q.includes(k));
-
-    if (isCivicReport) {
+    // 2. Explicit Report Request (user wants to file a complaint right here)
+    const explicitReportKeywords = ['report a', 'file a', 'register a', 'complaint about', 'तक्रार नोंदवा', 'शिकायत दर्ज'];
+    if (explicitReportKeywords.some((k) => q.includes(k))) {
       const analysis = analyzeComplaintDynamic(queryText, queryText);
       const closest = findClosestWard(19.076, 72.877);
-
       setIsTyping(false);
       return createMessage('ai', {
         text: `I analyzed your grievance details using **Kaiser AI Triage**:
@@ -236,7 +194,7 @@ Would you like me to register this ticket immediately for **${closest.ward.name}
       });
     }
 
-    // Check 5: Query Live Multilingual AI Intelligence Service (Gemini 1.5 Flash / Civic Assistant Engine)
+    // 3. Query Backend AI Assistant (NVIDIA NIM / Gemini / Civic Intelligence Engine)
     try {
       const mlChat = await queryAssistantChat(queryText, language, user?.ward || 8);
       if (mlChat && mlChat.reply) {
@@ -252,22 +210,31 @@ Would you like me to register this ticket immediately for **${closest.ward.name}
           ],
         });
       }
-    } catch {
-      // Fallback to client response below
+    } catch (e) {
+      console.warn('Backend assistant chat error:', e);
     }
 
-    // Default Fallback
+    // 4. Emergency Helplines Fallback
+    if (q.includes('emergency') || q.includes('helpline') || q.includes('help') || q.includes('number') || q.includes('आपात') || q.includes('मदत')) {
+      setIsTyping(false);
+      return createMessage('ai', {
+        text: `Here are the official **BMC 24/7 Disaster & Civic Control Room numbers**:`,
+        helplines: [
+          { name: 'BMC Disaster Control Room', number: '1916 / 022-22694725', desc: 'Central Flood, Tree Fall & Structural Distress' },
+          { name: 'Mumbai Police Control', number: '100 / 112', desc: 'Immediate emergency police dispatch' },
+          { name: 'Fire Brigade Services', number: '101', desc: 'Fire & Rescue emergencies' },
+          { name: 'Ambulance Services', number: '108', desc: 'Government Medical Emergency' },
+          { name: 'Pothole & Roads Special Cell', number: '1800-22-1234', desc: 'BMC Asphalt & Pothole rapid response' },
+        ],
+        chips: ['🚨 Report a Pothole', '📍 Find My Ward Officer'],
+      });
+    }
+
+    // 5. Default Fallback
     setIsTyping(false);
     return createMessage('ai', {
-      text: `I understand you are asking about: *"${queryText}"*. 
-
-As your BMC civic assistant, I can:
-1. **Instantly file complaints** with automated AI categorization and SLA assignment.
-2. **Track ticket status** (e.g., type your complaint ID like \`cmp-001\`).
-3. **Connect you with your Ward Officer** among all 24 Mumbai wards.
-4. **Provide municipal bylaws and grievance SLAs**.
-
-Please select an option or provide more details:`,
+      text: `I understand you are asking about: *"${queryText}"*.\n\nAs your BMC civic assistant, I can:\n1. **Instantly file complaints** with automated AI categorization and SLA assignment.\n2. **Track ticket status** (e.g., type your complaint ID like \`cmp-001\`).\n3. **Connect you with your Ward Officer** among all 24 Mumbai wards.\n4. **Provide municipal bylaws and grievance SLAs**.\n\nPlease select an option or provide more details:`,
+      sourceBadge: 'Kaiser Civic Assistant',
       chips: [
         '🚨 Report an Issue',
         '🔍 Track Complaint #cmp-001',
@@ -438,11 +405,10 @@ You can track its progress anytime here or in the **My Complaints** portal.`,
                 <div className={`space-y-2 max-w-[85%] ${m.sender === 'user' ? 'items-end' : 'items-start'}`}>
                   {/* Message bubble */}
                   <div
-                    className={`p-3.5 rounded-2xl text-xs leading-relaxed shadow-soft-xs whitespace-pre-wrap ${
-                      m.sender === 'user'
+                    className={`p-3.5 rounded-2xl text-xs leading-relaxed shadow-soft-xs whitespace-pre-wrap ${m.sender === 'user'
                         ? 'bg-brand-600 text-white rounded-tr-none'
                         : 'bg-white text-neutral-800 border border-neutral-200/80 rounded-tl-none'
-                    }`}
+                      }`}
                   >
                     {m.text}
                     {m.sourceBadge && (
@@ -569,11 +535,10 @@ You can track its progress anytime here or in the **My Complaints** portal.`,
               <button
                 type="button"
                 onClick={handleToggleVoice}
-                className={`p-2.5 rounded-xl border transition-colors ${
-                  isListening
+                className={`p-2.5 rounded-xl border transition-colors ${isListening
                     ? 'bg-red-50 text-red-600 border-red-300 animate-pulse'
                     : 'bg-neutral-100 hover:bg-neutral-200 text-neutral-600 border-neutral-200'
-                }`}
+                  }`}
                 title="Voice input"
               >
                 {isListening ? <MicOff size={16} /> : <Mic size={16} />}

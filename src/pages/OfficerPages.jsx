@@ -666,7 +666,9 @@ export const OfficerDashboard = ({ activeTabOverride }) => {
   }, [officerProfile, page]);
 
   useEffect(() => {
-    loadWardData();
+    let ignore = false;
+    loadWardData().catch(() => { if (!ignore) setLoading(false); });
+    return () => { ignore = true; };
   }, [loadWardData]);
 
   // Handle switching tabs

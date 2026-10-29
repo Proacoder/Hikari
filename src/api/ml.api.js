@@ -164,3 +164,72 @@ export const verifyResolutionWithML = async ({ complaintId, category, beforeBase
   }
   return null;
 };
+
+/**
+ * Validates complaint photo with backend CLIP model across categories.
+ */
+export const validateImageWithCLIP = async (fileOrBase64, textHint = '') => {
+  try {
+    const formData = new FormData();
+    if (fileOrBase64 instanceof File || fileOrBase64 instanceof Blob) {
+      formData.append('file', fileOrBase64);
+    } else if (typeof fileOrBase64 === 'string') {
+      formData.append('image_base64', fileOrBase64);
+    }
+    if (textHint) formData.append('text_hint', textHint);
+
+    const res = await fetch(`${ML_SERVICE_URL}/clip-validate`, {
+      method: 'POST',
+      body: formData,
+    });
+    if (res.ok) return await res.json();
+  } catch (err) {
+    console.warn('CLIP validation request failed:', err);
+  }
+  return null;
+};
+
+/**
+ * Checks image authenticity and generative AI risk.
+ */
+export const checkImageAuthenticity = async (fileOrBase64) => {
+  try {
+    const formData = new FormData();
+    if (fileOrBase64 instanceof File || fileOrBase64 instanceof Blob) {
+      formData.append('file', fileOrBase64);
+    } else if (typeof fileOrBase64 === 'string') {
+      formData.append('image_base64', fileOrBase64);
+    }
+    const res = await fetch(`${ML_SERVICE_URL}/image-authenticity`, {
+      method: 'POST',
+      body: formData,
+    });
+    if (res.ok) return await res.json();
+  } catch (err) {
+    console.warn('Image authenticity request failed:', err);
+  }
+  return null;
+};
+
+/**
+ * Submits staff confirmation or dismissal of a flagged duplicate.
+ */
+export const submitDuplicateReview = async (complaintId, candidateId, officerId, decision, notes = '') => {
+  try {
+    const res = await fetch(`${ML_SERVICE_URL}/duplicate-review`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        complaint_id: complaintId,
+        candidate_id: candidateId,
+        officer_id: officerId,
+        decision,
+        notes,
+      }),
+    });
+    if (res.ok) return await res.json();
+  } catch (err) {
+    console.warn('Duplicate review submission failed:', err);
+  }
+  return null;
+};
