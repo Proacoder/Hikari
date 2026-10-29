@@ -25,11 +25,13 @@ apiClient.interceptors.request.use((config) => {
   return config;
 });
 
-// Global 401 handler → will be overridden by AuthContext listener
+// Global 401 handler → only clears session for genuine token expiration, never for public 401/403
 apiClient.interceptors.response.use(
   (res) => res,
   (err) => {
-    if (err.response?.status === 401) {
+    const hasAuthToken = Boolean(err.config?.headers?.Authorization || localStorage.getItem('kaiser_token'));
+    // Only dispatch unauthorized session reset if a token was sent and rejected as expired/invalid (401), NOT 403 Forbidden
+    if (err.response?.status === 401 && hasAuthToken) {
       window.dispatchEvent(new CustomEvent('kaiser:unauthorized'));
     }
     const backendMessage = err.response?.data?.detail || err.response?.data?.message || err.response?.data?.error;

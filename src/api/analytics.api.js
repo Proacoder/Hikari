@@ -1,7 +1,23 @@
 import { apiClient, MOCK_MODE, mockDelay, successResponse } from './client';
 import { MOCK_ANALYTICS } from '../utils/mockData';
 
-// GET /api/analytics/dashboard
+// GET /api/analytics/summary (Public non-sensitive aggregate statistics)
+export const getPublicSummary = async () => {
+  if (MOCK_MODE) {
+    await mockDelay();
+    return successResponse({
+      totalComplaints: MOCK_ANALYTICS.dashboard.totalComplaints,
+      resolvedComplaints: MOCK_ANALYTICS.dashboard.resolvedComplaints,
+      resolvedRate: MOCK_ANALYTICS.dashboard.resolutionRate,
+      resolutionRate: MOCK_ANALYTICS.dashboard.resolutionRate,
+      avgResolutionDays: MOCK_ANALYTICS.dashboard.avgResolutionDays || 0.77,
+    });
+  }
+  const res = await apiClient.get('/analytics/summary');
+  return res.data;
+};
+
+// GET /api/analytics/dashboard (Protected for officer and admin)
 export const getDashboardStats = async () => {
   if (MOCK_MODE) {
     await mockDelay();

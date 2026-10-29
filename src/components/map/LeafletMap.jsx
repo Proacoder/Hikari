@@ -1,8 +1,17 @@
 import React, { useEffect, useRef, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
 import { MUMBAI_WARDS_GEOJSON, getWardHeatmapStyle } from '../../utils/mumbaiWardsGeo';
 import { classNames } from '../../utils/formatters';
+
+const escapeHtml = (str) =>
+  String(str ?? '')
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#39;');
 
 // Custom SVG marker generator based on severity
 const createMarkerIcon = (severity, _category) => {
@@ -74,6 +83,7 @@ export const LeafletMap = ({
   onComplaintClick = null,
   _showWardCircles = false
 }) => {
+  const navigate = useNavigate();
   const mapContainerRef = useRef(null);
   const mapInstanceRef = useRef(null);
   const markersLayerRef = useRef(null);
@@ -82,6 +92,29 @@ export const LeafletMap = ({
   const [mapViewMode, setMapViewMode] = useState('pins'); // 'pins' | 'wards'
   const centerLat = center?.[0];
   const centerLng = center?.[1];
+
+  // Intercept Leaflet popup navigation links for client-side routing
+  useEffect(() => {
+    const container = mapContainerRef.current;
+    if (!container) return;
+
+    const handlePopupClick = (e) => {
+      const link = e.target.closest('.leaflet-popup-nav-link');
+      if (link) {
+        e.preventDefault();
+        e.stopPropagation();
+        const cid = link.getAttribute('data-complaint-id');
+        if (cid) {
+          navigate(`/app/complaint/${decodeURIComponent(cid)}`);
+        }
+      }
+    };
+
+    container.addEventListener('click', handlePopupClick);
+    return () => {
+      container.removeEventListener('click', handlePopupClick);
+    };
+  }, [navigate]);
 
   // Initialize Map
   useEffect(() => {
@@ -162,19 +195,27 @@ export const LeafletMap = ({
         const markerIcon = createMarkerIcon(c.severity, c.category);
         const marker = L.marker([c.latitude, c.longitude], { icon: markerIcon });
 
+        const categoryEsc = escapeHtml(c.category);
+        const statusEsc = escapeHtml(c.status);
+        const titleEsc = escapeHtml(c.title);
+        const wardEsc = escapeHtml(c.ward);
+        const severityEsc = escapeHtml(c.severity);
+        const upvoteEsc = escapeHtml(c.upvoteCount || 0);
+        const idEsc = encodeURIComponent(String(c.id));
+
         const popupContent = `
           <div style="padding: 12px; font-family: Inter, sans-serif; max-width: 250px;">
             <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 6px;">
-              <span style="font-size: 11px; font-weight: 700; text-transform: uppercase; color: #16a34a; letter-spacing: 0.5px;">${c.category}</span>
-              <span style="font-size: 11px; font-weight: 600; padding: 2px 6px; border-radius: 9999px; background-color: #f1f5f9; color: #475569;">${c.status}</span>
+              <span style="font-size: 11px; font-weight: 700; text-transform: uppercase; color: #16a34a; letter-spacing: 0.5px;">${categoryEsc}</span>
+              <span style="font-size: 11px; font-weight: 600; padding: 2px 6px; border-radius: 9999px; background-color: #f1f5f9; color: #475569;">${statusEsc}</span>
             </div>
-            <h4 style="font-size: 13px; font-weight: 700; color: #0f172a; margin: 0 0 6px 0; line-height: 1.3;">${c.title}</h4>
+            <h4 style="font-size: 13px; font-weight: 700; color: #0f172a; margin: 0 0 6px 0; line-height: 1.3;">${titleEsc}</h4>
             <div style="font-size: 11px; color: #64748b; margin-bottom: 8px;">
-              <span>Ward: <strong>${c.ward}</strong></span> · <span>Severity: <strong>${c.severity}/100</strong></span>
+              <span>Ward: <strong>${wardEsc}</strong></span> · <span>Severity: <strong>${severityEsc}/100</strong></span>
             </div>
             <div style="border-top: 1px solid #f1f5f9; padding-top: 8px; display: flex; justify-content: space-between; align-items: center;">
-              <span style="font-size: 11px; color: #64748b;">👍 ${c.upvoteCount || 0} Upvotes</span>
-              <a href="/app/complaint/${c.id}" style="font-size: 11px; color: #16a34a; font-weight: 600; text-decoration: none;">View Details →</a>
+              <span style="font-size: 11px; color: #64748b;">👍 ${upvoteEsc} Upvotes</span>
+              <a href="/app/complaint/${idEsc}" data-complaint-id="${idEsc}" class="leaflet-popup-nav-link" style="font-size: 11px; color: #16a34a; font-weight: 600; text-decoration: none; cursor: pointer;">View Details →</a>
             </div>
           </div>
         `;

@@ -6,7 +6,7 @@ import {
   ArrowRight, Shield, CheckCircle2, RefreshCw
 } from 'lucide-react';
 import { getComplaints } from '../api/complaints.api';
-import { getDashboardStats } from '../api/analytics.api';
+import { getPublicSummary } from '../api/analytics.api';
 import { getWeatherAQI } from '../api/weather.api';
 import { MUMBAI_WARDS, CATEGORIES } from '../utils/mockData';
 import { useLanguage } from '../context/LanguageContext';
@@ -31,7 +31,7 @@ export const LandingPage = () => {
         setLoading(true);
         const [complaintsRes, statsRes, weatherRes] = await Promise.all([
           getComplaints(selectedWard ? { ward: Number(selectedWard) } : {}),
-          getDashboardStats(),
+          getPublicSummary(),
           getWeatherAQI(19.076, 72.877)
         ]);
         setComplaints(complaintsRes.data || []);

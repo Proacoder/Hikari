@@ -10,18 +10,33 @@ import io
 import re
 import math
 import base64
+import binascii
 import logging
 from typing import List, Optional, Dict, Any
 
 from fastapi import APIRouter, UploadFile, File, Form, HTTPException, Depends, Request, status
 from pydantic import BaseModel, field_validator
-from PIL import Image, ImageDraw
+from PIL import Image, ImageDraw, UnidentifiedImageError
 import numpy as np
 import httpx
 
 logger = logging.getLogger("kaiser_ml")
 
 ml_router = APIRouter()
+
+def _safe_b64decode(data: Optional[str]) -> Optional[bytes]:
+    """Safely decodes Base64 string with size checking and validation, raising HTTP 400 on error."""
+    if not data or not isinstance(data, str) or not data.strip():
+        return None
+    clean = data.strip()
+    if "," in clean:
+        clean = clean.split(",", 1)[1]
+    if len(clean) > 15 * 1024 * 1024:
+        raise HTTPException(status_code=413, detail="Base64 image payload exceeds size limit.")
+    try:
+        return base64.b64decode(clean, validate=True)
+    except (binascii.Error, ValueError):
+        raise HTTPException(status_code=400, detail="Invalid Base64 image payload. Please provide a valid Base64 string.")
 
 # ── 1. Model Initialization ──────────────────────────────────────────────────
 YOLO_MODEL = None
@@ -242,15 +257,21 @@ async def detect_defect(
             if len(raw_bytes) > 10 * 1024 * 1024:
                 raise HTTPException(status_code=413, detail="File exceeds 10 MB limit.")
         elif image_base64:
-            if "," in image_base64:
-                image_base64 = image_base64.split(",")[1]
-            raw_bytes = base64.b64decode(image_base64)
+            raw_bytes = _safe_b64decode(image_base64)
 
-        if not raw_bytes:
+        if not raw_bytes or len(raw_bytes) == 0:
             raise HTTPException(status_code=400, detail="No image provided. Please upload an image file.")
 
-        image = Image.open(io.BytesIO(raw_bytes)).convert("RGB")
-        w, h = image.size
+        try:
+            image = Image.open(io.BytesIO(raw_bytes)).convert("RGB")
+            w, h = image.size
+            if w <= 0 or h <= 0:
+                raise ValueError("Invalid image dimensions")
+        except (UnidentifiedImageError, ValueError, IOError, OSError):
+            raise HTTPException(
+                status_code=400,
+                detail="Invalid or unsupported image format. Please upload a valid JPEG, PNG, or WebP image."
+            )
 
         # Always initialize these before the model block
         hint = (hint_title or "").lower().strip()
@@ -393,13 +414,9 @@ async def verify_resolution(request: Request):
             b64_before = form.get("before_image_base64")
             b64_after = form.get("after_image_base64")
             if b64_before and not raw_before:
-                if "," in b64_before:
-                    b64_before = b64_before.split(",")[1]
-                raw_before = base64.b64decode(b64_before)
+                raw_before = _safe_b64decode(b64_before)
             if b64_after and not raw_after:
-                if "," in b64_after:
-                    b64_after = b64_after.split(",")[1]
-                raw_after = base64.b64decode(b64_after)
+                raw_after = _safe_b64decode(b64_after)
         else:
             body = await request.json()
             category = str(body.get("category", "Pothole"))
@@ -408,15 +425,11 @@ async def verify_resolution(request: Request):
             b64_after = body.get("after_image_base64")
             # NOTE: URL fetching (before_image_url / after_image_url) is disabled to prevent SSRF.
 
-            if b64_before:
-                if "," in b64_before:
-                    b64_before = b64_before.split(",")[1]
-                raw_before = base64.b64decode(b64_before)
+            if b64_before and not raw_before:
+                raw_before = _safe_b64decode(b64_before)
 
-            if b64_after:
-                if "," in b64_after:
-                    b64_after = b64_after.split(",")[1]
-                raw_after = base64.b64decode(b64_after)
+            if b64_after and not raw_after:
+                raw_after = _safe_b64decode(b64_after)
 
         # Require both images — no auto-approval on missing evidence
         if not raw_before or not raw_after:
@@ -623,24 +636,26 @@ async def assistant_chat(req: AssistantChatRequest):
 
     # Try live AI providers using async httpx (non-blocking)
     if groq_key:
-        try:
-            url = "https://api.groq.com/openai/v1/chat/completions"
-            headers = {"Authorization": f"Bearer {groq_key}", "Content-Type": "application/json"}
-            payload = {
-                "model": "llama-3.3-70b-versatile",
-                "messages": [{"role": "system", "content": sys_prompt}, {"role": "user", "content": query}],
-                "temperature": 0.3,
-                "max_tokens": 400,
-            }
-            async with httpx.AsyncClient(timeout=8.0) as client:
-                res = await client.post(url, headers=headers, json=payload)
-            if res.status_code == 200:
-                return {
-                    "reply": res.json()["choices"][0]["message"]["content"],
-                    "source": "Groq Cloud (LLaMA 3.3 70B)",
+        groq_model = os.getenv("GROQ_MODEL", "qwen/qwen3.8-27b")
+        for m in [groq_model, "llama-3.3-70b-versatile", "qwen/qwen3.8-27b"]:
+            try:
+                url = "https://api.groq.com/openai/v1/chat/completions"
+                headers = {"Authorization": f"Bearer {groq_key}", "Content-Type": "application/json"}
+                payload = {
+                    "model": m,
+                    "messages": [{"role": "system", "content": sys_prompt}, {"role": "user", "content": query}],
+                    "temperature": 0.3,
+                    "max_tokens": 400,
                 }
-        except Exception as e:
-            logger.warning(f"Groq API fallback: {e}")
+                async with httpx.AsyncClient(timeout=8.0) as client:
+                    res = await client.post(url, headers=headers, json=payload)
+                if res.status_code == 200:
+                    return {
+                        "reply": res.json()["choices"][0]["message"]["content"],
+                        "source": f"Groq Cloud ({m})",
+                    }
+            except Exception as e:
+                logger.warning(f"Groq API ({m}) fallback: {e}")
 
     if nvidia_key:
         try:
@@ -664,21 +679,23 @@ async def assistant_chat(req: AssistantChatRequest):
             logger.warning(f"NVIDIA API fallback: {e}")
 
     if gemini_key:
-        try:
-            url = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key={gemini_key}"
-            payload = {
-                "contents": [{"role": "user", "parts": [{"text": f"{sys_prompt}\n\nCitizen Question: {query}"}]}],
-                "generationConfig": {"temperature": 0.4, "maxOutputTokens": 350},
-            }
-            async with httpx.AsyncClient(timeout=9.0) as client:
-                res = await client.post(url, json=payload)
-            if res.status_code == 200:
-                return {
-                    "reply": res.json()["candidates"][0]["content"]["parts"][0]["text"],
-                    "source": "Gemini 1.5 Flash",
+        gemini_model = os.getenv("GEMINI_MODEL", "gemini-3.8-flash")
+        for gm in [gemini_model, "gemini-3.8-flash", "gemini-1.5-flash", "gemini-flash-latest"]:
+            try:
+                url = f"https://generativelanguage.googleapis.com/v1beta/models/{gm}:generateContent?key={gemini_key}"
+                payload = {
+                    "contents": [{"role": "user", "parts": [{"text": f"{sys_prompt}\n\nCitizen Question: {query}"}]}],
+                    "generationConfig": {"temperature": 0.4, "maxOutputTokens": 350},
                 }
-        except Exception as e:
-            logger.warning(f"Gemini API fallback: {e}")
+                async with httpx.AsyncClient(timeout=10.0) as client:
+                    res = await client.post(url, json=payload)
+                if res.status_code == 200:
+                    return {
+                        "reply": res.json()["candidates"][0]["content"]["parts"][0]["text"],
+                        "source": f"Google Gemini ({gm})",
+                    }
+            except Exception as e:
+                logger.warning(f"Gemini API ({gm}) fallback: {e}")
 
     # ── Comprehensive Local Multilingual Fallback ─────────────────────────────
     # NOTE: SLA figures below are approximate general information, not guaranteed policy.

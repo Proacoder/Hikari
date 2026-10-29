@@ -5,7 +5,7 @@ from datetime import datetime, timezone
 from typing import Generator, List, Optional
 from sqlalchemy import (
     create_engine, Column, Integer, Float, String, Text, Boolean, DateTime,
-    ForeignKey, Index, UniqueConstraint, inspect as sa_inspect, text
+    ForeignKey, Index, UniqueConstraint, inspect as sa_inspect, text, event
 )
 from sqlalchemy.orm import declarative_base, sessionmaker, relationship, Session
 
@@ -17,7 +17,7 @@ if DATABASE_URL.startswith("postgres://"):
     DATABASE_URL = DATABASE_URL.replace("postgres://", "postgresql://", 1)
 
 IS_SQLITE = "sqlite" in DATABASE_URL
-connect_args = {"check_same_thread": False} if IS_SQLITE else {}
+connect_args = {"check_same_thread": False, "timeout": 15} if IS_SQLITE else {}
 
 engine = create_engine(
     DATABASE_URL,
@@ -26,6 +26,21 @@ engine = create_engine(
     pool_size=10 if not IS_SQLITE else 5,
     max_overflow=20 if not IS_SQLITE else 0,
 )
+
+if IS_SQLITE:
+    @event.listens_for(engine, "connect")
+    def _set_sqlite_pragmas(dbapi_connection, connection_record):
+        """Enable WAL mode and busy_timeout for concurrent SQLite reads/writes."""
+        cursor = dbapi_connection.cursor()
+        try:
+            cursor.execute("PRAGMA journal_mode=WAL")
+            cursor.execute("PRAGMA busy_timeout=10000")
+            cursor.execute("PRAGMA synchronous=NORMAL")
+        except Exception as e:
+            logger.warning(f"Failed to set SQLite pragma: {e}")
+        finally:
+            cursor.close()
+
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 Base = declarative_base()
 

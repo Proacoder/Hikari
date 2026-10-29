@@ -52,17 +52,29 @@ export const ComplaintDetailPage = () => {
   // WhatsApp Loading State
   const [whatsAppLoading, setWhatsAppLoading] = useState(false);
 
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+
   useEffect(() => {
+    let isCancelled = false;
     async function load() {
+      setLoading(true);
+      setError(null);
+      setComplaint(null);
       try {
         const [compRes, commRes] = await Promise.all([
           getComplaintById(id || 'cmp-001'),
           getComments(id || 'cmp-001')
         ]);
-        const comp = compRes.data;
+        if (isCancelled) return;
+        const comp = compRes?.data;
+        if (!comp) {
+          setError({ type: 'notFound', message: `Grievance #${id} could not be found or may have been archived.` });
+          return;
+        }
         setComplaint(comp);
         setUpvotes(comp.upvoteCount || 0);
-        setComments(commRes.data || []);
+        setComments(commRes?.data || []);
         if (comp.rating) {
           setSelectedRating(comp.rating);
           setSelectedTags(comp.feedbackTags || []);
@@ -70,10 +82,22 @@ export const ComplaintDetailPage = () => {
           setFeedbackSubmitted(true);
         }
       } catch (err) {
+        if (isCancelled) return;
         console.error('Failed to load complaint details:', err);
+        const status = err?.response?.status;
+        if (status === 404) {
+          setError({ type: 'notFound', message: `Grievance #${id} does not exist in the municipal registry.` });
+        } else {
+          setError({ type: 'network', message: err?.message || 'Failed to connect to municipal telemetry. Please check your connection and retry.' });
+        }
+      } finally {
+        if (!isCancelled) setLoading(false);
       }
     }
     load();
+    return () => {
+      isCancelled = true;
+    };
   }, [id]);
 
   const handleUpvote = async () => {
@@ -201,10 +225,61 @@ export const ComplaintDetailPage = () => {
     }
   };
 
-  if (!complaint) {
+  if (loading) {
     return (
-      <div className="py-20 text-center text-xs text-neutral-400">
-        Loading complaint telemetry...
+      <div className="max-w-5xl mx-auto py-24 text-center space-y-4">
+        <div className="w-10 h-10 border-3 border-brand-200 border-t-brand-600 rounded-full animate-spin mx-auto" />
+        <p className="text-sm text-neutral-500 font-medium">Loading grievance telemetry & audit trails...</p>
+      </div>
+    );
+  }
+
+  if (error || !complaint) {
+    const isNotFound = error?.type === 'notFound' || !complaint;
+    return (
+      <div className="max-w-2xl mx-auto py-20 px-4">
+        <Card className="p-8 text-center space-y-5 border-neutral-200 shadow-sm">
+          <div className="w-14 h-14 rounded-2xl bg-amber-50 text-amber-600 flex items-center justify-center mx-auto text-2xl font-bold border border-amber-200">
+            {isNotFound ? '🔍' : '⚠️'}
+          </div>
+          <div className="space-y-2">
+            <h2 className="text-xl font-bold text-neutral-900">
+              {isNotFound ? 'Grievance Not Found' : 'Connection Failure'}
+            </h2>
+            <p className="text-sm text-neutral-500 max-w-md mx-auto">
+              {error?.message || `Grievance #${id} could not be found or may have been archived.`}
+            </p>
+          </div>
+          <div className="flex flex-wrap items-center justify-center gap-3 pt-2">
+            {!isNotFound && (
+              <Button
+                variant="outline"
+                onClick={() => {
+                  setError(null);
+                  setLoading(true);
+                  getComplaintById(id || 'cmp-001')
+                    .then(r => setComplaint(r.data))
+                    .catch(e => setError({ type: 'network', message: e.message }))
+                    .finally(() => setLoading(false));
+                }}
+              >
+                Retry
+              </Button>
+            )}
+            <Link
+              to="/app/my-complaints"
+              className="inline-flex items-center px-4 py-2 rounded-xl text-xs font-semibold bg-brand-600 text-white hover:bg-brand-700 transition"
+            >
+              Back to My Complaints
+            </Link>
+            <Link
+              to="/app"
+              className="inline-flex items-center px-4 py-2 rounded-xl text-xs font-semibold bg-neutral-100 text-neutral-700 hover:bg-neutral-200 transition"
+            >
+              Citizen Dashboard
+            </Link>
+          </div>
+        </Card>
       </div>
     );
   }

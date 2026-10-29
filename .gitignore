@@ -37,6 +37,8 @@ ml_service/models/*.pt
 
 # Database & local data
 *.db
+*.db-wal
+*.db-shm
 *.sqlite
 *.sqlite3
 
