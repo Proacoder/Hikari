@@ -8,7 +8,7 @@ import hmac
 import re
 from datetime import datetime, timezone, timedelta
 from contextlib import asynccontextmanager
-from typing import List, Optional, Dict, Any
+from typing import List, Optional, Dict, Any, Union
 
 from fastapi import (
     FastAPI, UploadFile, File, Form, HTTPException,
@@ -19,12 +19,18 @@ from fastapi.staticfiles import StaticFiles
 from fastapi.responses import FileResponse, JSONResponse
 from pydantic import BaseModel, field_validator
 from sqlalchemy.orm import Session
+from sqlalchemy import func
+from sqlalchemy.exc import IntegrityError
 from dotenv import load_dotenv
 import jwt
 import httpx
 
 # Load environment variables
-load_dotenv()
+env_path = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), ".env")
+if os.path.exists(env_path):
+    load_dotenv(dotenv_path=env_path, override=True)
+else:
+    load_dotenv(override=True)
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)
@@ -41,6 +47,14 @@ from database import (
     UpvoteModel, find_nearby_complaints
 )
 from ml_router import ml_router
+from external_services import (
+    fetch_open_meteo_weather,
+    fetch_open_meteo_air_quality,
+    fetch_mumbai_news,
+    MUMBAI_LAT,
+    MUMBAI_LNG,
+    MUMBAI_TIMEZONE,
+)
 
 # ──────────────────────────────────────────────────────────────────────────────
 # JWT Secret — MUST be set via environment variable. No hardcoded fallback.
@@ -158,6 +172,7 @@ class ComplaintCreateRequest(BaseModel):
     ward: Optional[int] = None
     landmark: Optional[str] = ""
     imageUrl: Optional[str] = None
+    confidence: Optional[Union[float, str]] = None
 
     @field_validator("severity")
     @classmethod
@@ -431,6 +446,17 @@ def _escape_html(s: str) -> str:
     )
 
 
+def to_iso_utc(dt: Optional[datetime]) -> Optional[str]:
+    """Ensures datetime is formatted as an ISO 8601 string with explicit UTC timezone offset."""
+    if not dt:
+        return None
+    if dt.tzinfo is None:
+        dt = dt.replace(tzinfo=timezone.utc)
+    else:
+        dt = dt.astimezone(timezone.utc)
+    return dt.isoformat()
+
+
 # ==============================================================================
 # Complaint Serializer
 # ==============================================================================
@@ -468,7 +494,7 @@ def serialize_complaint(c: ComplaintModel, db: Session, preloaded: Optional[dict
                 "newStatus": a.new_status,
                 "notes": a.notes,
                 "imageUrl": a.image_url,
-                "createdAt": a.created_at.isoformat() if a.created_at else None,
+                "createdAt": to_iso_utc(a.created_at),
             }
             for a in audit_records
         ]
@@ -499,10 +525,10 @@ def serialize_complaint(c: ComplaintModel, db: Session, preloaded: Optional[dict
             "categoryDetected": c.ai_category or c.category,
             "confidence": c.ai_confidence or 0.0,
         },
-        "createdAt": c.created_at.isoformat() if c.created_at else datetime.now(timezone.utc).isoformat(),
-        "resolvedAt": c.resolved_at.isoformat() if c.resolved_at else None,
+        "createdAt": to_iso_utc(c.created_at) or datetime.now(timezone.utc).isoformat(),
+        "resolvedAt": to_iso_utc(c.resolved_at),
         "reopenCount": c.reopen_count or 0,
-        "reopenedAt": c.reopened_at.isoformat() if c.reopened_at else None,
+        "reopenedAt": to_iso_utc(c.reopened_at),
         "reopenReason": c.reopen_reason,
         "reopenPhotoUrl": c.reopen_photo_url,
         "isPermanentlyLocked": bool(c.is_permanently_locked),
@@ -560,7 +586,7 @@ def serialize_complaints_batch(records: List[ComplaintModel], db: Session) -> Li
                 "newStatus": a.new_status,
                 "notes": a.notes,
                 "imageUrl": a.image_url,
-                "createdAt": a.created_at.isoformat() if a.created_at else None,
+                "createdAt": to_iso_utc(a.created_at),
             })
 
     preloaded = {
@@ -644,6 +670,7 @@ async def get_complaints(
     ward: Optional[str] = None,
     category: Optional[str] = None,
     status: Optional[str] = None,
+    created_by_id: Optional[str] = None,
     page: int = 1,
     limit: int = 50,
     db: Session = Depends(get_db),
@@ -668,6 +695,9 @@ async def get_complaints(
 
     if status and status.strip():
         query = query.filter(ComplaintModel.status.ilike(status.strip()))
+
+    if created_by_id and created_by_id.strip():
+        query = query.filter(ComplaintModel.created_by_id == created_by_id.strip())
 
     total = query.count()
     records = query.order_by(ComplaintModel.created_at.desc()).offset((page - 1) * limit).limit(limit).all()
@@ -706,11 +736,40 @@ async def get_map_data(
 
 
 @app.get("/api/complaints/{complaint_id}")
-async def get_complaint_by_id(complaint_id: str, db: Session = Depends(get_db)):
+async def get_complaint_by_id(
+    complaint_id: str,
+    current_user: Optional[UserModel] = Depends(get_current_user_from_token),
+    db: Session = Depends(get_db),
+):
     complaint = db.query(ComplaintModel).filter(ComplaintModel.id == complaint_id).first()
     if not complaint:
         raise HTTPException(status_code=404, detail="Complaint not found")
-    return {"success": True, "data": serialize_complaint(complaint, db)}
+    data = serialize_complaint(complaint, db)
+    if current_user:
+        has_upvoted = db.query(UpvoteModel).filter(
+            UpvoteModel.user_id == current_user.id,
+            UpvoteModel.complaint_id == complaint_id
+        ).first() is not None
+        data["hasUpvoted"] = has_upvoted
+    else:
+        data["hasUpvoted"] = False
+    return {"success": True, "data": data}
+
+
+@app.post("/api/upload")
+async def upload_file(
+    file: UploadFile = File(...),
+    current_user: UserModel = Depends(require_auth),
+):
+    """
+    General file upload endpoint for resolution photos, re-open contest evidence, etc.
+    Requires authentication. Validates magic bytes and size.
+    """
+    if not file or not file.filename:
+        raise HTTPException(status_code=400, detail="No file uploaded.")
+    contents = await file.read()
+    file_url = await store_upload(contents, file.filename, prefix="evidence")
+    return {"success": True, "data": {"url": file_url}}
 
 
 @app.post("/api/complaints")
@@ -726,6 +785,7 @@ async def create_complaint(
     landmark: str = Form(""),
     imageUrl: Optional[str] = Form(None),
     image: Optional[UploadFile] = File(None),
+    ai_confidence: Optional[float] = Form(None),
     db: Session = Depends(get_db),
 ):
     """
@@ -735,7 +795,9 @@ async def create_complaint(
     # Validate severity range
     severity = max(0, min(100, severity))
 
-    image_url = imageUrl or "https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=600&q=80"
+    image_url = imageUrl
+    if not image_url and not image:
+        image_url = None
 
     # Handle file upload
     if image and image.filename:
@@ -762,14 +824,14 @@ async def create_complaint(
         ward_id=ward,
         landmark=landmark[:255],
         image_url=image_url,
-        upvote_count=1,
+        upvote_count=0,
         created_by_id=current_user.id,
         created_by_name=current_user.name,
         created_by_email=current_user.email,
         created_by_ward=current_user.ward_id,
         assigned_officer_id=assigned_officer.id if assigned_officer else None,
         ai_category=category,
-        ai_confidence=0.94,
+        ai_confidence=ai_confidence,
     )
     db.add(new_comp)
 
@@ -794,6 +856,17 @@ async def create_complaint(
         is_read=False,
     ))
 
+    if assigned_officer:
+        db.add(NotificationModel(
+            id=f"notif-{uuid.uuid4().hex[:10]}",
+            user_id=assigned_officer.id,
+            type="alert",
+            title=f"New Grievance in Ward {ward}: #{complaint_id}",
+            body=f"{title[:45]} ({category}, Severity {severity}/100)",
+            complaint_id=complaint_id,
+            is_read=False,
+        ))
+
     db.commit()
     db.refresh(new_comp)
     return {"success": True, "data": serialize_complaint(new_comp, db)}
@@ -812,7 +885,17 @@ async def create_complaint_json(
     ).first()
 
     complaint_id = f"cmp-{int(datetime.now().timestamp())}-{uuid.uuid4().hex[:4]}"
-    image_url = body.imageUrl or "https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=600&q=80"
+    image_url = body.imageUrl
+
+    parsed_conf = None
+    if body.confidence:
+        try:
+            val_str = str(body.confidence).strip().rstrip('%')
+            parsed_conf = float(val_str)
+            if parsed_conf > 1.0:
+                parsed_conf = parsed_conf / 100.0
+        except ValueError:
+            parsed_conf = None
 
     new_comp = ComplaintModel(
         id=complaint_id,
@@ -826,14 +909,14 @@ async def create_complaint_json(
         ward_id=body.ward or 8,
         landmark=(body.landmark or "")[:255],
         image_url=image_url,
-        upvote_count=1,
+        upvote_count=0,
         created_by_id=current_user.id,
         created_by_name=current_user.name,
         created_by_email=current_user.email,
         created_by_ward=current_user.ward_id,
         assigned_officer_id=assigned_officer.id if assigned_officer else None,
         ai_category=body.category,
-        ai_confidence=0.94,
+        ai_confidence=parsed_conf,
     )
     db.add(new_comp)
 
@@ -857,6 +940,17 @@ async def create_complaint_json(
         complaint_id=complaint_id,
         is_read=False,
     ))
+
+    if assigned_officer:
+        db.add(NotificationModel(
+            id=f"notif-{uuid.uuid4().hex[:10]}",
+            user_id=assigned_officer.id,
+            type="alert",
+            title=f"New Grievance in Ward {body.ward}: #{complaint_id}",
+            body=f"{body.title[:45]} ({body.category}, Severity {body.severity or 70}/100)",
+            complaint_id=complaint_id,
+            is_read=False,
+        ))
 
     db.commit()
     db.refresh(new_comp)
@@ -936,6 +1030,16 @@ async def update_complaint(
     if body.resolvedImageUrl is not None:
         complaint.resolved_image_url = body.resolvedImageUrl
     if body.assignedOfficerId is not None:
+        if body.assignedOfficerId != complaint.assigned_officer_id:
+            db.add(NotificationModel(
+                id=f"notif-{uuid.uuid4().hex[:10]}",
+                user_id=body.assignedOfficerId,
+                type="alert",
+                title=f"Assigned to Grievance #{complaint_id}",
+                body=f"You have been assigned to handle '{complaint.title[:45]}'.",
+                complaint_id=complaint_id,
+                is_read=False,
+            ))
         complaint.assigned_officer_id = body.assignedOfficerId
 
     db.commit()
@@ -963,13 +1067,18 @@ async def upvote_complaint(
     if existing:
         raise HTTPException(status_code=409, detail="You have already upvoted this complaint.")
 
-    db.add(UpvoteModel(
-        id=f"upvote-{uuid.uuid4().hex[:10]}",
-        user_id=current_user.id,
-        complaint_id=complaint_id,
-    ))
-    complaint.upvote_count = (complaint.upvote_count or 0) + 1
-    db.commit()
+    try:
+        db.add(UpvoteModel(
+            id=f"upvote-{uuid.uuid4().hex[:10]}",
+            user_id=current_user.id,
+            complaint_id=complaint_id,
+        ))
+        complaint.upvote_count = (complaint.upvote_count or 0) + 1
+        db.commit()
+    except IntegrityError:
+        db.rollback()
+        raise HTTPException(status_code=409, detail="You have already upvoted this complaint.")
+
     return {"success": True, "data": {"upvoteCount": complaint.upvote_count, "hasUpvoted": True}}
 
 
@@ -1047,6 +1156,7 @@ async def reopen_complaint(
     complaint.status = "reopened"
     complaint.reopen_count = (complaint.reopen_count or 0) + 1
     complaint.reopened_at = datetime.now(timezone.utc)
+    complaint.resolved_at = None
     complaint.reopen_reason = reason
     complaint.reopen_photo_url = photo_url
 
@@ -1228,7 +1338,7 @@ async def get_citizen_certificate(
     db: Session = Depends(get_db),
 ):
     """Returns citizen certificate. Citizens may only get their own. Admins can get any."""
-    if current_user.role == "citizen" and current_user.id != user_id:
+    if current_user.role != "admin" and current_user.id != user_id:
         raise HTTPException(status_code=403, detail="Access denied: You may only view your own certificate.")
 
     user = db.query(UserModel).filter(UserModel.id == user_id).first()
@@ -1285,7 +1395,7 @@ async def get_comments(complaint_id: str, db: Session = Depends(get_db)):
                 "id": c.id,
                 "author": {"id": c.author_id or "u-anon", "name": c.author_name, "role": c.author_role},
                 "text": c.text,
-                "createdAt": c.created_at.isoformat() if c.created_at else datetime.now(timezone.utc).isoformat(),
+                "createdAt": to_iso_utc(c.created_at) or datetime.now(timezone.utc).isoformat(),
             }
             for c in comments
         ],
@@ -1312,6 +1422,31 @@ async def add_comment(
         text=body.text,
     )
     db.add(new_comment)
+
+    # Notify ticket creator if someone else commented
+    if complaint.created_by_id and complaint.created_by_id != current_user.id:
+        db.add(NotificationModel(
+            id=f"notif-{uuid.uuid4().hex[:10]}",
+            user_id=complaint.created_by_id,
+            type="comment",
+            title=f"New comment on #{complaint_id}",
+            body=f"{current_user.name}: {body.text[:60]}",
+            complaint_id=complaint_id,
+            is_read=False,
+        ))
+
+    # Notify assigned officer if someone else commented
+    if complaint.assigned_officer_id and complaint.assigned_officer_id != current_user.id:
+        db.add(NotificationModel(
+            id=f"notif-{uuid.uuid4().hex[:10]}",
+            user_id=complaint.assigned_officer_id,
+            type="comment",
+            title=f"Citizen update on #{complaint_id}",
+            body=f"{current_user.name}: {body.text[:60]}",
+            complaint_id=complaint_id,
+            is_read=False,
+        ))
+
     db.commit()
     db.refresh(new_comment)
 
@@ -1321,7 +1456,7 @@ async def add_comment(
             "id": new_comment.id,
             "author": {"id": current_user.id, "name": current_user.name, "role": current_user.role},
             "text": new_comment.text,
-            "createdAt": new_comment.created_at.isoformat(),
+            "createdAt": to_iso_utc(new_comment.created_at),
         },
     }
 
@@ -1369,7 +1504,7 @@ async def get_notifications(
             {
                 "id": n.id, "type": n.type, "title": n.title, "body": n.body,
                 "complaintId": n.complaint_id, "isRead": n.is_read,
-                "createdAt": n.created_at.isoformat() if n.created_at else datetime.now(timezone.utc).isoformat(),
+                "createdAt": to_iso_utc(n.created_at) or datetime.now(timezone.utc).isoformat(),
             }
             for n in notifs
         ],
@@ -1457,7 +1592,7 @@ async def create_notification(
             "id": notif.id, "type": notif.type, "title": notif.title,
             "body": notif.body, "complaintId": notif.complaint_id,
             "isRead": notif.is_read,
-            "createdAt": notif.created_at.isoformat() if notif.created_at else datetime.now(timezone.utc).isoformat(),
+            "createdAt": to_iso_utc(notif.created_at) or datetime.now(timezone.utc).isoformat(),
         },
     }
 
@@ -1469,79 +1604,77 @@ async def create_notification(
 REVERSE_GEO_CACHE: Dict[str, Dict[str, Any]] = {}
 
 
+@app.get("/api/weather/mumbai")
 @app.get("/api/weather/{lat}/{lng}")
-async def get_weather_telemetry(lat: float, lng: float):
+async def get_weather_telemetry(lat: float = MUMBAI_LAT, lng: float = MUMBAI_LNG):
     """
-    Hyper-local weather, rainfall, and AQI telemetry via Open-Meteo.
-    Falls back to coordinate-derived estimates clearly labeled as estimates.
+    Hyper-local weather, apparent temperature, rainfall, and dual-standard AQI telemetry
+    via Open-Meteo forecast API (Asia/Kolkata timezone).
     """
-    # Default values (estimate, clearly labeled)
-    temp = round(29.5 + ((abs(lat) * 10) % 3) * 0.8, 1)
-    humidity = int(72 + ((abs(lng) * 10) % 15))
-    wind = round(14.0 + ((abs(lat) * 5) % 6), 1)
-    rainfall = round(max(0.0, ((abs(lat) + abs(lng)) * 10 % 8) - 2), 1)
-    aqi = int(90 + ((abs(lat) * 100) % 65))
-    source = "Local Estimate (Live API unavailable)"
-    live_data = False
+    w_data = await fetch_open_meteo_weather(lat=lat, lng=lng, timezone_str=MUMBAI_TIMEZONE)
+    aq_data = await fetch_open_meteo_air_quality(lat=lat, lng=lng, timezone_str=MUMBAI_TIMEZONE)
 
-    try:
-        async with httpx.AsyncClient(timeout=4.0) as client:
-            w_url = (
-                f"https://api.open-meteo.com/v1/forecast"
-                f"?latitude={lat}&longitude={lng}"
-                f"&current=temperature_2m,relative_humidity_2m,precipitation,wind_speed_10m"
-                f"&timezone=auto"
-            )
-            w_res = await client.get(w_url)
-            if w_res.status_code == 200:
-                curr = w_res.json().get("current", {})
-                if curr.get("temperature_2m") is not None:
-                    temp = float(curr["temperature_2m"])
-                if curr.get("relative_humidity_2m") is not None:
-                    humidity = int(curr["relative_humidity_2m"])
-                if curr.get("wind_speed_10m") is not None:
-                    wind = float(curr["wind_speed_10m"])
-                if curr.get("precipitation") is not None:
-                    rainfall = float(curr["precipitation"])
-                live_data = True
-                source = "Open-Meteo Global Satellite & Radar Telemetry (Live)"
-
-            aq_url = (
-                f"https://air-quality-api.open-meteo.com/v1/air-quality"
-                f"?latitude={lat}&longitude={lng}&current=pm10,pm2_5,us_aqi"
-            )
-            aq_res = await client.get(aq_url)
-            if aq_res.status_code == 200:
-                aq_curr = aq_res.json().get("current", {})
-                if aq_curr.get("us_aqi") is not None:
-                    aqi = int(aq_curr["us_aqi"])
-    except Exception as e:
-        logger.debug(f"Live weather API unavailable, using estimate: {e}")
-
-    status_level = "Severe" if aqi > 200 else "Moderate" if aqi > 100 else "Good"
-
-    return {
-        "success": True,
-        "data": {
-            "temperature": temp,
-            "condition": "Humid & Partly Cloudy" if rainfall == 0 else "Intermittent Showers" if rainfall < 10 else "Heavy Monsoon",
-            "humidity": humidity,
-            "windSpeed": wind,
-            "rainfallMm": rainfall,
-            "highTideTime": "14:15 hrs",
-            "highTideHeight": "4.22m",
-            "floodAlert": rainfall > 4.0,
-            "aqi": aqi,
-            "aqiStatus": status_level,
-            "aqiCategory": status_level,
-            "location": "Mumbai, Maharashtra",
-            "pm25": int(aqi * 0.42),
-            "pm10": int(aqi * 0.78),
-            "source": source,
-            "isLiveData": live_data,
-            "updatedAt": datetime.now(timezone.utc).isoformat(),
-        },
+    combined = {
+        "temperature": w_data["temperature"],
+        "apparentTemperature": w_data.get("apparentTemperature", w_data["temperature"]),
+        "condition": w_data["condition"],
+        "humidity": w_data["humidity"],
+        "windSpeed": w_data["windSpeed"],
+        "rainfallMm": w_data["rainfallMm"],
+        "precipitation": w_data.get("precipitation", w_data["rainfallMm"]),
+        "weatherCode": w_data.get("weatherCode", 0),
+        "highTideTime": w_data.get("highTideTime", "14:15 hrs"),
+        "highTideHeight": w_data.get("highTideHeight", "4.22m"),
+        "floodAlert": w_data.get("floodAlert", False),
+        "timezone": w_data.get("timezone", MUMBAI_TIMEZONE),
+        "dailyForecast": w_data.get("dailyForecast", []),
+        "aqi": aq_data.get("aqi", 100),
+        "aqiStatus": aq_data.get("aqiStatus", "Moderate"),
+        "aqiCategory": aq_data.get("aqiCategory", "Moderate"),
+        "usAqi": aq_data.get("usAqi"),
+        "usAqiStandard": aq_data.get("usAqiStandard", "US Air Quality Index (EPA Standard)"),
+        "europeanAqi": aq_data.get("europeanAqi"),
+        "europeanAqiStandard": aq_data.get("europeanAqiStandard", "European Air Quality Index (EAQI)"),
+        "pm25": aq_data.get("pm25"),
+        "pm10": aq_data.get("pm10"),
+        "nitrogenDioxide": aq_data.get("nitrogenDioxide"),
+        "ozone": aq_data.get("ozone"),
+        "location": "Mumbai, Maharashtra",
+        "dataClassification": aq_data.get("dataClassification", "Atmospheric Numerical Model Forecast"),
+        "isGroundStation": aq_data.get("isGroundStation", False),
+        "groundStationNotice": aq_data.get("groundStationNotice", "Modeled atmospheric forecast data from Open-Meteo/CAMS; not a certified physical ground-monitoring station."),
+        "source": w_data.get("source", "Open-Meteo Global Satellite & Radar Telemetry (Live)"),
+        "isLiveData": bool(w_data.get("isLiveData", False) and aq_data.get("isLiveData", False)),
+        "updatedAt": datetime.now(timezone.utc).isoformat(),
     }
+    return {"success": True, "data": combined}
+
+
+@app.get("/api/air-quality/mumbai")
+@app.get("/api/air-quality/{lat}/{lng}")
+async def get_air_quality_telemetry(lat: float = MUMBAI_LAT, lng: float = MUMBAI_LNG):
+    """
+    Dedicated Open-Meteo Air Quality telemetry.
+    Retrieves US AQI, European AQI, PM2.5, PM10, Nitrogen Dioxide, and Ozone.
+    Explicitly labels the AQI standard and discloses model simulation vs. ground-station data.
+    """
+    aq_data = await fetch_open_meteo_air_quality(lat=lat, lng=lng, timezone_str=MUMBAI_TIMEZONE)
+    return {"success": True, "data": aq_data}
+
+
+@app.get("/api/news/mumbai")
+@app.get("/api/news")
+async def get_mumbai_news(
+    q: Optional[str] = None,
+    limit: int = 12,
+):
+    """
+    Mumbai civic infrastructure, public safety, flooding, pollution, and BMC news via NewsAPI.
+    Keeps API key secure on server-side.
+    Handles missing credentials, API limits, and provider errors without inventing articles.
+    """
+    news_res = await fetch_mumbai_news(query=q, limit=limit)
+    return news_res
 
 
 # ==============================================================================
@@ -1685,20 +1818,33 @@ async def get_category_analytics(db: Session = Depends(get_db)):
 @app.get("/api/analytics/wards")
 @app.get("/api/analytics/by-ward")
 async def get_ward_analytics(db: Session = Depends(get_db)):
-    """Computes real ward-level analytics from the database."""
+    """Computes real ward-level analytics from the database using grouped aggregate queries."""
     wards = db.query(WardModel).order_by(WardModel.id.asc()).all()
+
+    total_counts = dict(
+        db.query(ComplaintModel.ward_id, func.count(ComplaintModel.id))
+        .group_by(ComplaintModel.ward_id)
+        .all()
+    )
+    resolved_counts = dict(
+        db.query(ComplaintModel.ward_id, func.count(ComplaintModel.id))
+        .filter(ComplaintModel.status == "resolved")
+        .group_by(ComplaintModel.ward_id)
+        .all()
+    )
+    officer_counts = dict(
+        db.query(UserModel.ward_id, func.count(UserModel.id))
+        .filter(UserModel.role == "officer")
+        .group_by(UserModel.ward_id)
+        .all()
+    )
+
     results = []
     for w in wards:
-        ward_total = db.query(ComplaintModel).filter(ComplaintModel.ward_id == w.id).count()
-        ward_resolved = db.query(ComplaintModel).filter(
-            ComplaintModel.ward_id == w.id,
-            ComplaintModel.status == "resolved",
-        ).count()
+        ward_total = total_counts.get(w.id, 0)
+        ward_resolved = resolved_counts.get(w.id, 0)
         ward_pending = ward_total - ward_resolved
-        officers_count = db.query(UserModel).filter(
-            UserModel.role == "officer",
-            UserModel.ward_id == w.id,
-        ).count()
+        officers_count = officer_counts.get(w.id, 0)
         rate = round((ward_resolved / ward_total * 100), 1) if ward_total > 0 else 0.0
         results.append({
             "ward": w.name,

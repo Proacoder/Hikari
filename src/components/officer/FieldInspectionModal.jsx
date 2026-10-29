@@ -21,7 +21,7 @@ export const FieldInspectionModal = ({ complaint, officer, isOpen, onClose, onRe
 
 const FieldInspectionModalContent = ({ complaint, officer, onClose, onResolveSuccess }) => {
   const [afterImage, setAfterImage] = useState(
-    complaint.resolvedImageUrl || 'https://images.unsplash.com/photo-1541888946425-d0fbb186156f?w=800&auto=format&fit=crop&q=80'
+    complaint.resolvedImageUrl || ''
   );
   const [sliderPos, setSliderPos] = useState(50);
   const [materials, setMaterials] = useState([
@@ -168,27 +168,41 @@ const FieldInspectionModalContent = ({ complaint, officer, onClose, onResolveSuc
 
             <div className="relative h-64 sm:h-72 rounded-2xl overflow-hidden border border-neutral-200 select-none bg-neutral-900 shadow-inner group">
               {/* After image (Underneath / Right) */}
-              <img
-                src={afterImage}
-                alt="After Repair"
-                className="absolute inset-0 w-full h-full object-cover"
-              />
-              <div className="absolute top-3 right-3 bg-emerald-600 text-white font-bold px-2.5 py-1 rounded-lg text-[10px] shadow-lg flex items-center gap-1">
+              {afterImage ? (
+                <img
+                  src={afterImage}
+                  alt="After Repair"
+                  className="absolute inset-0 w-full h-full object-cover"
+                />
+              ) : (
+                <div className="absolute inset-0 flex flex-col items-center justify-center text-neutral-400 p-4 text-center">
+                  <Camera size={28} className="mb-1 text-neutral-500" />
+                  <span className="font-semibold text-xs text-neutral-300">No Resolution Photo Provided</span>
+                  <span className="text-[10px] text-neutral-500">Paste URL below or click a field sample</span>
+                </div>
+              )}
+              <div className="absolute top-3 right-3 bg-emerald-600 text-white font-bold px-2.5 py-1 rounded-lg text-[10px] shadow-lg flex items-center gap-1 z-10">
                 <CheckCircle2 size={12} /> AFTER REPAIR (Field Inspection)
               </div>
 
               {/* Before image (Clipped / Left) */}
               <div
-                className="absolute inset-0 overflow-hidden"
+                className="absolute inset-0 overflow-hidden bg-neutral-950"
                 style={{ width: `${sliderPos}%` }}
               >
-                <img
-                  src={complaint.imageUrl || 'https://images.unsplash.com/photo-1515162816999-a0c47dc192f7?w=800&auto=format&fit=crop&q=80'}
-                  alt="Before Repair"
-                  className="absolute inset-0 w-full h-full object-cover max-w-none"
-                  style={{ width: '100%', height: '100%' }}
-                />
-                <div className="absolute top-3 left-3 bg-red-600 text-white font-bold px-2.5 py-1 rounded-lg text-[10px] shadow-lg flex items-center gap-1">
+                {complaint.imageUrl ? (
+                  <img
+                    src={complaint.imageUrl}
+                    alt="Before Repair"
+                    className="absolute inset-0 w-full h-full object-cover max-w-none"
+                    style={{ width: '100%', height: '100%' }}
+                  />
+                ) : (
+                  <div className="absolute inset-0 flex flex-col items-center justify-center text-neutral-400 p-4 text-center">
+                    <span className="font-semibold text-xs text-neutral-400">No Incident Photo on File</span>
+                  </div>
+                )}
+                <div className="absolute top-3 left-3 bg-red-600 text-white font-bold px-2.5 py-1 rounded-lg text-[10px] shadow-lg flex items-center gap-1 z-10">
                   <AlertTriangle size={12} /> BEFORE (Reported Defect)
                 </div>
               </div>

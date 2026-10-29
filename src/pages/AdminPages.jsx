@@ -159,12 +159,12 @@ export const AdminDashboard = () => {
       const match = wardData.find((d) => d.wardId === w.id || d.ward?.toLowerCase().startsWith(w.name.toLowerCase()));
       const zone = getWardZone(w.id);
       const wardComplaints = mapComplaints.filter((c) => c.ward === w.id || c.wardName?.includes(w.name));
-      const total = match ? match.total : (wardComplaints.length > 0 ? wardComplaints.length * 35 : 420 + (w.id * 18));
-      const resolved = match ? match.resolved : Math.floor(total * 0.82);
-      const pending = match ? match.pending : total - resolved;
-      const rate = match ? match.rate : Math.round((resolved / total) * 100);
-      const avgDays = match ? match.avgDays : Number((2.4 + (w.id % 4) * 0.6).toFixed(1));
-      const officers = match ? match.officers : (3 + (w.id % 3));
+      const total = match ? match.total : wardComplaints.length;
+      const resolved = match ? match.resolved : wardComplaints.filter((c) => c.status === 'resolved').length;
+      const pending = match ? match.pending : Math.max(0, total - resolved);
+      const rate = match ? match.rate : (total > 0 ? Math.round((resolved / total) * 100) : 100);
+      const avgDays = match?.avgDays ?? null;
+      const officers = match?.officers ?? 0;
 
       return {
         ...w,
@@ -248,15 +248,17 @@ export const AdminDashboard = () => {
             <Card className="p-4 space-y-1">
               <span className="text-xs font-semibold text-neutral-500 uppercase">Total Complaints</span>
               <div className="text-3xl font-extrabold text-neutral-900">
-                {analytics?.totalComplaints ? analytics.totalComplaints.toLocaleString() : '14,290'}
+                {analytics?.totalComplaints != null ? analytics.totalComplaints.toLocaleString() : '0'}
               </div>
-              <div className="text-[11px] text-emerald-600 font-semibold">+{analytics?.monthlyGrowth || 12.4}% vs last month</div>
+              <div className="text-[11px] text-emerald-600 font-semibold">
+                {analytics?.monthlyGrowth != null ? `+${analytics.monthlyGrowth}% vs last month` : 'Current cycle'}
+              </div>
             </Card>
 
             <Card className="p-4 space-y-1">
               <span className="text-xs font-semibold text-neutral-500 uppercase">Resolution Rate</span>
               <div className="text-3xl font-extrabold text-emerald-600">
-                {analytics?.resolutionRate ? `${analytics.resolutionRate}%` : '91.4%'}
+                {analytics?.resolutionRate != null ? `${analytics.resolutionRate}%` : '0%'}
               </div>
               <div className="text-[11px] text-neutral-400">Target: &gt; 90%</div>
             </Card>
@@ -264,14 +266,16 @@ export const AdminDashboard = () => {
             <Card className="p-4 space-y-1">
               <span className="text-xs font-semibold text-neutral-500 uppercase">Average SLA Time</span>
               <div className="text-3xl font-extrabold text-sky-600">
-                {analytics?.avgResolutionDays ? `${(analytics.avgResolutionDays * 24).toFixed(1)}h` : '18.4h'}
+                {analytics?.avgResolutionDays != null ? `${(analytics.avgResolutionDays * 24).toFixed(1)}h` : '—'}
               </div>
-              <div className="text-[11px] text-emerald-600 font-semibold">-2.1h optimization</div>
+              <div className="text-[11px] text-emerald-600 font-semibold">Dynamic SLA telemetry</div>
             </Card>
 
             <Card className="p-4 space-y-1">
               <span className="text-xs font-semibold text-neutral-500 uppercase">Active Officers</span>
-              <div className="text-3xl font-extrabold text-brand-600">{analytics?.activeOfficers || MUMBAI_WARDS.length}</div>
+              <div className="text-3xl font-extrabold text-brand-600">
+                {analytics?.activeOfficers != null ? analytics.activeOfficers : MUMBAI_WARDS.length}
+              </div>
               <div className="text-[11px] text-neutral-400">Across {MUMBAI_WARDS.length} wards</div>
             </Card>
           </>
@@ -600,7 +604,13 @@ export const AdminDashboard = () => {
                 <span className="flex items-center gap-1.5"><span className="w-3 h-0.5 bg-orange-500 rounded" /> Complaints</span>
                 <span className="flex items-center gap-1.5"><span className="w-3 h-0.5 bg-indigo-500 rounded border-dashed" /> Avg AQI</span>
               </div>
-              {trends?.weatherCorrelation && <WeatherCorrelationChart data={trends.weatherCorrelation} />}
+              {trends?.weatherCorrelation?.length > 0 ? (
+                <WeatherCorrelationChart data={trends.weatherCorrelation} />
+              ) : (
+                <div className="py-12 text-center text-xs text-neutral-400">
+                  Telemetry correlation accumulating for current season
+                </div>
+              )}
             </Card>
           </div>
 
@@ -608,7 +618,7 @@ export const AdminDashboard = () => {
           <Card className="p-5 space-y-4">
             <div className="flex items-center justify-between">
               <h3 className="font-bold text-sm text-neutral-900">Top 10 Most Upvoted Issues in Mumbai</h3>
-              <Badge variant="red">{analytics?.highPriorityOpen || 127} High Priority</Badge>
+              <Badge variant="red">{analytics?.highPriorityOpen ?? 0} High Priority</Badge>
             </div>
             <div className="overflow-x-auto">
               <table className="w-full text-left text-xs text-neutral-600">

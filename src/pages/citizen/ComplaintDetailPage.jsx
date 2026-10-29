@@ -3,7 +3,7 @@ import { useParams, Link } from 'react-router-dom';
 import {
   ThumbsUp, MessageSquare, Clock, MapPin, Share2,
   Send, Star, AlertTriangle, ShieldCheck, Lock,
-  RotateCcw, CheckCircle, X
+  RotateCcw, CheckCircle, X, Camera
 } from 'lucide-react';
 import {
   getComplaintById, upvoteComplaint, getComments, addComment,
@@ -58,13 +58,18 @@ export const ComplaintDetailPage = () => {
   useEffect(() => {
     let isCancelled = false;
     async function load() {
+      if (!id) {
+        setError({ type: 'notFound', message: 'No grievance ticket ID specified.' });
+        setLoading(false);
+        return;
+      }
       setLoading(true);
       setError(null);
       setComplaint(null);
       try {
         const [compRes, commRes] = await Promise.all([
-          getComplaintById(id || 'cmp-001'),
-          getComments(id || 'cmp-001')
+          getComplaintById(id),
+          getComments(id)
         ]);
         if (isCancelled) return;
         const comp = compRes?.data;
@@ -74,6 +79,7 @@ export const ComplaintDetailPage = () => {
         }
         setComplaint(comp);
         setUpvotes(comp.upvoteCount || 0);
+        setHasUpvoted(Boolean(comp.hasUpvoted));
         setComments(commRes?.data || []);
         if (comp.rating) {
           setSelectedRating(comp.rating);
@@ -103,11 +109,19 @@ export const ComplaintDetailPage = () => {
   const handleUpvote = async () => {
     if (hasUpvoted) return;
     try {
-      await upvoteComplaint(complaint.id);
-      setUpvotes(prev => prev + 1);
+      const res = await upvoteComplaint(complaint.id);
+      setUpvotes(res?.data?.upvoteCount ?? (upvotes + 1));
       setHasUpvoted(true);
       toast.success('Grievance upvoted! Priority escalated.');
     } catch (err) {
+      if (err?.response?.status === 409) {
+        setHasUpvoted(true);
+        toast('You have already upvoted this grievance.', { icon: 'ℹ️' });
+      } else if (err?.response?.status === 401) {
+        toast.error('Please log in as an authenticated citizen to upvote.');
+      } else {
+        toast.error('Failed to upvote grievance. Please try again.');
+      }
       console.error('Failed to upvote complaint:', err);
     }
   };
@@ -284,15 +298,13 @@ export const ComplaintDetailPage = () => {
     );
   }
 
-  const DEFAULT_PHOTO = 'https://images.unsplash.com/photo-1541888946425-d0fbb18f15f6?w=600&q=80';
-  const resolvedPhoto = complaint.resolvedImageUrl || (complaint.status === 'resolved' ? 'https://images.unsplash.com/photo-1584467735871-8e85353a8413?w=600&q=80' : null);
-  const reopenProofPhoto = complaint.reopenPhotoUrl;
+  const resolvedPhoto = complaint.resolvedImageUrl || null;
+  const reopenProofPhoto = complaint.reopenPhotoUrl || null;
 
-  const photos = [
-    complaint.imageUrl || DEFAULT_PHOTO,
-    resolvedPhoto,
-    reopenProofPhoto,
-  ].filter(Boolean);
+  const photoList = [];
+  if (complaint.imageUrl) photoList.push({ url: complaint.imageUrl, label: '1. Incident Photo', type: 'incident' });
+  if (resolvedPhoto) photoList.push({ url: resolvedPhoto, label: '2. Resolution Proof', type: 'resolution' });
+  if (reopenProofPhoto) photoList.push({ url: reopenProofPhoto, label: '3. Citizen Contest Proof', type: 'contest' });
 
   // 48-Hour SLA Check
   const isWithin48Hours = Boolean(
@@ -393,43 +405,51 @@ export const ComplaintDetailPage = () => {
         <div className="lg:col-span-7 space-y-6">
           {/* Photos Showcase */}
           <Card className="overflow-hidden p-0 border border-neutral-200">
-            <div className="relative h-72 bg-neutral-900">
-              <img
-                src={photos[activePhoto] || DEFAULT_PHOTO}
-                alt={complaint.title}
-                onError={(e) => { e.currentTarget.src = DEFAULT_PHOTO; }}
-                className="w-full h-full object-cover"
-              />
-              <div className="absolute top-3 left-3 flex gap-2">
-                <SeverityBadge score={complaint.severity} />
-                <StatusBadge status={complaint.status} />
-              </div>
-            </div>
+            {photoList.length > 0 ? (
+              <>
+                <div className="relative h-72 bg-neutral-900">
+                  <img
+                    src={photoList[activePhoto]?.url || photoList[0]?.url}
+                    alt={complaint.title}
+                    className="w-full h-full object-cover"
+                  />
+                  <div className="absolute top-3 left-3 flex gap-2">
+                    <SeverityBadge score={complaint.severity} />
+                    <StatusBadge status={complaint.status} />
+                  </div>
+                </div>
 
-            {photos.length > 1 && (
-              <div className="flex flex-wrap gap-2 p-3 bg-neutral-50 border-t border-neutral-100">
-                <button
-                  onClick={() => setActivePhoto(0)}
-                  className={`px-3 py-1 rounded-lg text-xs font-semibold cursor-pointer ${activePhoto === 0 ? 'bg-brand-600 text-white' : 'bg-white text-neutral-600 border'}`}
-                >
-                  1. Incident Photo
-                </button>
-                {resolvedPhoto && (
-                  <button
-                    onClick={() => setActivePhoto(1)}
-                    className={`px-3 py-1 rounded-lg text-xs font-semibold cursor-pointer ${activePhoto === 1 ? 'bg-emerald-600 text-white' : 'bg-white text-neutral-600 border'}`}
-                  >
-                    2. Resolution Proof
-                  </button>
+                {photoList.length > 1 && (
+                  <div className="flex flex-wrap gap-2 p-3 bg-neutral-50 border-t border-neutral-100">
+                    {photoList.map((p, idx) => (
+                      <button
+                        key={p.label}
+                        onClick={() => setActivePhoto(idx)}
+                        className={`px-3 py-1 rounded-lg text-xs font-semibold cursor-pointer ${
+                          activePhoto === idx
+                            ? p.type === 'resolution' ? 'bg-emerald-600 text-white' : p.type === 'contest' ? 'bg-amber-600 text-white' : 'bg-brand-600 text-white'
+                            : 'bg-white text-neutral-600 border'
+                        }`}
+                      >
+                        {p.label}
+                      </button>
+                    ))}
+                  </div>
                 )}
-                {reopenProofPhoto && (
-                  <button
-                    onClick={() => setActivePhoto(photos.length - 1)}
-                    className={`px-3 py-1 rounded-lg text-xs font-semibold cursor-pointer ${activePhoto === photos.length - 1 ? 'bg-amber-600 text-white' : 'bg-white text-neutral-600 border'}`}
-                  >
-                    3. Citizen Contest Proof
-                  </button>
-                )}
+              </>
+            ) : (
+              <div className="relative h-48 bg-neutral-100 flex flex-col items-center justify-center text-center p-6 space-y-2">
+                <div className="absolute top-3 left-3 flex gap-2">
+                  <SeverityBadge score={complaint.severity} />
+                  <StatusBadge status={complaint.status} />
+                </div>
+                <div className="w-12 h-12 rounded-full bg-neutral-200 text-neutral-500 flex items-center justify-center">
+                  <Camera size={22} />
+                </div>
+                <div>
+                  <span className="text-xs font-bold text-neutral-700">No Photo Evidence Attached</span>
+                  <p className="text-[11px] text-neutral-400">Citizen submitted text description & GPS location.</p>
+                </div>
               </div>
             )}
           </Card>

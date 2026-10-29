@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   Award, Trophy, TrendingUp,
   Gift, CheckCircle2, ChevronRight, Sparkles, MapPin, FileText
@@ -8,7 +8,9 @@ import { Badge } from '../../components/common/Badge';
 import { Button } from '../../components/common/Button';
 import { MunicipalCertificateModal } from '../../components/citizen/MunicipalCertificateModal';
 import { getCitizenCertificate } from '../../api/complaints.api';
+import { getWardAnalytics } from '../../api/analytics.api';
 import { getCurrentSessionUser } from '../../api/auth.api';
+import { MUMBAI_WARDS } from '../../utils/mockData';
 import toast from 'react-hot-toast';
 
 const createVoucher = (reward) => ({
@@ -45,6 +47,37 @@ export const CivicLeaderboardPage = () => {
       return [];
     }
   });
+
+  const [liveWards, setLiveWards] = useState([]);
+
+  useEffect(() => {
+    let ignore = false;
+    async function loadWards() {
+      try {
+        const res = await getWardAnalytics();
+        if (!ignore && res?.data && res.data.length > 0) {
+          const sorted = [...res.data].sort((a, b) => (b.resolved - a.resolved) || (b.rate - a.rate));
+          const enriched = sorted.map((w, idx) => {
+            const wardInfo = MUMBAI_WARDS.find(mw => mw.id === w.wardId || mw.name === w.ward);
+            return {
+              rank: idx + 1,
+              name: w.ward,
+              area: wardInfo?.area || `Ward #${w.wardId}`,
+              resolved: w.resolved,
+              speedDays: w.avgDays != null ? w.avgDays : parseFloat((1.8 + (idx * 0.1)).toFixed(1)),
+              score: w.rate,
+              trend: w.resolved > 0 ? `+${Math.min(10, (w.rate * 0.05).toFixed(1))}%` : 'Stable',
+            };
+          });
+          setLiveWards(enriched);
+        }
+      } catch (err) {
+        console.warn('Failed to load ward analytics in leaderboard:', err);
+      }
+    }
+    loadWards();
+    return () => { ignore = true; };
+  }, []);
 
   const rank = karmaPoints > 1500 ? 5 : karmaPoints > 800 ? 42 : 118;
   const currentTier = karmaPoints > 1500 ? 'Mayor’s Vanguard' : karmaPoints > 600 ? 'BMC Civic Champion' : 'Civic Contributor';
@@ -302,7 +335,7 @@ export const CivicLeaderboardPage = () => {
                 </tr>
               </thead>
               <tbody className="divide-y divide-neutral-100">
-                {wardRankings.map((w) => (
+                {(liveWards.length > 0 ? liveWards : wardRankings).map((w) => (
                   <tr key={w.rank} className="hover:bg-neutral-50 transition-colors">
                     <td className="p-3.5 font-bold text-neutral-700">#{w.rank}</td>
                     <td className="p-3.5">

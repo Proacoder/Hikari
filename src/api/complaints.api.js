@@ -118,7 +118,7 @@ export const createComplaint = async (formData) => {
         return { id: 'anonymous', name: 'Citizen' };
       })(),
       assignedOfficer: null,
-      upvoteCount: 1,
+      upvoteCount: 0,
       commentCount: 0,
       createdAt: new Date().toISOString(),
       resolvedAt: null,
@@ -129,7 +129,7 @@ export const createComplaint = async (formData) => {
           ? (parseFloat(formData.confidence) > 1
             ? parseFloat(formData.confidence) / 100
             : parseFloat(formData.confidence))
-          : 0.94,
+          : null,
         aqiAtLocation: 112,
         weatherCondition: 'Partly cloudy',
       },
@@ -378,5 +378,19 @@ export const getCitizenCertificate = async (userId) => {
     });
   }
   const res = await apiClient.get(`/citizens/${userId}/certificate`);
+  return res.data;
+};
+
+// POST /api/upload
+export const uploadFile = async (file) => {
+  if (MOCK_MODE) {
+    await mockDelay();
+    return successResponse({ url: URL.createObjectURL(file) });
+  }
+  const formData = new FormData();
+  formData.append('file', file);
+  const res = await apiClient.post('/upload', formData, {
+    headers: { 'Content-Type': 'multipart/form-data' },
+  });
   return res.data;
 };

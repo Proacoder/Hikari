@@ -106,7 +106,7 @@ class ComplaintModel(Base):
     landmark = Column(String(255), nullable=True)
     image_url = Column(Text, nullable=True)
     resolved_image_url = Column(Text, nullable=True)
-    upvote_count = Column(Integer, default=1)
+    upvote_count = Column(Integer, default=0)
 
     created_by_id = Column(String(50), nullable=True, index=True)
     created_by_name = Column(String(100), nullable=True)
@@ -365,7 +365,7 @@ def init_db():
                     ward_id=comp.get("ward", 1), landmark=comp.get("landmark", ""),
                     image_url=comp.get("imageUrl"),
                     resolved_image_url=comp.get("resolvedImageUrl"),
-                    upvote_count=comp.get("upvoteCount", 1),
+                    upvote_count=comp.get("upvoteCount", 0),
                     created_by_id=created_by.get("id"),
                     created_by_name=created_by.get("name"),
                     created_by_email=created_by.get("email"),

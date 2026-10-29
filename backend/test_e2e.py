@@ -125,8 +125,10 @@ def run_tests():
         res = client.post(f"/api/complaints/{ticket_id}/upvote")
         assert res.status_code == 401, f"Expected 401 for unauthenticated upvote, got {res.status_code}"
         res = client.post(f"/api/complaints/{ticket_id}/upvote", headers={"Authorization": f"Bearer {citizen_token}"})
-        assert res.status_code == 200, f"Authenticated upvote failed: {res.text}"
-        assert res.json()["data"]["upvoteCount"] >= 2
+        assert res.json()["data"]["upvoteCount"] == 1
+        # Duplicate upvote attempt must be rejected with 409 Conflict
+        dup_res = client.post(f"/api/complaints/{ticket_id}/upvote", headers={"Authorization": f"Bearer {citizen_token}"})
+        assert dup_res.status_code == 409, f"Expected 409 for duplicate upvote, got {dup_res.status_code}"
         print("[PASS] Grievance Upvote passed (auth required + duplicate prevention)")
 
         # 11. Officer Status Update & Resolution Audit

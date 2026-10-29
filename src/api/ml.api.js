@@ -3,7 +3,7 @@
  * Integrates YOLOv8 defect detection, DBSCAN spatial deduplication, and monsoon risk forecasting.
  */
 
-const ML_SERVICE_URL = import.meta.env.VITE_ML_SERVICE_URL || 'http://localhost:5000/api/ml';
+const ML_SERVICE_URL = import.meta.env.VITE_ML_SERVICE_URL || 'http://localhost:5001/api/ml';
 
 
 /**
@@ -86,9 +86,9 @@ export const predictMonsoonRiskML = async (wardCode, rainfallMmHr, tideHeightM =
 };
 
 /**
- * Connects to the local assistant intelligence engine or Gemini 1.5 Flash.
+ * Connects to the municipal assistant intelligence engine (NVIDIA NIM, Groq Cloud, or Google Gemini).
  */
-export const queryAssistantChat = async (query, language = 'en', userWard = 8) => {
+export const queryAssistantChat = async (query, language = 'en', userWard = 8, options = {}) => {
   try {
     const res = await fetch(`${ML_SERVICE_URL}/assistant/chat`, {
       method: 'POST',
@@ -97,6 +97,8 @@ export const queryAssistantChat = async (query, language = 'en', userWard = 8) =
         query,
         language,
         user_ward: userWard,
+        provider: options.provider,
+        model: options.model,
       }),
     });
 
@@ -104,7 +106,61 @@ export const queryAssistantChat = async (query, language = 'en', userWard = 8) =
       return await res.json();
     }
   } catch {
-    console.info('Local assistant chat service offline, using client NLP fallback.');
+    console.info('Assistant chat service offline, using client NLP fallback.');
+  }
+  return null;
+};
+
+/**
+ * Dedicated client for NVIDIA's OpenAI-compatible Chat Completions API.
+ * Connects to https://integrate.api.nvidia.com/v1 via secure backend proxy.
+ */
+export const queryNvidiaChat = async (query, language = 'en', userWard = 8, model = null) => {
+  try {
+    const payload = {
+      query,
+      language,
+      user_ward: userWard,
+    };
+    if (model) payload.model = model;
+
+    const res = await fetch(`${ML_SERVICE_URL}/nvidia/chat`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload),
+    });
+
+    if (res.ok) {
+      return await res.json();
+    }
+  } catch (err) {
+    console.info('NVIDIA chat service connection failed:', err);
+  }
+  return null;
+};
+
+
+/**
+ * Automated Quality Audit (AQA) Resolution Verification Engine.
+ * Sends before and after image Base64 to compute remediation score and anti-fraud checks.
+ */
+export const verifyResolutionWithML = async ({ complaintId, category, beforeBase64, afterBase64 }) => {
+  try {
+    const res = await fetch(`${ML_SERVICE_URL}/verify-resolution`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        complaint_id: complaintId,
+        category: category || 'Pothole',
+        before_image_base64: beforeBase64,
+        after_image_base64: afterBase64,
+      }),
+    });
+    if (res.ok) {
+      return await res.json();
+    }
+  } catch (err) {
+    console.info('Resolution verification ML engine offline:', err);
   }
   return null;
 };

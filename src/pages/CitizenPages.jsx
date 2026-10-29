@@ -4,10 +4,10 @@ import toast from 'react-hot-toast';
 import {
   AlertTriangle, MapPin, Camera, Sparkles, CheckCircle2,
   Navigation, CloudRain, Wind, Thermometer, Eye,
-  Crosshair
+  Crosshair, Newspaper, ExternalLink
 } from 'lucide-react';
-import { getComplaints, createComplaint, getMapData, getStoredComplaints, saveStoredComplaints } from '../api/complaints.api';
-import { getWeatherAQI } from '../api/weather.api';
+import { getComplaints, createComplaint, upvoteComplaint, getMapData, getStoredComplaints, saveStoredComplaints } from '../api/complaints.api';
+import { getWeatherAQI, getMumbaiNews } from '../api/weather.api';
 import { detectDefectWithYOLO, checkDuplicateWithDBSCAN } from '../api/ml.api';
 import { MUMBAI_WARDS, MOCK_OFFICERS, CATEGORIES } from '../utils/mockData';
 import { findClosestWard, reverseGeocodeCoordinates, analyzeComplaintDynamic } from '../utils/geoUtils';
@@ -45,6 +45,7 @@ export const CitizenDashboard = () => {
   const [complaints, setComplaints] = useState([]);
   const [loading, setLoading] = useState(true);
   const [weather, setWeather] = useState(null);
+  const [news, setNews] = useState([]);
 
   // Dynamic assigned ward officer for this citizen's ward
   const assignedOfficer = useMemo(() => {
@@ -78,12 +79,14 @@ export const CitizenDashboard = () => {
         const userWard = MUMBAI_WARDS.find((w) => w.id === user?.ward);
         const lat = userWard?.lat || 19.076;
         const lng = userWard?.lng || 72.877;
-        const [res, weatherRes] = await Promise.all([
+        const [res, weatherRes, newsRes] = await Promise.all([
           getComplaints(user?.ward ? { ward: user.ward } : { limit: 6 }),
           getWeatherAQI(lat, lng),
+          getMumbaiNews(),
         ]);
         setComplaints(res.data || []);
-        setWeather(weatherRes.data || null);
+        setWeather(weatherRes?.data || null);
+        if (newsRes?.articles) setNews(newsRes.articles);
       } catch (err) {
         console.error('Failed to load dashboard data:', err);
       } finally {
@@ -141,45 +144,66 @@ export const CitizenDashboard = () => {
         </div>
       </div>
 
-      {/* Weather + AQI Strip */}
+      {/* Weather + AQI Strip (Live Open-Meteo & Air Quality API) */}
       {weather && (
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-          <Card className="p-3.5 flex items-center gap-3 bg-white border-neutral-200 shadow-sm" padding="">
-            <div className="w-10 h-10 rounded-xl bg-sky-50 flex items-center justify-center text-sky-600 shrink-0">
-              <Thermometer size={18} />
+        <div className="space-y-2">
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+            <Card className="p-3.5 flex items-center gap-3 bg-white border-neutral-200 shadow-sm" padding="">
+              <div className="w-10 h-10 rounded-xl bg-sky-50 flex items-center justify-center text-sky-600 shrink-0">
+                <Thermometer size={18} />
+              </div>
+              <div>
+                <div className="text-lg font-bold text-neutral-900">{weather.temperature}°C</div>
+                <div className="text-[11px] text-neutral-500 font-medium">
+                  {weather.apparentTemperature !== undefined ? `Feels like ${weather.apparentTemperature}°C` : weather.condition || 'Moderate'}
+                </div>
+              </div>
+            </Card>
+            <Card className="p-3.5 flex items-center gap-3 bg-white border-neutral-200 shadow-sm" padding="">
+              <div className="w-10 h-10 rounded-xl bg-amber-50 flex items-center justify-center text-amber-600 shrink-0">
+                <Wind size={18} />
+              </div>
+              <div>
+                <div className="text-lg font-bold text-neutral-900">
+                  AQI {weather.usAqi ?? weather.aqi}
+                  {weather.europeanAqi && <span className="text-xs font-normal text-neutral-500 ml-1.5">(EAQI {weather.europeanAqi})</span>}
+                </div>
+                <div className="text-[11px] text-neutral-500 font-medium">
+                  {(weather.usAqi ?? weather.aqi) > 150 ? 'Unhealthy' : (weather.usAqi ?? weather.aqi) > 100 ? 'Sensitive' : 'Moderate'} · EPA Std
+                </div>
+              </div>
+            </Card>
+            <Card className="p-3.5 flex items-center gap-3 bg-white border-neutral-200 shadow-sm" padding="">
+              <div className="w-10 h-10 rounded-xl bg-blue-50 flex items-center justify-center text-blue-600 shrink-0">
+                <CloudRain size={18} />
+              </div>
+              <div>
+                <div className="text-lg font-bold text-neutral-900">{weather.humidity}%</div>
+                <div className="text-[11px] text-neutral-500 font-medium">
+                  {weather.windSpeed !== undefined ? `Wind ${weather.windSpeed} km/h` : 'Humidity'}
+                </div>
+              </div>
+            </Card>
+            <Card className="p-3.5 flex items-center gap-3 bg-white border-neutral-200 shadow-sm" padding="">
+              <div className="w-10 h-10 rounded-xl bg-emerald-50 flex items-center justify-center text-emerald-600 shrink-0">
+                <Eye size={18} />
+              </div>
+              <div>
+                <div className="text-lg font-bold text-neutral-900">
+                  {weather.pm25 !== undefined ? `${weather.pm25} µg/m³` : 'Good'}
+                </div>
+                <div className="text-[11px] text-neutral-500 font-medium">
+                  {weather.pm25 !== undefined ? `PM2.5 Conc.` : 'Visibility'}
+                </div>
+              </div>
+            </Card>
+          </div>
+          {weather.groundStationNotice && (
+            <div className="text-[11px] text-neutral-400 text-right px-1 flex items-center justify-end gap-1.5">
+              <span>ⓘ</span>
+              <span>{weather.groundStationNotice} ({weather.timezone || 'Asia/Kolkata'})</span>
             </div>
-            <div>
-              <div className="text-lg font-bold text-neutral-900">{weather.temperature}°C</div>
-              <div className="text-[11px] text-neutral-500 font-medium">{weather.condition || 'Moderate'}</div>
-            </div>
-          </Card>
-          <Card className="p-3.5 flex items-center gap-3 bg-white border-neutral-200 shadow-sm" padding="">
-            <div className="w-10 h-10 rounded-xl bg-amber-50 flex items-center justify-center text-amber-600 shrink-0">
-              <Wind size={18} />
-            </div>
-            <div>
-              <div className="text-lg font-bold text-neutral-900">AQI {weather.aqi}</div>
-              <div className="text-[11px] text-neutral-500 font-medium">{weather.aqi > 100 ? 'Unhealthy' : 'Moderate'}</div>
-            </div>
-          </Card>
-          <Card className="p-3.5 flex items-center gap-3 bg-white border-neutral-200 shadow-sm" padding="">
-            <div className="w-10 h-10 rounded-xl bg-blue-50 flex items-center justify-center text-blue-600 shrink-0">
-              <CloudRain size={18} />
-            </div>
-            <div>
-              <div className="text-lg font-bold text-neutral-900">{weather.humidity}%</div>
-              <div className="text-[11px] text-neutral-500 font-medium">Humidity</div>
-            </div>
-          </Card>
-          <Card className="p-3.5 flex items-center gap-3 bg-white border-neutral-200 shadow-sm" padding="">
-            <div className="w-10 h-10 rounded-xl bg-emerald-50 flex items-center justify-center text-emerald-600 shrink-0">
-              <Eye size={18} />
-            </div>
-            <div>
-              <div className="text-lg font-bold text-neutral-900">Good</div>
-              <div className="text-[11px] text-neutral-500 font-medium">Visibility</div>
-            </div>
-          </Card>
+          )}
         </div>
       )}
 
@@ -244,6 +268,65 @@ export const CitizenDashboard = () => {
           </div>
         )}
       </div>
+
+      {/* Mumbai Civic & Infrastructure Bulletins (Live NewsAPI Integration) */}
+      {news && news.length > 0 && (
+        <div className="space-y-4 pt-2">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <div className="w-7 h-7 rounded-lg bg-brand-50 text-brand-600 flex items-center justify-center">
+                <Newspaper size={16} />
+              </div>
+              <div>
+                <h3 className="text-base font-bold text-neutral-900">Mumbai Civic & Infrastructure Bulletins</h3>
+                <p className="text-xs text-neutral-500">Live verified coverage from NewsAPI (BMC, roads, flooding, transit)</p>
+              </div>
+            </div>
+            <span className="text-[11px] bg-neutral-100 text-neutral-600 px-2 py-0.5 rounded-full font-medium">
+              Live Feed
+            </span>
+          </div>
+
+          <div className="grid md:grid-cols-3 gap-4">
+            {news.slice(0, 3).map((item, idx) => (
+              <a
+                key={idx}
+                href={item.url}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="group flex flex-col bg-white border border-neutral-200 rounded-xl p-4 shadow-sm hover:shadow-md hover:border-brand-300 transition-all"
+              >
+                {item.imageUrl && (
+                  <div className="w-full h-32 mb-3 rounded-lg overflow-hidden bg-neutral-100 shrink-0">
+                    <img
+                      src={item.imageUrl}
+                      alt={item.title}
+                      className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-200"
+                      referrerPolicy="no-referrer"
+                    />
+                  </div>
+                )}
+                <div className="flex items-center justify-between text-[11px] text-neutral-400 mb-1.5">
+                  <span className="font-semibold text-brand-600">{item.source || 'Civic Bulletin'}</span>
+                  <span>{item.publishedAt ? new Date(item.publishedAt).toLocaleDateString('en-IN', { month: 'short', day: 'numeric' }) : ''}</span>
+                </div>
+                <h4 className="text-xs font-bold text-neutral-900 line-clamp-2 group-hover:text-brand-600 mb-1.5">
+                  {item.title}
+                </h4>
+                {item.description && (
+                  <p className="text-[11px] text-neutral-500 line-clamp-2 leading-relaxed mb-3 flex-1">
+                    {item.description}
+                  </p>
+                )}
+                <div className="flex items-center gap-1 text-[11px] font-semibold text-brand-600 mt-auto pt-2 border-t border-neutral-100">
+                  <span>Read full story</span>
+                  <ExternalLink size={12} className="group-hover:translate-x-0.5 transition-transform" />
+                </div>
+              </a>
+            ))}
+          </div>
+        </div>
+      )}
     </div>
   );
 };
@@ -375,9 +458,9 @@ export const ReportIssuePage = () => {
   };
 
   // Map pin position change handler (drag or click on Leaflet map)
-  const handleMapPositionChange = async ({ lat, lng }) => {
-    const roundedLat = parseFloat(lat.toFixed(6));
-    const roundedLng = parseFloat(lng.toFixed(6));
+  const handleMapPositionChange = useCallback(async ({ lat, lng }) => {
+    const roundedLat = parseFloat(Number(lat).toFixed(6));
+    const roundedLng = parseFloat(Number(lng).toFixed(6));
 
     const closest = findClosestWard(roundedLat, roundedLng);
     setDetectedWardInfo(closest);
@@ -396,7 +479,7 @@ export const ReportIssuePage = () => {
         landmark: prev.landmark ? prev.landmark : street,
       }));
     }
-  };
+  }, []);
 
   // Handle file image upload with local YOLOv8 Defect Detector
   const handleFileUpload = (e) => {
@@ -416,21 +499,26 @@ export const ReportIssuePage = () => {
       setAiAnalyzing(true);
       const yolo = await detectDefectWithYOLO(file, file.name.replace(/\.[^/.]+$/, ''));
       if (yolo && yolo.success) {
+        const hasDetections = Boolean(yolo.detections && yolo.detections.length > 0);
         setAiPrediction({
           category: yolo.category,
           confidence: yolo.confidence,
           severity: yolo.severity,
           slaHours: yolo.sla_hours,
           assignedDept: yolo.assigned_department,
-          detections: yolo.detections,
+          detections: yolo.detections || [],
           annotatedImage: yolo.annotated_image,
-          source: 'YOLOv8 Computer Vision',
+          source: hasDetections ? 'YOLOv8 Computer Vision' : 'Municipal Heuristic Intelligence',
         });
         setFormData((prev) => ({
           ...prev,
           category: yolo.category,
         }));
-        toast.success(`YOLOv8 Detected: ${yolo.category} (${yolo.confidence})`, { icon: '🎯' });
+        if (hasDetections) {
+          toast.success(`YOLOv8 Detected: ${yolo.category} (${yolo.confidence})`, { icon: '🎯' });
+        } else {
+          toast.success(`Classified: ${yolo.category} (${yolo.confidence})`, { icon: '📋' });
+        }
         setAiAnalyzing(false);
       } else {
         // Fallback to text heuristic
@@ -447,7 +535,14 @@ export const ReportIssuePage = () => {
     setSubmitting(true);
     try {
       // 1. Run local DBSCAN geodesic clustering for duplicate detection
-      const allExisting = getStoredComplaints();
+      let allExisting = [];
+      try {
+        const liveRes = await getComplaints({ limit: 100 });
+        allExisting = liveRes.data || [];
+      } catch {
+        allExisting = getStoredComplaints();
+      }
+
       const dupCheck = await checkDuplicateWithDBSCAN(
         {
           latitude: formData.latitude,
@@ -469,8 +564,14 @@ export const ReportIssuePage = () => {
       if (dupCheck && dupCheck.is_duplicate) {
         const parent = allExisting.find((c) => c.id === dupCheck.parent_complaint_id);
         if (parent) {
-          // Increment priority and attach citizen report
-          parent.upvoteCount = (parent.upvoteCount || 0) + 1;
+          // Increment priority on server as well
+          try {
+            const upRes = await upvoteComplaint(parent.id);
+            parent.upvoteCount = upRes?.data?.upvoteCount || (parent.upvoteCount || 0) + 1;
+          } catch {
+            parent.upvoteCount = (parent.upvoteCount || 0) + 1;
+          }
+
           if (!parent.mergedReports) parent.mergedReports = [];
           parent.mergedReports.push({
             reportedAt: new Date().toISOString(),
@@ -514,9 +615,9 @@ export const ReportIssuePage = () => {
         longitude: formData.longitude,
         ward: formData.ward,
         landmark: formData.landmark,
-        imageUrl: (aiPrediction?.annotatedImage) || formData.imageUrl || 'https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=600&q=80',
+        imageUrl: (aiPrediction?.annotatedImage) || formData.imageUrl || null,
         severity: aiPrediction?.severity || 65,
-        confidence: aiPrediction?.confidence || '94.0%',
+        confidence: aiPrediction?.confidence || null,
         duplicateLinkedTo: dupCheck?.is_duplicate ? dupCheck.parent_complaint_id : null,
         createdBy: user ? {
           id: user.id,
@@ -1002,7 +1103,7 @@ export const MyComplaintsPage = () => {
   const displayedList = viewScope === 'mine' ? myComplaints : wardComplaints;
 
   const filtered = displayedList.filter((c) => {
-    if (activeTab === 'IN_PROGRESS') return c.status === 'in_progress' || c.status === 'assigned';
+    if (activeTab === 'IN_PROGRESS') return ['reported', 'assigned', 'in_progress', 'reopened', 'escalated'].includes(c.status);
     if (activeTab === 'RESOLVED') return c.status === 'resolved';
     return true;
   });

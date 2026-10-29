@@ -19,6 +19,7 @@ from pydantic import BaseModel, field_validator
 from PIL import Image, ImageDraw, UnidentifiedImageError
 import numpy as np
 import httpx
+from external_services import query_nvidia_chatbot
 
 logger = logging.getLogger("kaiser_ml")
 
@@ -138,6 +139,8 @@ class AssistantChatRequest(BaseModel):
     query: str
     language: Optional[str] = "en"
     user_ward: Optional[int] = 8
+    provider: Optional[str] = None
+    model: Optional[str] = None
 
     @field_validator("query")
     @classmethod
@@ -611,18 +614,44 @@ def predict_monsoon_risk(req: MonsoonRiskRequest):
     )
 
 
+@ml_router.post("/nvidia/chat")
+async def nvidia_chatbot_endpoint(req: AssistantChatRequest):
+    """
+    Dedicated endpoint for NVIDIA's OpenAI-compatible Chat Completions API.
+    Base URL: https://integrate.api.nvidia.com/v1
+    Reads NVIDIA_API_KEY and NVIDIA_MODEL from environment variables.
+    Never fabricates AI responses.
+    """
+    res = await query_nvidia_chatbot(
+        query=req.query,
+        model=req.model,
+        language=req.language or "en",
+        user_ward=req.user_ward or 8,
+    )
+    return res
+
+
 @ml_router.post("/assistant/chat")
 async def assistant_chat(req: AssistantChatRequest):
     """
     Multilingual Municipal Assistant Engine.
-    Requires auth (via JWT in Authorization header) to prevent quota abuse.
-    Uses live AI if API key configured, falls back to curated text responses.
+    Integrates NVIDIA NIM, Groq Cloud, Google Gemini, with honest fallback handling.
     """
     nvidia_key = os.getenv("NVIDIA_API_KEY", "")
     gemini_key = os.getenv("GEMINI_API_KEY", "")
     groq_key = os.getenv("GROQ_API_KEY", "")
     query = req.query  # already validated & stripped by Pydantic
     lang = (req.language or "en").lower()
+
+    # 1. Explicit NVIDIA provider requested
+    if req.provider == "nvidia":
+        nv_res = await query_nvidia_chatbot(
+            query=query,
+            model=req.model,
+            language=lang,
+            user_ward=req.user_ward or 8,
+        )
+        return nv_res
 
     sys_prompt = (
         "You are Kaiser Sahayak, the official AI Municipal Assistant for the Brihanmumbai Municipal Corporation (BMC), Mumbai. "
@@ -634,7 +663,21 @@ async def assistant_chat(req: AssistantChatRequest):
         "Clearly label any SLA figures as 'approximate' — do not state them as guaranteed official policy."
     )
 
-    # Try live AI providers using async httpx (non-blocking)
+    # 2. Try NVIDIA first if configured
+    if nvidia_key:
+        nv_res = await query_nvidia_chatbot(
+            query=query,
+            model=req.model,
+            language=lang,
+            user_ward=req.user_ward or 8,
+        )
+        if nv_res.get("success"):
+            return {
+                "reply": nv_res["reply"],
+                "source": nv_res["source"],
+            }
+
+    # 3. Try Groq Cloud if configured
     if groq_key:
         groq_model = os.getenv("GROQ_MODEL", "qwen/qwen3.8-27b")
         for m in [groq_model, "llama-3.3-70b-versatile", "qwen/qwen3.8-27b"]:
@@ -656,27 +699,6 @@ async def assistant_chat(req: AssistantChatRequest):
                     }
             except Exception as e:
                 logger.warning(f"Groq API ({m}) fallback: {e}")
-
-    if nvidia_key:
-        try:
-            url = "https://integrate.api.nvidia.com/v1/chat/completions"
-            headers = {"Authorization": f"Bearer {nvidia_key}", "Content-Type": "application/json"}
-            model_name = os.getenv("NVIDIA_MODEL", "meta/llama-3.1-70b-instruct")
-            payload = {
-                "model": model_name,
-                "messages": [{"role": "system", "content": sys_prompt}, {"role": "user", "content": query}],
-                "temperature": 0.4,
-                "max_tokens": 400,
-            }
-            async with httpx.AsyncClient(timeout=10.0) as client:
-                res = await client.post(url, headers=headers, json=payload)
-            if res.status_code == 200:
-                return {
-                    "reply": res.json()["choices"][0]["message"]["content"],
-                    "source": f"NVIDIA NIM ({model_name.split('/')[-1]})",
-                }
-        except Exception as e:
-            logger.warning(f"NVIDIA API fallback: {e}")
 
     if gemini_key:
         gemini_model = os.getenv("GEMINI_MODEL", "gemini-3.8-flash")

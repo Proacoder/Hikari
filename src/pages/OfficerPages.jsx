@@ -28,11 +28,15 @@ import {
   PieChart, Pie, Cell, AreaChart, Area, CartesianGrid
 } from 'recharts';
 
+import { safeParseDate } from '../utils/formatters';
+
 // ── Helpers ────────────────────────────────────────────────────────────────────
 
 const daysAgo = (iso) => {
   if (!iso) return 'Recent';
-  const d = Math.floor((Date.now() - new Date(iso)) / 86400000);
+  const dObj = safeParseDate(iso);
+  if (!dObj) return 'Recent';
+  const d = Math.floor((Date.now() - dObj.getTime()) / 86400000);
   if (d <= 0) return 'Today';
   if (d === 1) return 'Yesterday';
   return `${d}d ago`;
@@ -662,9 +666,7 @@ export const OfficerDashboard = ({ activeTabOverride }) => {
   }, [officerProfile, page]);
 
   useEffect(() => {
-    let ignore = false;
-    loadWardData().catch(() => { if (!ignore) setLoading(false); });
-    return () => { ignore = true; };
+    loadWardData();
   }, [loadWardData]);
 
   // Handle switching tabs
