@@ -3,11 +3,11 @@ import { Link } from 'react-router-dom';
 import {
   AlertTriangle, MapPin, Search,
   Activity, CloudRain, ChevronRight, Phone,
-  ArrowRight, Shield, CheckCircle2, RefreshCw
+  ArrowRight, Shield, CheckCircle2, RefreshCw, Newspaper, ExternalLink
 } from 'lucide-react';
 import { getComplaints } from '../api/complaints.api';
 import { getPublicSummary } from '../api/analytics.api';
-import { getWeatherAQI } from '../api/weather.api';
+import { getWeatherAQI, getMumbaiNews } from '../api/weather.api';
 import { MUMBAI_WARDS, CATEGORIES } from '../utils/mockData';
 import { useLanguage } from '../context/LanguageContext';
 import { CategoryIcon, SeverityBadge, StatusBadge } from '../components/complaints/ComplaintComponents';
@@ -24,19 +24,22 @@ export const LandingPage = () => {
   const [selectedCategory, setSelectedCategory] = useState('ALL');
   const [searchQuery, setSearchQuery] = useState('');
   const [loading, setLoading] = useState(true);
+  const [news, setNews] = useState([]);
 
   useEffect(() => {
     async function fetchData() {
       try {
         setLoading(true);
-        const [complaintsRes, statsRes, weatherRes] = await Promise.all([
+        const [complaintsRes, statsRes, weatherRes, newsRes] = await Promise.all([
           getComplaints(selectedWard ? { ward: Number(selectedWard) } : {}),
           getPublicSummary(),
-          getWeatherAQI(19.076, 72.877)
+          getWeatherAQI(19.076, 72.877),
+          getMumbaiNews()
         ]);
         setComplaints(complaintsRes.data || []);
         setCityStats(statsRes.data || null);
-        setWeatherData(weatherRes.data || null);
+        setWeatherData(weatherRes?.data || null);
+        if (newsRes?.articles) setNews(newsRes.articles);
       } catch (err) {
         console.error('Failed to load landing data:', err);
       } finally {
@@ -102,7 +105,7 @@ export const LandingPage = () => {
       {/* ── Hero Section ────────────────────────────────────────────────────── */}
       <section className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-6 sm:pt-10">
         <div className="grid lg:grid-cols-12 gap-10 lg:gap-12 items-center">
-          
+
           {/* Left Hero Copy */}
           <div className="lg:col-span-7 space-y-6 text-center lg:text-left">
             <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-brand-50 border border-brand-200/80 text-brand-800 text-xs font-semibold tracking-wide shadow-xs">
@@ -112,18 +115,18 @@ export const LandingPage = () => {
               </span>
               <span>{t('hero.badge', 'AI-Powered Municipal Governance for Mumbai')}</span>
             </div>
-            
+
             <h1 className="text-3xl sm:text-5xl lg:text-6xl font-black text-neutral-900 tracking-tight leading-[1.12]">
               {t('hero.title1', 'Empowering Citizens.')}<br />
               <span className="text-transparent bg-clip-text bg-gradient-to-r from-brand-600 via-emerald-600 to-sky-600">
                 {t('hero.title2', 'Accelerating Resolution.')}
               </span>
             </h1>
-            
+
             <p className="text-base sm:text-lg text-neutral-600 max-w-2xl mx-auto lg:mx-0 leading-relaxed">
               {t('hero.description', `Kaiser AI automatically categorizes, prioritizes, and routes civic grievances directly to municipal ward officers across Mumbai’s ${MUMBAI_WARDS.length} administrative wards.`)}
             </p>
-            
+
             <div className="flex flex-wrap items-center justify-center lg:justify-start gap-3.5 pt-2">
               <Link to="/app/report">
                 <button
@@ -302,11 +305,10 @@ export const LandingPage = () => {
               sound.play('click');
               setSelectedCategory('ALL');
             }}
-            className={`px-3 py-1.5 rounded-xl text-xs font-semibold transition-all shrink-0 cursor-pointer ${
-              selectedCategory === 'ALL'
+            className={`px-3 py-1.5 rounded-xl text-xs font-semibold transition-all shrink-0 cursor-pointer ${selectedCategory === 'ALL'
                 ? 'bg-neutral-900 text-white shadow-xs'
                 : 'bg-white text-neutral-600 border border-neutral-200 hover:bg-neutral-50'
-            }`}
+              }`}
           >
             All Categories
           </button>
@@ -317,11 +319,10 @@ export const LandingPage = () => {
                 sound.play('click');
                 setSelectedCategory(cat);
               }}
-              className={`px-3 py-1.5 rounded-xl text-xs font-semibold transition-all shrink-0 flex items-center gap-1.5 cursor-pointer ${
-                selectedCategory === cat
+              className={`px-3 py-1.5 rounded-xl text-xs font-semibold transition-all shrink-0 flex items-center gap-1.5 cursor-pointer ${selectedCategory === cat
                   ? 'bg-brand-600 text-white shadow-xs'
                   : 'bg-white text-neutral-600 border border-neutral-200 hover:bg-neutral-50'
-              }`}
+                }`}
             >
               <span>{cat}</span>
             </button>
@@ -421,3 +422,5 @@ export const LandingPage = () => {
     </div>
   );
 };
+
+

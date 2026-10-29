@@ -108,6 +108,33 @@
   --space-16: 64px;
 }
 
+/* ─── Hologram scanner & neon animations ────────────────────────────── */
+@keyframes laserScan {
+  0%   { top: 0%; opacity: 0.8; }
+  50%  { top: 96%; opacity: 1; }
+  100% { top: 0%; opacity: 0.8; }
+}
+.animate-laser-scan {
+  animation: laserScan 2.6s ease-in-out infinite;
+}
+
+@keyframes wavePulse {
+  0%, 100% { transform: scaleY(0.3); }
+  50%      { transform: scaleY(1.0); }
+}
+.animate-wave-bar {
+  animation: wavePulse 1.2s ease-in-out infinite;
+  transform-origin: bottom;
+}
+
+@keyframes pulseGlowGreen {
+  0%, 100% { box-shadow: 0 0 12px rgba(34, 197, 94, 0.35), inset 0 0 8px rgba(34, 197, 94, 0.2); }
+  50%      { box-shadow: 0 0 24px rgba(34, 197, 94, 0.65), inset 0 0 16px rgba(34, 197, 94, 0.35); }
+}
+.glow-emerald {
+  animation: pulseGlowGreen 3s ease-in-out infinite;
+}
+
 /* ─── Base ─── */
 *, *::before, *::after {
   box-sizing: border-box;
@@ -231,3 +258,107 @@ body {
   }
 }
 
+
+/* ─── Kaiser Motion System ─────────────────────────────────────────────── */
+.font-display { font-family: 'Sora', var(--font-sans); }
+@keyframes floatY { 0%,100%{transform:translateY(0) rotate(0)} 50%{transform:translateY(-18px) rotate(6deg)} }
+@keyframes leafDrift { 0%{transform:translate3d(0,-10vh,0) rotate(0);opacity:0} 10%{opacity:.7} 100%{transform:translate3d(var(--dx,60px),110vh,0) rotate(540deg);opacity:0} }
+@keyframes kenburns { from{transform:scale(1)} to{transform:scale(1.12)} }
+@keyframes slideIn { from{opacity:0;transform:translateY(26px)} to{opacity:1;transform:translateY(0)} }
+@keyframes barFill { from{transform:scaleX(0)} to{transform:scaleX(1)} }
+@keyframes ringSpin { to{transform:rotate(360deg)} }
+@keyframes shineSweep { 0%{transform:translateX(-120%) skewX(-20deg)} 100%{transform:translateX(320%) skewX(-20deg)} }
+@keyframes gradientShift { 0%,100%{background-position:0% 50%} 50%{background-position:100% 50%} }
+@keyframes logoIn { 0%{opacity:0;transform:scale(.6) translateY(20px);filter:blur(12px)} 60%{filter:blur(0)} 100%{opacity:1;transform:scale(1) translateY(0);filter:blur(0)} }
+@keyframes glowPulse { 0%,100%{opacity:.5;transform:scale(1)} 50%{opacity:.9;transform:scale(1.15)} }
+@keyframes orbit { to{transform:rotate(360deg)} }
+@keyframes marqueeX { to{transform:translateX(-50%)} }
+
+.animate-float { animation: floatY 6s ease-in-out infinite; }
+.animate-gradient { background-size: 200% 200%; animation: gradientShift 6s ease infinite; }
+.shine::after { content:''; position:absolute; inset:0; width:35%; background:linear-gradient(90deg,transparent,rgba(255,255,255,.55),transparent); animation: shineSweep 3.2s ease-in-out infinite; pointer-events:none; }
+
+.reveal { opacity:0; transform:translateY(32px) scale(.98); transition:opacity .8s cubic-bezier(.2,.8,.2,1), transform .8s cubic-bezier(.2,.8,.2,1); transition-delay:var(--d,0ms); }
+.reveal.in { opacity:1; transform:none; }
+
+.slide { position:absolute; inset:0; opacity:0; visibility:hidden; transition:opacity .9s ease, visibility .9s; }
+.slide.active { opacity:1; visibility:visible; }
+.slide .s-in { opacity:0; }
+.slide.active .s-in { animation: slideIn .8s cubic-bezier(.2,.8,.2,1) forwards; animation-delay: calc(var(--i,0) * 120ms + 250ms); }
+.slide.active .kb { animation: kenburns 9s ease-out forwards; }
+.bar-fill { transform-origin:left; animation: barFill var(--dur,6500ms) linear forwards; }
+.bar-paused { animation-play-state: paused; }
+
+.nav-glass { background:rgba(255,255,255,.72); backdrop-filter:blur(18px) saturate(160%); -webkit-backdrop-filter:blur(18px) saturate(160%); }
+
+/* ─── Cinematic hero & Cyber Telemetry Animations ─────────────────────────── */
+.animate-hero-fade-up {
+  animation: heroFadeUp 0.8s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+@keyframes heroFadeUp {
+  0% { opacity: 0; transform: translateY(22px); filter: blur(4px); }
+  100% { opacity: 1; transform: translateY(0); filter: blur(0); }
+}
+
+@keyframes scannerLine {
+  0% { transform: translateY(-100%); opacity: 0; }
+  20% { opacity: 0.8; }
+  80% { opacity: 0.8; }
+  100% { transform: translateY(1000%); opacity: 0; }
+}
+.scanner-line {
+  animation: scannerLine 4.5s ease-in-out infinite;
+}
+
+@keyframes radarSweep {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+.animate-radar-sweep {
+  transform-origin: center center;
+  animation: radarSweep 4s linear infinite;
+}
+
+@keyframes waterWave {
+  0% { transform: translateX(0) translateZ(0) scaleY(1); }
+  50% { transform: translateX(-25%) translateZ(0) scaleY(1.08); }
+  100% { transform: translateX(-50%) translateZ(0) scaleY(1); }
+}
+.animate-water-wave {
+  animation: waterWave 8s ease-in-out infinite;
+}
+
+@keyframes rainDrop {
+  0% { transform: translateY(-40px); opacity: 0; }
+  20% { opacity: 0.8; }
+  85% { opacity: 0.8; }
+  100% { transform: translateY(420px); opacity: 0; }
+}
+.animate-rain-drop {
+  animation: rainDrop 1.2s linear infinite;
+}
+
+@keyframes ripplePulse {
+  0% { transform: scale(0.6); opacity: 0.9; }
+  100% { transform: scale(2.2); opacity: 0; }
+}
+.animate-ripple {
+  animation: ripplePulse 2.8s cubic-bezier(0, 0.2, 0.8, 1) infinite;
+}
+
+@keyframes lineGrow { from{transform:scaleX(0)} to{transform:scaleX(1)} }
+@keyframes rowIn { from{opacity:0;transform:translateX(24px)} to{opacity:1;transform:none} }
+@keyframes blink { 50%{opacity:.25} }
+@keyframes scrollLine { 0%{transform:scaleY(0);transform-origin:top} 50%{transform:scaleY(1);transform-origin:top} 51%{transform-origin:bottom} 100%{transform:scaleY(0);transform-origin:bottom} }
+@keyframes flash { 0%{opacity:.55} 100%{opacity:0} }
+
+.line-grow { transform-origin:left; animation: lineGrow 1.2s cubic-bezier(.2,.8,.2,1) .3s both; }
+.row-in { animation: rowIn .6s cubic-bezier(.2,.8,.2,1) both; animation-delay: calc(var(--r,0) * 120ms + 200ms); }
+.hero-bg { transform: translate3d(calc(var(--mx,0) * -16px), calc(var(--my,0) * -10px), 0) scale(1.08); transition: transform .4s ease-out; }
+.glow-btn { box-shadow: 0 0 0 0 rgba(34,197,94,.55); animation: btnPulse 2.4s ease-out infinite; }
+@keyframes btnPulse { 70%{box-shadow:0 0 0 16px rgba(34,197,94,0)} 100%{box-shadow:0 0 0 0 rgba(34,197,94,0)} }
+
+@media (prefers-reduced-motion: reduce) {
+  *,*::before,*::after { animation-duration:.01ms !important; animation-iteration-count:1 !important; transition-duration:.01ms !important; }
+  .reveal,.slide .s-in { opacity:1 !important; transform:none !important; }
+}

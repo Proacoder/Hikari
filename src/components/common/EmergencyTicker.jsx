@@ -15,7 +15,7 @@ export const EmergencyTicker = () => {
   ];
 
   return (
-    <div className="bg-neutral-950 text-neutral-300 text-xs py-2 px-3 sm:px-4 border-b border-neutral-800/80 overflow-hidden relative flex items-center select-none shadow-sm z-30">
+    <div className="bg-neutral-950/95 text-neutral-300 text-xs py-2 px-3 sm:px-4 border-b border-neutral-800/80 overflow-hidden relative flex items-center select-none shadow-md z-50">
       {/* Live Radar Badge */}
       <div className="flex items-center gap-1.5 bg-red-950/80 text-red-400 border border-red-500/30 font-mono font-bold px-2.5 py-0.5 rounded-full text-[10px] tracking-wider uppercase shrink-0 mr-3 z-10 shadow-xs">
         <span className="relative flex h-2 w-2">

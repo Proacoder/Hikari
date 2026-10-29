@@ -1,9 +1,10 @@
-import React, { lazy, Suspense } from 'react';
+import React, { lazy, Suspense, useState, useCallback } from 'react';
 import { BrowserRouter, Routes, Route, Navigate, useLocation } from 'react-router-dom';
 import { Toaster } from 'react-hot-toast';
 import { AuthProvider, useAuth } from './context/AuthContext';
 import { LanguageProvider } from './context/LanguageContext';
 import { NotificationProvider } from './context/NotificationContext';
+import { SplashScreen } from './components/common/SplashScreen';
 import { PublicLayout, CitizenLayout, OfficerLayout, AdminLayout } from './components/layout/Layouts';
 
 // ── Lazy-loaded Route Components for Optimized Bundle Splitting ─────────────
@@ -33,7 +34,8 @@ const CivicAiAssistant = lazy(() => import('./components/ai/CivicAiAssistant').t
 const PageLoader = () => (
   <div className="flex items-center justify-center min-h-[50vh]">
     <div className="text-center space-y-3">
-      <div className="w-9 h-9 border-3 border-brand-200 border-t-brand-600 rounded-full animate-spin mx-auto" />
+      <img src="/kaiser-mark.png" alt="" className="w-14 mx-auto mix-blend-multiply animate-float" />
+      <div className="w-28 h-1 mx-auto rounded-full bg-brand-100 overflow-hidden"><div className="h-full w-1/2 rounded-full bg-brand-500 animate-gradient" style={{animation:'marqueeX 1s linear infinite alternate'}} /></div>
       <p className="text-xs text-neutral-400 font-medium">Loading module…</p>
     </div>
   </div>
@@ -87,8 +89,11 @@ const RedirectIfAuth = ({ children }) => {
 };
 
 function App() {
+  const [splash, setSplash] = useState(() => sessionStorage.getItem('kaiser_splash') !== '1');
+  const finishSplash = useCallback(() => { sessionStorage.setItem('kaiser_splash', '1'); setSplash(false); }, []);
   return (
     <LanguageProvider>
+      {splash && <SplashScreen onDone={finishSplash} />}
       <AuthProvider>
         <NotificationProvider>
           <Toaster

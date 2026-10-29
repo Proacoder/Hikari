@@ -44,6 +44,58 @@ export const TRANSLATIONS = {
     'hero.searchPlaceholder': 'Search issues...',
     'hero.allWards': 'All Wards',
 
+    // Hero Slides
+    'hero.slide1.eyebrow': 'SOVEREIGN AI-DRIVEN CIVIC GOVERNANCE',
+    'hero.slide1.l1': 'Fix Mumbai',
+    'hero.slide1.l2': 'one report at a time.',
+    'hero.slide1.desc': 'Snap a photo or speak in any language. Kaiser AI detects the issue, scores severity with YOLOv8 and auto-dispatches ward engineers before your chai gets cold.',
+    'hero.slide1.caption': 'PHOTO TO DISPATCH IN SECONDS',
+
+    'hero.slide2.eyebrow': 'REAL-TIME 24 WARDS GIS TELEMETRY',
+    'hero.slide2.l1': 'Every ward.',
+    'hero.slide2.l2': 'Every issue. Live.',
+    'hero.slide2.desc': "Watch grievances unfold live across Mumbai's 24 administrative municipal wards — what is reported, what is under active repair, and what is verified resolved near you.",
+    'hero.slide2.caption': '24 BMC WARDS · INTERACTIVE MAP',
+
+    'hero.slide3.eyebrow': 'MONSOON READINESS & FLOOD TELEMETRY',
+    'hero.slide3.l1': 'Flood alerts',
+    'hero.slide3.l2': 'before the water arrives.',
+    'hero.slide3.desc': 'Predictive disaster intelligence blends live IMD rainfall feeds with citizen flood reports to warn vulnerable wards early and mobilize BMC emergency response teams.',
+    'hero.slide3.caption': 'IMD DOPPLER RADAR ACTIVE',
+
+    'hero.slide4.eyebrow': 'CITIZEN INCENTIVES & CLEAN WARDS',
+    'hero.slide4.l1': 'Be the citizen',
+    'hero.slide4.l2': 'Mumbai deserves.',
+    'hero.slide4.desc': 'Earn civic reward points, top the municipal leaderboard, and receive verified digital certificates signed by municipal commissioners for making your neighbourhood cleaner.',
+    'hero.slide4.caption': 'EARN CIVIC POINTS · GET CERTIFIED',
+
+    'hero.slide5.eyebrow': 'TIME-BOUND ACCOUNTABILITY',
+    'hero.slide5.l1': 'Real SLAs.',
+    'hero.slide5.l2': 'Real accountability.',
+    'hero.slide5.desc': 'Every civic work order carries a strict countdown SLA. Escalations are automatic, and every closed ticket requires photographic before-and-after proof before sign-off.',
+    'hero.slide5.caption': 'CITIZEN RESOLUTION GUARANTEE',
+
+    // Triage Architecture
+    'triage.eyebrow': 'Zero-Touch Triage Architecture',
+    'triage.title': 'From photo to dispatch in seconds',
+    'triage.subtitle': 'Watch how Kaiser AI transforms raw citizen reports into prioritized, geolocated municipal work orders.',
+    'triage.step1Title': '1. Multimodal Edge Capture & Telemetry',
+    'triage.step1Desc': 'Citizens submit photos, voice notes in Marathi, Hindi, or English. Precise GPS coordinates and timestamp are bound instantaneously.',
+    'triage.step2Title': '2. YOLOv8 Visual Defect & Severity Scoring',
+    'triage.step2Desc': 'Our neural network inspects road fissures, open manholes, and illegal dump sites, generating a calibrated 0–100 urgency score.',
+    'triage.step3Title': '3. Ward Engineer Dispatch & Automated SLA Tracking',
+    'triage.step3Desc': 'Direct routing to the designated BMC ward desk with live SLA countdowns, auto-escalation triggers, and public resolution audits.',
+
+    // Simulator & Ward Radar
+    'simulator.eyebrow': 'TRY IT LIVE IN THE BROWSER',
+    'simulator.title': 'Multilingual AI Voice & Vision Simulator',
+    'simulator.subtitle': 'Test how Kaiser AI extracts civic defects from conversational Marathi, Hindi, and English.',
+    'wardRadar.eyebrow': 'MUNICIPAL PERFORMANCE MATRIX',
+    'wardRadar.title': 'Mumbai 24 Wards Live Performance Matrix',
+    'wardRadar.subtitle': 'Real-time turnaround rankings, active engineers on ground, and SLA compliance per ward.',
+    'faq.eyebrow': 'QUESTIONS & ANSWERS',
+    'faq.title': 'Frequently Asked Questions',
+
     // Complaint Form & Citizen Portal
     'citizen.reportHeading': 'Report Civic Issue',
     'citizen.reportSub': 'Provide details or let Kaiser AI auto-detect category, urgency & coordinates.',
@@ -160,6 +212,58 @@ export const TRANSLATIONS = {
     'hero.searchPlaceholder': 'समस्या शोधा...',
     'hero.allWards': 'सर्व प्रभाग',
 
+    // Hero Slides
+    'hero.slide1.eyebrow': 'मुंबईसाठी AI-आधारित महानगरपालिका शासन',
+    'hero.slide1.l1': 'मुंबई सुधारा',
+    'hero.slide1.l2': 'एका वेळी एक तक्रार.',
+    'hero.slide1.desc': 'फक्त एक फोटो काढा किंवा कोणत्याही भाषेत बोला. कैसर AI समस्येचा शोध घेते, YOLOv8 द्वारे तीव्रता ठरवते आणि चहा थंड होण्यापूर्वी प्रभाग अभियंत्याकडे काम सोपवते.',
+    'hero.slide1.caption': 'फोटो ते निवारण अवघ्या काही सेकंदात',
+
+    'hero.slide2.eyebrow': '२४ प्रभागांचे थेट GIS मॅपिंग',
+    'hero.slide2.l1': 'प्रत्येक प्रभाग.',
+    'hero.slide2.l2': 'प्रत्येक समस्या थेट नकाशावर.',
+    'hero.slide2.desc': "मुंबईच्या २४ प्रशासकीय प्रभागांमधील तक्रारी थेट पहा — काय नोंदवले आहे, कशावर काम सुरू आहे आणि तुमच्या परिसरात काय दुरुस्त झाले आहे.",
+    'hero.slide2.caption': '२४ मनपा प्रभाग · थेट डिजिटल नकाशा',
+
+    'hero.slide3.eyebrow': 'पावसाळा सज्जता आणि पूर नियंत्रण',
+    'hero.slide3.l1': 'पूर पूर्वसूचना',
+    'hero.slide3.l2': 'पाणी साचण्यापूर्वी त्वरित कृती.',
+    'hero.slide3.desc': 'वेधशाळेचा थेट डेटा आणि नागरिकांचे अहवाल एकत्रित करून पूरप्रवण प्रभागांना आगाऊ सूचना दिली जाते आणि मनपा आपत्कालीन पथके त्वरित रवाना होतात.',
+    'hero.slide3.caption': 'सांताक्रूझ डॉपलर रडार सक्रिय',
+
+    'hero.slide4.eyebrow': 'नागरिक सहभाग आणि स्वच्छ प्रभाग',
+    'hero.slide4.l1': 'सजग नागरिक व्हा',
+    'hero.slide4.l2': 'जशी मुंबईला गरज आहे.',
+    'hero.slide4.desc': 'नागरी तक्रारी सोडवून गुण मिळवा, लीडरबोर्डवर अव्वल स्थान पटकावा आणि परिसर स्वच्छ ठेवल्याबद्दल मनपाचे अधिकृत डिजिटल प्रमाणपत्र मिळवा.',
+    'hero.slide4.caption': 'गुण मिळवा · डिजिटल प्रमाणपत्र मिळवा',
+
+    'hero.slide5.eyebrow': 'वेळेत निवारण आणि थेट उत्तरदायित्व',
+    'hero.slide5.l1': 'निश्चित SLA.',
+    'hero.slide5.l2': 'प्रत्यक्ष जबाबदारी.',
+    'hero.slide5.desc': 'प्रत्येक कामासाठी २४ ते ४८ तासांची मुदत असते. मुदत संपताच तक्रार वरिष्ठ अधिकाऱ्यांकडे आपोआप वर्ग होते आणि काम पूर्ण झाल्यावर आधी व नंतरचा फोटो तपासला जातो.',
+    'hero.slide5.caption': 'नागरिक निवारण हमी',
+
+    // Triage Architecture
+    'triage.eyebrow': 'स्वयंचलित नागरी निवारण प्रणाली',
+    'triage.title': 'फोटो ते निवारण अवघ्या काही सेकंदात',
+    'triage.subtitle': 'नागरिकांच्या तक्रारींचे स्वयंचलित वर्गीकरण आणि थेट प्रभाग अभियंत्यांकडे जलद वाटप कसे होते ते पहा.',
+    'triage.step1Title': '१. बहुभाषिक ऑडिओ व फोटो स्वीकार',
+    'triage.step1Desc': 'मराठी, हिंदी किंवा इंग्रजीत फोटो व व्हॉईस नोट्स पाठवा. अचूक GPS स्थान आणि वेळ त्वरित जोडली जाते.',
+    'triage.step2Title': '२. YOLOv8 व्हिज्युअल तपासणी व तीव्रता मापन',
+    'triage.step2Desc': 'रस्त्यावरील खड्डे, उघडी गटारे आणि कचऱ्याचे ढीग यांचे AI विश्लेषण करून ० ते १०० दरम्यान तीव्रता गुण दिले जातात.',
+    'triage.step3Title': '३. प्रभाग अभियंता वाटप व SLA काउंटडाउन',
+    'triage.step3Desc': 'संबंधित प्रभागातील अभियंत्याकडे थेट जबाबदारी, मुदतीचे काउंटडाउन घड्याळ आणि पारदर्शक ऑडिट ट्रेल.',
+
+    // Simulator & Ward Radar
+    'simulator.eyebrow': 'ब्राउझरमध्ये थेट वापरून पहा',
+    'simulator.title': 'बहुभाषिक AI व्हॉईस आणि व्हिजन सिम्युलेटर',
+    'simulator.subtitle': 'मराठी, हिंदी किंवा इंग्रजी भाषेतील बोलणे ऐकून कैसर AI समस्येचे कसे विश्लेषण करते ते पहा.',
+    'wardRadar.eyebrow': 'महानगरपालिका कामगिरी तक्ता',
+    'wardRadar.title': 'मुंबईतील २४ प्रभागांची थेट कामगिरी',
+    'wardRadar.subtitle': 'प्रत्येक प्रभागातील तक्रार निवारण गती, सक्रिय कर्मचारी आणि SLA पूर्ततेचे थेट प्रमाण.',
+    'faq.eyebrow': 'वारंवार विचारले जाणारे प्रश्न',
+    'faq.title': 'कैसर AI बद्दल महत्त्वाचे प्रश्न आणि उत्तरे',
+
     // Complaint Form & Citizen Portal
     'citizen.reportHeading': 'नागरी समस्या नोंदवा',
     'citizen.reportSub': 'माहिती भरा किंवा कैसर AI द्वारे प्रकार, तीव्रता आणि स्थान स्वयंचलित शोधा.',
@@ -275,6 +379,110 @@ export const TRANSLATIONS = {
     'hero.liveTickerSubtitle': 'मुंबई भर के वार्डों से सीधे प्राप्त हो रही नागरिक समस्याएं।',
     'hero.searchPlaceholder': 'समस्या खोजें...',
     'hero.allWards': 'सभी वार्ड',
+
+    // Hero Slides
+    'hero.slide1.eyebrow': 'मुंबई के लिए AI-संचालित नगरपालिका शासन',
+    'hero.slide1.l1': 'मुंबई सुधारें',
+    'hero.slide1.l2': 'एक बार में एक शिकायत.',
+    'hero.slide1.desc': 'बस एक फोटो खींचें या अपनी भाषा में बोलें। कैसर AI तुरंत समस्या को पहचानता है, YOLOv8 से गंभीरता मापता है और चाय ठंडी होने से पहले वार्ड इंजीनियर को भेज देता है।',
+    'hero.slide1.caption': 'फोटो से समाधान चंद सेकंडों में',
+
+    'hero.slide2.eyebrow': '24 वार्डों का लाइव GIS मैपिंग',
+    'hero.slide2.l1': 'हर एक वार्ड.',
+    'hero.slide2.l2': 'हर समस्या लाइव मानचित्र पर.',
+    'hero.slide2.desc': "मुंबई के 24 प्रशासनिक वार्डों की शिकायतें लाइव देखें — क्या दर्ज हुआ, किस पर काम चल रहा है और आपके पास क्या ठीक हो चुका है।",
+    'hero.slide2.caption': '24 बीएमसी वार्ड · लाइव डिजिटल नक्शा',
+
+    'hero.slide3.eyebrow': 'मानसून तत्परता और बाढ़ पूर्वचेतावनी',
+    'hero.slide3.l1': 'बाढ़ पूर्वचेतावनी',
+    'hero.slide3.l2': 'पानी भरने से पहले त्वरित कार्रवाई.',
+    'hero.slide3.desc': 'मौसम विभाग के लाइव डेटा और नागरिकों की रिपोर्ट से संवेदनशील वार्डों को समय रहते सतर्क किया जाता है और आपातकालीन टीमें तुरंत रवाना होती हैं।',
+    'hero.slide3.caption': 'सांताक्रूज़ डॉपलर रडार सक्रिय',
+
+    'hero.slide4.eyebrow': 'नागरिक प्रोत्साहन और स्वच्छ वार्ड',
+    'hero.slide4.l1': 'सजग नागरिक बनें',
+    'hero.slide4.l2': 'जैसा मुंबई को चाहिए.',
+    'hero.slide4.desc': 'नागरिक समस्याएं हल कराकर पॉइंट्स अर्जित करें, लीडरबोर्ड पर शीर्ष पर आएं और अपने इलाके को स्वच्छ रखने के लिए आधिकारिक डिजिटल प्रमाणपत्र पाएं।',
+    'hero.slide4.caption': 'पॉइंट्स कमाएं · डिजिटल सर्टिफिकेट पाएं',
+
+    'hero.slide5.eyebrow': 'समयबद्ध निवारण और जवाबदेही',
+    'hero.slide5.l1': 'निश्चित SLA.',
+    'hero.slide5.l2': 'सच्ची जवाबदेही.',
+    'hero.slide5.desc': 'प्रत्येक टिकट के लिए सख्त 24-48 घंटे की समयसीमा होती है। समय बीतते ही शिकायत उच्चाधिकारियों को स्वतः अग्रेषित हो जाती है।',
+    'hero.slide5.caption': 'नागरिक निवारण गारंटी',
+
+    // Triage Architecture
+    'triage.eyebrow': 'ऑटोमेटेड नागरिक निवारण प्रणाली',
+    'triage.title': 'फोटो से समाधान चंद सेकंडों में',
+    'triage.subtitle': 'देखें कैसे कैसर AI नागरिक शिकायतों को तुरंत प्राथमिकता देकर संबंधित वार्ड इंजीनियरों को सौंपता है।',
+    'triage.step1Title': '1. बहुभाषी ऑडियो व फोटो इनटेक',
+    'triage.step1Desc': 'हिंदी, मराठी या अंग्रेजी में फोटो और वॉयस नोट भेजें। सटीक GPS लोकेशन और समय तुरंत दर्ज होता है।',
+    'triage.step2Title': '2. YOLOv8 विजुअल डिफेक्ट और गंभीरता स्कोरिंग',
+    'triage.step2Desc': 'सड़क के गड्ढों, खुले मैनहोल और कचरे के ढेरों की जांच कर 0 से 100 के बीच गंभीरता स्कोर दिया जाता है।',
+    'triage.step3Title': '3. वार्ड इंजीनियर डिस्पैच और SLA ट्रैकिंग',
+    'triage.step3Desc': 'संबंधित वार्ड के इंजीनियर को तुरंत कार्यभार, लाइव काउंटडाउन घड़ी और पारदर्शी सार्वजनिक ऑडिट ट्रेल।',
+
+    // Simulator & Ward Radar
+    'simulator.eyebrow': 'ब्राउज़र में लाइव आज़माएं',
+    'simulator.title': 'बहुभाषी AI वॉयस और विज़न सिम्युलेटर',
+    'simulator.subtitle': 'देखें कि कैसे कैसर AI हिंदी, मराठी और अंग्रेजी बातचीत से नागरिक समस्याओं को पहचानता है।',
+    'wardRadar.eyebrow': 'नगरपालिका प्रदर्शन मैट्रिक्स',
+    'wardRadar.title': 'मुंबई 24 वार्ड्स लाइव प्रदर्शन मैट्रिक्स',
+    'wardRadar.subtitle': 'हर वार्ड का समाधान समय, फील्ड इंजीनियरों की सक्रियता और SLA अनुपालन की लाइव स्थिति।',
+    'faq.eyebrow': 'अक्सर पूछे जाने वाले सवाल',
+    'faq.title': 'कैसर AI के बारे में महत्वपूर्ण सवाल और जवाब',
+
+    // Hero Slides
+    'hero.slide1.eyebrow': 'मुंबईसाठी AI-आधारित महानगरपालिका शासन',
+    'hero.slide1.l1': 'मुंबई सुधारा',
+    'hero.slide1.l2': 'एका वेळी एक तक्रार.',
+    'hero.slide1.desc': 'फक्त एक फोटो काढा किंवा कोणत्याही भाषेत बोला. कैसर AI समस्येचा शोध घेते, YOLOv8 द्वारे तीव्रता ठरवते आणि चहा थंड होण्यापूर्वी प्रभाग अभियंत्याकडे काम सोपवते.',
+    'hero.slide1.caption': 'फोटो ते निवारण अवघ्या काही सेकंदात',
+
+    'hero.slide2.eyebrow': '२४ प्रभागांचे थेट GIS मॅपिंग',
+    'hero.slide2.l1': 'प्रत्येक प्रभाग.',
+    'hero.slide2.l2': 'प्रत्येक समस्या थेट नकाशावर.',
+    'hero.slide2.desc': "मुंबईच्या २४ प्रशासकीय प्रभागांमधील तक्रारी थेट पहा — काय नोंदवले आहे, कशावर काम सुरू आहे आणि तुमच्या परिसरात काय दुरुस्त झाले आहे.",
+    'hero.slide2.caption': '२४ मनपा प्रभाग · थेट डिजिटल नकाशा',
+
+    'hero.slide3.eyebrow': 'पावसाळा सज्जता आणि पूर नियंत्रण',
+    'hero.slide3.l1': 'पूर पूर्वसूचना',
+    'hero.slide3.l2': 'पाणी साचण्यापूर्वी त्वरित कृती.',
+    'hero.slide3.desc': 'वेधशाळेचा थेट डेटा आणि नागरिकांचे अहवाल एकत्रित करून पूरप्रवण प्रभागांना आगाऊ सूचना दिली जाते आणि मनपा आपत्कालीन पथके त्वरित रवाना होतात.',
+    'hero.slide3.caption': 'सांताक्रूझ डॉपलर रडार सक्रिय',
+
+    'hero.slide4.eyebrow': 'नागरिक सहभाग आणि स्वच्छ प्रभाग',
+    'hero.slide4.l1': 'सजग नागरिक व्हा',
+    'hero.slide4.l2': 'जशी मुंबईला गरज आहे.',
+    'hero.slide4.desc': 'नागरी तक्रारी सोडवून गुण मिळवा, लीडरबोर्डवर अव्वल स्थान पटकावा आणि परिसर स्वच्छ ठेवल्याबद्दल मनपाचे अधिकृत डिजिटल प्रमाणपत्र मिळवा.',
+    'hero.slide4.caption': 'गुण मिळवा · डिजिटल प्रमाणपत्र मिळवा',
+
+    'hero.slide5.eyebrow': 'वेळेत निवारण आणि थेट उत्तरदायित्व',
+    'hero.slide5.l1': 'निश्चित SLA.',
+    'hero.slide5.l2': 'प्रत्यक्ष जबाबदारी.',
+    'hero.slide5.desc': 'प्रत्येक कामासाठी २४ ते ४८ तासांची मुदत असते. मुदत संपताच तक्रार वरिष्ठ अधिकाऱ्यांकडे आपोआप वर्ग होते आणि काम पूर्ण झाल्यावर आधी व नंतरचा फोटो तपासला जातो.',
+    'hero.slide5.caption': 'नागरिक निवारण हमी',
+
+    // Triage Architecture
+    'triage.eyebrow': 'स्वयंचलित नागरी निवारण प्रणाली',
+    'triage.title': 'फोटो ते निवारण अवघ्या काही सेकंदात',
+    'triage.subtitle': 'नागरिकांच्या तक्रारींचे स्वयंचलित वर्गीकरण आणि थेट प्रभाग अभियंत्यांकडे जलद वाटप कसे होते ते पहा.',
+    'triage.step1Title': '१. बहुभाषिक ऑडिओ व फोटो स्वीकार',
+    'triage.step1Desc': 'मराठी, हिंदी किंवा इंग्रजीत फोटो व व्हॉईस नोट्स पाठवा. अचूक GPS स्थान आणि वेळ त्वरित जोडली जाते.',
+    'triage.step2Title': '२. YOLOv8 व्हिज्युअल तपासणी व तीव्रता मापन',
+    'triage.step2Desc': 'रस्त्यावरील खड्डे, उघडी गटारे आणि कचऱ्याचे ढीग यांचे AI विश्लेषण करून ० ते १०० दरम्यान तीव्रता गुण दिले जातात.',
+    'triage.step3Title': '३. प्रभाग अभियंता वाटप व SLA काउंटडाउन',
+    'triage.step3Desc': 'संबंधित प्रभागातील अभियंत्याकडे थेट जबाबदारी, मुदतीचे काउंटडाउन घड्याळ आणि पारदर्शक ऑडिट ट्रेल.',
+
+    // Simulator & Ward Radar
+    'simulator.eyebrow': 'ब्राउझरमध्ये थेट वापरून पहा',
+    'simulator.title': 'बहुभाषिक AI व्हॉईस आणि व्हिजन सिम्युलेटर',
+    'simulator.subtitle': 'मराठी, हिंदी किंवा इंग्रजी भाषेतील बोलणे ऐकून कैसर AI समस्येचे कसे विश्लेषण करते ते पहा.',
+    'wardRadar.eyebrow': 'महानगरपालिका कामगिरी तक्ता',
+    'wardRadar.title': 'मुंबईतील २४ प्रभागांची थेट कामगिरी',
+    'wardRadar.subtitle': 'प्रत्येक प्रभागातील तक्रार निवारण गती, सक्रिय कर्मचारी आणि SLA पूर्ततेचे थेट प्रमाण.',
+    'faq.eyebrow': 'वारंवार विचारले जाणारे प्रश्न',
+    'faq.title': 'कैसर AI बद्दल महत्त्वाचे प्रश्न आणि उत्तरे',
 
     // Complaint Form & Citizen Portal
     'citizen.reportHeading': 'नागरिक समस्या दर्ज करें',
