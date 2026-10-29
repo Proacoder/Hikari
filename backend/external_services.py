@@ -222,9 +222,9 @@ async def fetch_mumbai_news(
     if not key:
         return {
             "success": True,
-            "articles": CURATED_MUMBAI_BULLETINS[:limit],
-            "totalResults": len(CURATED_MUMBAI_BULLETINS),
-            "provider": "Civic News Wire (Curated BMC Advisories)",
+            "articles": [],
+            "totalResults": 0,
+            "provider": "NewsAPI (Key Unset)",
             "isLiveData": False,
         }
 

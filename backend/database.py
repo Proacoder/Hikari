@@ -106,7 +106,7 @@ class ComplaintModel(Base):
     landmark = Column(String(255), nullable=True)
     image_url = Column(Text, nullable=True)
     resolved_image_url = Column(Text, nullable=True)
-    upvote_count = Column(Integer, default=1)
+    upvote_count = Column(Integer, default=0)
 
     created_by_id = Column(String(50), nullable=True, index=True)
     created_by_name = Column(String(100), nullable=True)

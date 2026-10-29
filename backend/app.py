@@ -496,6 +496,19 @@ async def store_upload(contents: bytes, original_filename: str, prefix: str = "u
         return f"/uploads/{os.path.basename(safe_filename)}"
 
 
+@app.post("/api/upload")
+async def upload_file(
+    file: UploadFile = File(...),
+    current_user: UserModel = Depends(require_auth),
+):
+    """Secure standalone evidence upload endpoint with magic-byte validation and auth enforcement."""
+    contents = await file.read()
+    if not contents:
+        raise HTTPException(status_code=400, detail="Empty file upload.")
+    upload_url = await store_upload(contents, file.filename or "upload.jpg", prefix="evidence")
+    return {"success": True, "data": {"url": upload_url}}
+
+
 # ==============================================================================
 # HTML escape utility (for report printout XSS protection)
 # ==============================================================================
@@ -515,7 +528,7 @@ def _escape_html(s: str) -> str:
 # Complaint Serializer
 # ==============================================================================
 
-def serialize_complaint(c: ComplaintModel, db: Session, preloaded: Optional[dict] = None) -> dict:
+def serialize_complaint(c: ComplaintModel, db: Session, preloaded: Optional[dict] = None, current_user: Optional[UserModel] = None) -> dict:
     """Formats ComplaintModel for the React frontend, supporting preloaded batch caches."""
     assigned = None
     if preloaded and "officers" in preloaded:
@@ -553,6 +566,10 @@ def serialize_complaint(c: ComplaintModel, db: Session, preloaded: Optional[dict
             for a in audit_records
         ]
 
+    has_upvoted = False
+    if current_user and c.id:
+        has_upvoted = bool(db.query(UpvoteModel).filter(UpvoteModel.complaint_id == c.id, UpvoteModel.user_id == current_user.id).first())
+
     return {
         "id": c.id,
         "title": c.title,
@@ -567,6 +584,7 @@ def serialize_complaint(c: ComplaintModel, db: Session, preloaded: Optional[dict
         "imageUrl": c.image_url,
         "resolvedImageUrl": c.resolved_image_url,
         "upvoteCount": c.upvote_count,
+        "hasUpvoted": has_upvoted,
         "commentCount": comm_count,
         "createdBy": {
             "id": c.created_by_id or "",
@@ -579,8 +597,8 @@ def serialize_complaint(c: ComplaintModel, db: Session, preloaded: Optional[dict
             "categoryDetected": c.ai_category or c.category,
             "confidence": c.ai_confidence or 0.0,
         },
-        "createdAt": c.created_at.isoformat() if c.created_at else datetime.now(timezone.utc).isoformat(),
-        "resolvedAt": c.resolved_at.isoformat() if c.resolved_at else None,
+        "createdAt": (c.created_at.replace(tzinfo=timezone.utc) if c.created_at.tzinfo is None else c.created_at).isoformat() if c.created_at else datetime.now(timezone.utc).isoformat(),
+        "resolvedAt": (c.resolved_at.replace(tzinfo=timezone.utc) if c.resolved_at.tzinfo is None else c.resolved_at).isoformat() if c.resolved_at else None,
         "reopenCount": c.reopen_count or 0,
         "reopenedAt": c.reopened_at.isoformat() if c.reopened_at else None,
         "reopenReason": c.reopen_reason,
@@ -924,11 +942,15 @@ async def get_map_data(
 
 
 @app.get("/api/complaints/{complaint_id}")
-async def get_complaint_by_id(complaint_id: str, db: Session = Depends(get_db)):
+async def get_complaint_by_id(
+    complaint_id: str,
+    current_user: Optional[UserModel] = Depends(get_current_user_from_token),
+    db: Session = Depends(get_db)
+):
     complaint = db.query(ComplaintModel).filter(ComplaintModel.id == complaint_id).first()
     if not complaint:
         raise HTTPException(status_code=404, detail="Complaint not found")
-    return {"success": True, "data": serialize_complaint(complaint, db)}
+    return {"success": True, "data": serialize_complaint(complaint, db, current_user=current_user)}
 
 
 @app.post("/api/complaints")
@@ -1019,7 +1041,7 @@ async def create_complaint(
         ward_id=ward,
         landmark=landmark[:255],
         image_url=image_url,
-        upvote_count=1,
+        upvote_count=0,
         created_by_id=current_user.id,
         created_by_name=current_user.name,
         created_by_email=current_user.email,
@@ -1060,6 +1082,17 @@ async def create_complaint(
         complaint_id=complaint_id,
         is_read=False,
     ))
+
+    if assigned_officer:
+        db.add(NotificationModel(
+            id=f"notif-{uuid.uuid4().hex[:10]}",
+            user_id=assigned_officer.id,
+            type="assignment",
+            title=f"New Grievance in Ward {ward}: {title[:40]}",
+            body=f"New ticket #{complaint_id} assigned in your ward jurisdiction.",
+            complaint_id=complaint_id,
+            is_read=False,
+        ))
 
     db.commit()
     db.refresh(new_comp)
@@ -1107,7 +1140,7 @@ async def create_complaint_json(
         ward_id=body.ward or 8,
         landmark=(body.landmark or "")[:255],
         image_url=image_url,
-        upvote_count=1,
+        upvote_count=0,
         created_by_id=current_user.id,
         created_by_name=current_user.name,
         created_by_email=current_user.email,
@@ -1148,6 +1181,17 @@ async def create_complaint_json(
         complaint_id=complaint_id,
         is_read=False,
     ))
+
+    if assigned_officer:
+        db.add(NotificationModel(
+            id=f"notif-{uuid.uuid4().hex[:10]}",
+            user_id=assigned_officer.id,
+            type="assignment",
+            title=f"New Grievance in Ward {body.ward}: {body.title[:40]}",
+            body=f"New ticket #{complaint_id} assigned in your ward jurisdiction.",
+            complaint_id=complaint_id,
+            is_read=False,
+        ))
 
     db.commit()
     db.refresh(new_comp)
@@ -1254,13 +1298,17 @@ async def upvote_complaint(
     if existing:
         raise HTTPException(status_code=409, detail="You have already upvoted this complaint.")
 
-    db.add(UpvoteModel(
-        id=f"upvote-{uuid.uuid4().hex[:10]}",
-        user_id=current_user.id,
-        complaint_id=complaint_id,
-    ))
-    complaint.upvote_count = (complaint.upvote_count or 0) + 1
-    db.commit()
+    try:
+        db.add(UpvoteModel(
+            id=f"upvote-{uuid.uuid4().hex[:10]}",
+            user_id=current_user.id,
+            complaint_id=complaint_id,
+        ))
+        complaint.upvote_count = (complaint.upvote_count or 0) + 1
+        db.commit()
+    except Exception:
+        db.rollback()
+        raise HTTPException(status_code=409, detail="You have already upvoted this complaint.")
     return {"success": True, "data": {"upvoteCount": complaint.upvote_count, "hasUpvoted": True}}
 
 
@@ -1519,7 +1567,7 @@ async def get_citizen_certificate(
     db: Session = Depends(get_db),
 ):
     """Returns citizen certificate. Citizens may only get their own. Admins can get any."""
-    if current_user.role == "citizen" and current_user.id != user_id:
+    if current_user.role != "admin" and (current_user.role != "citizen" or current_user.id != user_id):
         raise HTTPException(status_code=403, detail="Access denied: You may only view your own certificate.")
 
     user = db.query(UserModel).filter(UserModel.id == user_id).first()
@@ -1603,6 +1651,29 @@ async def add_comment(
         text=body.text,
     )
     db.add(new_comment)
+
+    # Notify ticket creator if someone else commented
+    if complaint.created_by_id and complaint.created_by_id != current_user.id:
+        db.add(NotificationModel(
+            id=f"notif-{uuid.uuid4().hex[:10]}",
+            user_id=complaint.created_by_id,
+            type="comment",
+            title=f"New Comment on Ticket #{complaint_id}",
+            body=f"{current_user.name}: {body.text[:100]}",
+            complaint_id=complaint_id,
+            is_read=False,
+        ))
+    elif complaint.assigned_officer_id and complaint.assigned_officer_id != current_user.id:
+        db.add(NotificationModel(
+            id=f"notif-{uuid.uuid4().hex[:10]}",
+            user_id=complaint.assigned_officer_id,
+            type="comment",
+            title=f"Citizen Comment on Ticket #{complaint_id}",
+            body=f"{current_user.name}: {body.text[:100]}",
+            complaint_id=complaint_id,
+            is_read=False,
+        ))
+
     db.commit()
     db.refresh(new_comment)
 
