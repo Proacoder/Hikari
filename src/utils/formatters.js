@@ -3,19 +3,10 @@
 import { format, formatDistanceToNow, differenceInDays, parseISO, isValid } from 'date-fns';
 
 // ── Date formatting helper ──────────────────────────────────────────────────
-export const safeParseDate = (val) => {
+const safeParseDate = (val) => {
   if (!val) return null;
   try {
-    if (typeof val === 'string') {
-      let str = val.trim();
-      // If ISO string without timezone indicator (e.g., 2026-10-29T13:15:30), treat as UTC
-      if (str.includes('T') && !str.endsWith('Z') && !/[+-]\d{2}(?::?\d{2})?$/.test(str)) {
-        str = str + 'Z';
-      }
-      const d = parseISO(str);
-      if (isValid(d)) return d;
-    }
-    const d = new Date(val);
+    const d = typeof val === 'string' ? parseISO(val) : new Date(val);
     return isValid(d) ? d : null;
   } catch {
     return null;
@@ -47,11 +38,6 @@ export const formatRelative = (iso) => {
   const d = safeParseDate(iso);
   if (!d) return '—';
   try {
-    const diffSeconds = Math.round((Date.now() - d.getTime()) / 1000);
-    // Recent submissions (<60 seconds or slight clock skew)
-    if (diffSeconds < 60 && diffSeconds >= -60) {
-      return 'Just now';
-    }
     return formatDistanceToNow(d, { addSuffix: true });
   } catch {
     return '—';

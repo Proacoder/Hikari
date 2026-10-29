@@ -1,5 +1,7 @@
 @import "tailwindcss";
 
+@custom-variant dark (&:where(.dark, .dark *));
+
 @theme {
   /* ── Brand color scale (civic green) ── */
   --color-brand-50:  #f0fdf4;
@@ -146,12 +148,31 @@ html {
   -moz-osx-font-smoothing: grayscale;
 }
 
+html.dark {
+  color-scheme: dark;
+}
+
+html.light {
+  color-scheme: light;
+}
+
 body {
   font-family: var(--font-sans);
   background-color: #f8fafc;
   color: #0f172a;
   line-height: 1.6;
   min-height: 100vh;
+  transition: background-color 0.25s ease, color 0.25s ease;
+}
+
+html.dark body {
+  background-color: #030712;
+  color: #f9fafb;
+}
+
+html.light body {
+  background-color: #f8fafc;
+  color: #0f172a;
 }
 
 #root {
@@ -205,9 +226,17 @@ body {
   outline: none !important;
 }
 .recharts-default-tooltip {
-  border-radius: 8px !important;
+  border-radius: 12px !important;
   border: 1px solid #e2e8f0 !important;
-  box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.07) !important;
+  background-color: #ffffff !important;
+  color: #0f172a !important;
+  box-shadow: 0 10px 15px -3px rgb(0 0 0 / 0.08) !important;
+}
+html.dark .recharts-default-tooltip {
+  border: 1px solid #334155 !important;
+  background-color: #0f172a !important;
+  color: #f8fafc !important;
+  box-shadow: 0 10px 15px -3px rgb(0 0 0 / 0.4) !important;
 }
 
 /* ─── Shimmer skeleton ─── */

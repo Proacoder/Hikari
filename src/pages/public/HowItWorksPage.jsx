@@ -1,4 +1,4 @@
-// ─── Sovereign Civic Dark Cyber How It Works Page ──────────────────────────────
+// ─── Sovereign Civic Adaptive How It Works Page (Light & Dark) ───────────────────
 import React from 'react';
 import { Link } from 'react-router-dom';
 import {
@@ -6,8 +6,11 @@ import {
   Sparkles, Clock, MapPin, Zap, Check, ChevronRight
 } from 'lucide-react';
 import { sound } from '../../utils/soundEffects';
+import { useTheme } from '../../context/ThemeContext';
+import { classNames } from '../../utils/formatters';
 
 export const HowItWorksPage = () => {
+  const { isDark } = useTheme();
   const steps = [
     {
       num: '01',
@@ -29,12 +32,12 @@ export const HowItWorksPage = () => {
     {
       num: '02',
       step: 'STEP 2 · NEURAL PIPELINE',
-      title: 'YOLOv8 Vision & Severity Scoring',
-      desc: 'Our proprietary deep learning models score the issue from 1 to 100 based on physical dimensions, monsoon flood risk, and road traffic hierarchy (Western Express Highway vs local gully).',
+      title: 'OpenAI CLIP Vision & Severity Scoring',
+      desc: 'Our multimodal OpenAI CLIP zero-shot vision and ViT authenticity models classify municipal issues, filter non-civic spam or AI deepfakes, and score urgency from 1 to 100 based on hazard size, flood risk, and road traffic hierarchy.',
       bullets: [
-        'Pothole, garbage dump, open drain, and streetlight classification with 94%+ precision',
-        'Dynamic SLA calculation: high-hazard complaints get 12h-24h turnaround clocks',
-        'Duplicate clustering to merge multi-citizen reports into single community work orders',
+        'OpenAI CLIP zero-shot classification for potholes, garbage dumps, open drains, and streetlights with 94%+ precision',
+        'Deep learning ViT synthetic AI image verification to block fake and spam complaints',
+        'Dynamic SLA calculation: high-hazard complaints get accelerated 12h-24h turnaround clocks',
       ],
       icon: Cpu,
       accent: 'teal',
@@ -80,7 +83,7 @@ export const HowItWorksPage = () => {
   ];
 
   return (
-    <div className="w-full min-h-screen bg-neutral-950 text-neutral-100 select-none pb-24">
+    <div className={classNames('w-full min-h-screen select-none pb-24 transition-colors duration-300', isDark ? 'bg-neutral-950 text-neutral-100' : 'bg-slate-50 text-neutral-900')}>
       
       {/* ── Page Hero Header ── */}
       <section className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-12 pb-16 text-center">
@@ -88,39 +91,39 @@ export const HowItWorksPage = () => {
         <div className="absolute top-0 left-1/2 -translate-x-1/2 w-96 h-96 bg-emerald-500/15 rounded-full blur-3xl pointer-events-none" />
 
         <div className="relative z-10 max-w-3xl mx-auto space-y-4">
-          <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-emerald-500/15 border border-emerald-400/30 text-emerald-300 text-xs font-mono font-bold tracking-widest uppercase">
-            <Sparkles size={14} className="text-emerald-400" />
+          <div className={classNames('inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full border text-xs font-mono font-bold tracking-widest uppercase', isDark ? 'bg-emerald-500/15 border-emerald-400/30 text-emerald-300' : 'bg-emerald-50 border-emerald-300 text-emerald-800')}>
+            <Sparkles size={14} className={isDark ? 'text-emerald-400' : 'text-emerald-600'} />
             STEP-BY-STEP CIVIC PIPELINE
           </div>
 
-          <h1 className="font-display text-4xl sm:text-6xl font-extrabold text-white tracking-tight leading-tight">
+          <h1 className={classNames('font-display text-4xl sm:text-6xl font-extrabold tracking-tight leading-tight', isDark ? 'text-white' : 'text-neutral-900')}>
             How Kaiser AI Resolves{' '}
-            <span className="bg-gradient-to-r from-emerald-400 via-teal-300 to-sky-400 bg-clip-text text-transparent">
+            <span className="bg-gradient-to-r from-emerald-500 via-teal-500 to-sky-500 bg-clip-text text-transparent">
               Mumbai's Grievances
             </span>
           </h1>
 
-          <p className="text-base sm:text-lg text-white/75 leading-relaxed">
+          <p className={classNames('text-base sm:text-lg leading-relaxed', isDark ? 'text-white/75' : 'text-neutral-600')}>
             Our sovereign AI pipeline connects citizen photos straight to ward junior engineers with sub-second automated triage and zero bureaucratic delay.
           </p>
 
           {/* Quick Metrics Bar */}
           <div className="pt-6 grid grid-cols-2 sm:grid-cols-4 gap-3 max-w-2xl mx-auto font-mono text-xs">
-            <div className="p-3 rounded-2xl bg-neutral-900/80 border border-white/10 backdrop-blur-md">
-              <span className="block text-xl font-bold text-emerald-400">94.2%</span>
-              <span className="text-white/50 text-[11px]">AI Precision</span>
+            <div className={classNames('p-3 rounded-2xl border backdrop-blur-md transition-colors', isDark ? 'bg-neutral-900/80 border-white/10' : 'bg-white border-neutral-200/80 shadow-soft-sm')}>
+              <span className="block text-xl font-bold text-emerald-500">94.2%</span>
+              <span className={classNames('text-[11px]', isDark ? 'text-white/50' : 'text-neutral-500')}>AI Precision</span>
             </div>
-            <div className="p-3 rounded-2xl bg-neutral-900/80 border border-white/10 backdrop-blur-md">
-              <span className="block text-xl font-bold text-teal-300">&lt;24h</span>
-              <span className="text-white/50 text-[11px]">Average SLA</span>
+            <div className={classNames('p-3 rounded-2xl border backdrop-blur-md transition-colors', isDark ? 'bg-neutral-900/80 border-white/10' : 'bg-white border-neutral-200/80 shadow-soft-sm')}>
+              <span className="block text-xl font-bold text-teal-500">&lt;24h</span>
+              <span className={classNames('text-[11px]', isDark ? 'text-white/50' : 'text-neutral-500')}>Average SLA</span>
             </div>
-            <div className="p-3 rounded-2xl bg-neutral-900/80 border border-white/10 backdrop-blur-md">
-              <span className="block text-xl font-bold text-sky-400">24 Wards</span>
-              <span className="text-white/50 text-[11px]">GIS Mapped</span>
+            <div className={classNames('p-3 rounded-2xl border backdrop-blur-md transition-colors', isDark ? 'bg-neutral-900/80 border-white/10' : 'bg-white border-neutral-200/80 shadow-soft-sm')}>
+              <span className="block text-xl font-bold text-sky-500">24 Wards</span>
+              <span className={classNames('text-[11px]', isDark ? 'text-white/50' : 'text-neutral-500')}>GIS Mapped</span>
             </div>
-            <div className="p-3 rounded-2xl bg-neutral-900/80 border border-white/10 backdrop-blur-md">
-              <span className="block text-xl font-bold text-amber-300">100%</span>
-              <span className="text-white/50 text-[11px]">Photo Audited</span>
+            <div className={classNames('p-3 rounded-2xl border backdrop-blur-md transition-colors', isDark ? 'bg-neutral-900/80 border-white/10' : 'bg-white border-neutral-200/80 shadow-soft-sm')}>
+              <span className="block text-xl font-bold text-amber-500">100%</span>
+              <span className={classNames('text-[11px]', isDark ? 'text-white/50' : 'text-neutral-500')}>Photo Audited</span>
             </div>
           </div>
         </div>
@@ -135,37 +138,42 @@ export const HowItWorksPage = () => {
           return (
             <div
               key={item.num}
-              className={`rounded-3xl p-6 sm:p-8 bg-neutral-900/70 border ${item.border} backdrop-blur-xl shadow-2xl relative overflow-hidden group transition-all hover:bg-neutral-900/85`}
+              className={classNames(
+                'rounded-3xl p-6 sm:p-8 border backdrop-blur-xl shadow-2xl relative overflow-hidden group transition-all',
+                isDark
+                  ? `bg-neutral-900/70 ${item.border} hover:bg-neutral-900/85`
+                  : 'bg-white border-neutral-200 hover:border-emerald-300 shadow-soft-lg'
+              )}
             >
               {/* Background gradient flare */}
               <div className={`absolute top-0 right-0 w-80 h-80 bg-gradient-to-br ${item.gradient} rounded-full blur-3xl pointer-events-none`} />
 
               <div className="grid md:grid-cols-12 gap-8 items-center relative z-10">
                 {/* Visual Icon Box */}
-                <div className={`md:col-span-4 flex flex-col items-center justify-center p-6 rounded-2xl bg-neutral-950/70 border border-white/10 text-center space-y-3 ${isEven ? 'md:order-2' : ''}`}>
+                <div className={classNames('md:col-span-4 flex flex-col items-center justify-center p-6 rounded-2xl border text-center space-y-3', isEven ? 'md:order-2' : '', isDark ? 'bg-neutral-950/70 border-white/10' : 'bg-neutral-50 border-neutral-200')}>
                   <div className={`w-16 h-16 rounded-2xl border flex items-center justify-center shadow-lg ${item.iconBg}`}>
                     <Icon size={32} />
                   </div>
                   <span className={`px-2.5 py-0.5 rounded-full text-[10px] font-mono font-bold border tracking-widest ${item.badge}`}>
                     {item.step}
                   </span>
-                  <span className="font-mono text-3xl font-extrabold text-white/90">
+                  <span className={classNames('font-mono text-3xl font-extrabold', isDark ? 'text-white/90' : 'text-neutral-900')}>
                     {item.num}
                   </span>
                 </div>
 
                 {/* Content Box */}
                 <div className={`md:col-span-8 space-y-4 ${isEven ? 'md:order-1' : ''}`}>
-                  <h3 className="font-display text-2xl sm:text-3xl font-bold text-white tracking-tight">
+                  <h3 className={classNames('font-display text-2xl sm:text-3xl font-bold tracking-tight', isDark ? 'text-white' : 'text-neutral-900')}>
                     {item.title}
                   </h3>
-                  <p className="text-sm sm:text-base text-white/75 leading-relaxed">
+                  <p className={classNames('text-sm sm:text-base leading-relaxed', isDark ? 'text-white/75' : 'text-neutral-600')}>
                     {item.desc}
                   </p>
-                  <ul className="space-y-2 text-xs sm:text-sm text-white/60">
+                  <ul className={classNames('space-y-2 text-xs sm:text-sm', isDark ? 'text-white/60' : 'text-neutral-700')}>
                     {item.bullets.map((b, bi) => (
                       <li key={bi} className="flex items-start gap-2.5">
-                        <Check size={15} className="text-emerald-400 shrink-0 mt-0.5" />
+                        <Check size={15} className="text-emerald-500 shrink-0 mt-0.5" />
                         <span>{b}</span>
                       </li>
                     ))}
@@ -179,14 +187,14 @@ export const HowItWorksPage = () => {
 
       {/* ── Ready to Report CTA ── */}
       <section className="relative max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 pt-16">
-        <div className="rounded-3xl p-8 sm:p-12 bg-gradient-to-r from-neutral-900 via-neutral-900/90 to-neutral-900 border border-emerald-500/30 text-center space-y-6 shadow-[0_0_50px_rgba(52,211,153,0.15)] backdrop-blur-2xl relative overflow-hidden">
+        <div className={classNames('rounded-3xl p-8 sm:p-12 border text-center space-y-6 backdrop-blur-2xl relative overflow-hidden transition-colors', isDark ? 'bg-gradient-to-r from-neutral-900 via-neutral-900/90 to-neutral-900 border-emerald-500/30 shadow-[0_0_50px_rgba(52,211,153,0.15)]' : 'bg-white border-neutral-200 shadow-soft-xl')}>
           
           <div className="absolute top-0 right-1/4 w-60 h-60 bg-emerald-500/20 rounded-full blur-3xl pointer-events-none" />
 
-          <h2 className="font-display text-2xl sm:text-4xl font-extrabold text-white">
+          <h2 className={classNames('font-display text-2xl sm:text-4xl font-extrabold', isDark ? 'text-white' : 'text-neutral-900')}>
             Have a civic issue you want fixed today?
           </h2>
-          <p className="text-sm sm:text-base text-white/70 max-w-xl mx-auto">
+          <p className={classNames('text-sm sm:text-base max-w-xl mx-auto', isDark ? 'text-white/70' : 'text-neutral-600')}>
             It takes under 60 seconds to upload a photo and mobilize your local ward engineering crew.
           </p>
           <div className="pt-2 flex flex-wrap items-center justify-center gap-4">
@@ -201,7 +209,7 @@ export const HowItWorksPage = () => {
             <Link
               to="/app/map"
               onClick={() => sound.play('click')}
-              className="px-8 py-4 rounded-full border border-white/20 hover:bg-white/10 text-white font-bold text-xs tracking-widest uppercase transition-all flex items-center gap-2 cursor-pointer"
+              className={classNames('px-8 py-4 rounded-full border font-bold text-xs tracking-widest uppercase transition-all flex items-center gap-2 cursor-pointer', isDark ? 'border-white/20 hover:bg-white/10 text-white' : 'border-neutral-300 hover:bg-neutral-100 text-neutral-800')}
             >
               <span>Explore Live Ward Map</span>
             </Link>

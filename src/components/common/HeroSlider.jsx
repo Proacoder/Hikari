@@ -136,7 +136,7 @@ export const HeroSlider = ({ stats, weather }) => {
       l1: t('hero.slide1.l1', 'Fix Mumbai'),
       l2: t('hero.slide1.l2', 'one report at a time.'),
       caption: t('hero.slide1.caption', 'PHOTO TO DISPATCH IN SECONDS'),
-      desc: t('hero.slide1.desc', 'Snap a photo or speak in any language. Kaiser AI detects the issue, scores severity with YOLOv8 and auto-dispatches ward engineers before your chai gets cold.'),
+      desc: t('hero.slide1.desc', 'Snap a photo or speak in any language. Kaiser AI detects the issue, scores severity with OpenAI CLIP Zero-Shot Vision and auto-dispatches ward engineers before your chai gets cold.'),
       cta: { to: '/app/report', label: t('hero.reportBtn', 'Report Civic Issue') },
       rows: [
         ['WD-K/E-0492', 'POTHOLE · 98.4%', 'ASSIGNED'],
@@ -352,7 +352,7 @@ export const HeroSlider = ({ stats, weather }) => {
               </span>
               <span className="px-3 py-1 rounded-full bg-white/5 border border-white/10 backdrop-blur-sm flex items-center gap-1.5">
                 <span className="w-1.5 h-1.5 rounded-full bg-sky-400" />
-                YOLOv8 Vision
+                OpenAI CLIP Vision
               </span>
               <span className="px-3 py-1 rounded-full bg-white/5 border border-white/10 backdrop-blur-sm flex items-center gap-1.5">
                 <span className="w-1.5 h-1.5 rounded-full bg-amber-400" />

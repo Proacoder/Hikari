@@ -2,7 +2,7 @@
 import axios from 'axios';
 
 const MOCK_MODE = import.meta.env.VITE_MOCK_MODE === 'true';
-const BASE_URL  = import.meta.env.VITE_API_BASE_URL || 'http://localhost:5001/api';
+const BASE_URL  = import.meta.env.VITE_API_BASE_URL || 'http://localhost:5000/api';
 
 // Optimized network delay (ms) for responsive local execution
 const MOCK_DELAY = 0;

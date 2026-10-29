@@ -1,4 +1,4 @@
-// ─── Sovereign Civic Dark Cyber About Page ──────────────────────────────────
+// ─── Sovereign Civic Adaptive About Page (Light & Dark) ─────────────────────────
 import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
 import {
@@ -7,8 +7,11 @@ import {
   Sparkles, FileCheck2, Compass, Layers, Lock, Code, Check
 } from 'lucide-react';
 import { sound } from '../../utils/soundEffects';
+import { useTheme } from '../../context/ThemeContext';
+import { classNames } from '../../utils/formatters';
 
 export const AboutPage = () => {
+  const { isDark } = useTheme();
   const [activePillar, setActivePillar] = useState(0);
   const [openFaq, setOpenFaq] = useState(null);
 
@@ -23,13 +26,13 @@ export const AboutPage = () => {
     {
       id: 'vision',
       icon: Cpu,
-      title: 'Computer Vision & Hazard Detection',
-      tag: 'Neural Pipeline',
-      description: 'Our proprietary deep learning models detect potholes, overflowing municipal bins, waterlogged junctions, and exposed utility cables with over 94% precision.',
+      title: 'OpenAI CLIP Vision & Authenticity Inspection',
+      tag: 'Multimodal AI & ViT Engine',
+      description: 'OpenAI CLIP zero-shot multimodal vision and ViT synthetic image detectors identify potholes, garbage overflow, water mains, and exposed electrical hazards while rejecting spam, indoor photos, and AI deepfakes.',
       bullets: [
-        'Automated severity index calculation (depth, surface area, debris spread)',
-        'Monsoon water-logging depth estimation and drainage blockage flags',
-        'Automatic noise and duplicate image grouping with community upvotes'
+        'OpenAI CLIP zero-shot semantic visual classification across 5 municipal defect domains',
+        'Swin/ViT deepfake detector rejecting AI-generated fake grievance uploads',
+        'Smart spam filter blocking selfies, memes, indoor rooms, and non-civic photos'
       ],
       badgeColor: 'emerald'
     },
@@ -100,24 +103,24 @@ export const AboutPage = () => {
   const team = [
     {
       name: 'Harsh Mane',
-      role: 'DevOps & Systems Engineer',
-      domain: 'Computer Vision & Deep Learning',
-      bio: 'Architected the YOLOv8 image classification pipeline trained on Mumbai municipal road datasets.',
+      role: 'Cloud API & Systems Integration Lead',
+      domain: 'Municipal APIs & Multi-Portal Architecture',
+      bio: 'Architected core external API integrations including the NVIDIA NIM civic LLM assistant, real-time Open-Meteo weather telemetry, IMD radar feeds, and AQI monitoring. Engineered the comprehensive Citizen, Ward Officer, and Municipal HQ portal interfaces, and conducted foundational research to source and structure high-precision municipal datasets across all 24 BMC administrative zones.',
       initials: 'HM'
     },
     {
-      name: 'Ayush Barve',
-      role: 'ML & Data Engineer',
-      domain: 'Citizen Ergonomics & Accessibility',
-      bio: 'Crafted the accessible multilingual citizen workflow, officer triage dashboard, and Leaflet interactive map.',
-      initials: 'AB'
+      name: 'Dharmik Desai',
+      role: 'Frontend Architect & Geospatial Systems Lead',
+      domain: 'Interactive GIS & Multilingual Voice UX',
+      bio: 'Spearheaded the modern responsive frontend architecture, interactive 24-ward Leaflet GIS mapping with sub-meter polygon reverse-geocoding, and built the accessible Web Speech voice grievance recording engine supporting natural conversational Marathi, Hindi, and English for inclusive civic participation.',
+      initials: 'DD'
     },
     {
-      name: 'Dharmik Desai',
-      role: 'Full-Stack Systems Architect',
-      domain: 'Cloud Services & Geospatial GIS',
-      bio: 'Engineered the 24-ward polygon reverse-geocoding engine, REST APIs, and resilient data synchronization.',
-      initials: 'DD'
+      name: 'Ayush Barve',
+      role: 'Machine Learning & Backend Systems Lead',
+      domain: 'Applied Computer Vision, NLP & FastAPI Backend',
+      bio: 'Architected the core FastAPI backend microservices and the 3-tier municipal AI intelligence stack: Model 1 OpenAI CLIP Zero-Shot visual defect classifier with spam rejection, Model 1.5 ViT deep learning synthetic AI image detector, and Model 2 Sentence-BERT & DBSCAN spatial deduplication engine.',
+      initials: 'AB'
     }
   ];
 
@@ -145,28 +148,46 @@ export const AboutPage = () => {
   ];
 
   return (
-    <div className="w-full min-h-screen bg-neutral-950 text-neutral-100 select-none space-y-20 pb-24">
+    <div className={classNames(
+      "w-full min-h-screen select-none space-y-20 pb-24 transition-colors duration-200",
+      isDark ? "bg-neutral-950 text-neutral-100" : "bg-slate-50 text-neutral-900"
+    )}>
       
       {/* ── Hero Section ── */}
-      <section className="relative overflow-hidden pt-12 pb-16 border-b border-white/10">
-        <div className="absolute top-0 left-1/2 -translate-x-1/2 w-96 h-96 bg-emerald-500/15 rounded-full blur-3xl pointer-events-none" />
+      <section className={classNames(
+        "relative overflow-hidden pt-12 pb-16 border-b transition-colors",
+        isDark ? "border-white/10" : "border-neutral-200"
+      )}>
+        <div className={classNames(
+          "absolute top-0 left-1/2 -translate-x-1/2 w-96 h-96 rounded-full blur-3xl pointer-events-none",
+          isDark ? "bg-emerald-500/15" : "bg-emerald-500/10"
+        )} />
         
         <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
           <div className="text-center max-w-3xl mx-auto space-y-5">
-            <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-emerald-500/15 border border-emerald-400/30 text-emerald-300 text-xs font-mono font-bold tracking-widest uppercase">
-              <Sparkles size={14} className="text-emerald-400" />
+            <div className={classNames(
+              "inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full text-xs font-mono font-bold tracking-widest uppercase transition-colors",
+              isDark ? "bg-emerald-500/15 border border-emerald-400/30 text-emerald-300" : "bg-emerald-50 border border-emerald-300 text-emerald-800"
+            )}>
+              <Sparkles size={14} className={isDark ? "text-emerald-400" : "text-emerald-600"} />
               <span>CIVIC-TECH INNOVATION • BMC SMART CITY INITIATIVE</span>
             </div>
 
-            <h1 className="font-display text-4xl sm:text-6xl font-extrabold text-white tracking-tight leading-tight">
+            <h1 className={classNames(
+              "font-display text-4xl sm:text-6xl font-extrabold tracking-tight leading-tight",
+              isDark ? "text-white" : "text-neutral-950"
+            )}>
               Building a{' '}
-              <span className="bg-gradient-to-r from-emerald-400 via-teal-300 to-sky-400 bg-clip-text text-transparent">
+              <span className="bg-gradient-to-r from-emerald-500 via-teal-500 to-sky-500 bg-clip-text text-transparent">
                 Cleaner, Smarter & Resilient
               </span>{' '}
               Mumbai
             </h1>
 
-            <p className="text-base sm:text-lg text-white/75 leading-relaxed font-normal">
+            <p className={classNames(
+              "text-base sm:text-lg leading-relaxed font-normal",
+              isDark ? "text-white/75" : "text-neutral-600"
+            )}>
               Kaiser AI is an intelligent civic response platform engineered for Mumbai’s 20+ million citizens and 24 municipal wards. We eliminate bureaucratic delays with automated computer vision triage, sub-meter GPS mapping, and tamper-proof photo resolution audit trails.
             </p>
 
@@ -182,7 +203,12 @@ export const AboutPage = () => {
               <Link
                 to="/contact"
                 onClick={() => sound.play('click')}
-                className="px-8 py-3.5 rounded-full border border-white/20 hover:bg-white/10 text-white font-bold text-xs tracking-widest uppercase transition-all cursor-pointer"
+                className={classNames(
+                  "px-8 py-3.5 rounded-full font-bold text-xs tracking-widest uppercase transition-all cursor-pointer border",
+                  isDark
+                    ? "border-white/20 hover:bg-white/10 text-white"
+                    : "border-neutral-300 bg-white hover:bg-neutral-100 text-neutral-800 shadow-sm"
+                )}
               >
                 Ward Directory & Helpdesk
               </Link>
@@ -190,14 +216,38 @@ export const AboutPage = () => {
           </div>
 
           {/* Key Metrics Counter Bar */}
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mt-16 pt-8 border-t border-white/10">
+          <div className={classNames(
+            "grid grid-cols-2 md:grid-cols-4 gap-4 mt-16 pt-8 border-t",
+            isDark ? "border-white/10" : "border-neutral-200"
+          )}>
             {stats.map((s, idx) => (
-              <div key={idx} className="bg-neutral-900/80 backdrop-blur-xl p-5 rounded-3xl border border-white/10 shadow-xl text-center">
-                <div className="text-2xl sm:text-3xl font-extrabold text-white font-mono">
+              <div
+                key={idx}
+                className={classNames(
+                  "p-5 rounded-3xl border text-center transition-all",
+                  isDark
+                    ? "bg-neutral-900/80 backdrop-blur-xl border-white/10 shadow-xl"
+                    : "bg-white border-neutral-200 shadow-soft"
+                )}
+              >
+                <div className={classNames(
+                  "text-2xl sm:text-3xl font-extrabold font-mono",
+                  isDark ? "text-white" : "text-neutral-950"
+                )}>
                   {s.value}
                 </div>
-                <div className="text-xs font-bold text-emerald-400 mt-1 uppercase tracking-wider">{s.label}</div>
-                <div className="text-[11px] text-white/50 mt-0.5">{s.subtext}</div>
+                <div className={classNames(
+                  "text-xs font-bold mt-1 uppercase tracking-wider",
+                  isDark ? "text-emerald-400" : "text-emerald-600"
+                )}>
+                  {s.label}
+                </div>
+                <div className={classNames(
+                  "text-[11px] mt-0.5",
+                  isDark ? "text-white/50" : "text-neutral-500"
+                )}>
+                  {s.subtext}
+                </div>
               </div>
             ))}
           </div>
@@ -207,68 +257,90 @@ export const AboutPage = () => {
       {/* ── Problem & Mission Grid ── */}
       <section className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 space-y-12">
         <div className="text-center max-w-2xl mx-auto space-y-3">
-          <span className="font-mono text-xs font-bold uppercase tracking-widest text-amber-400">URBAN INFRASTRUCTURE CHALLENGE</span>
-          <h2 className="font-display text-2xl sm:text-4xl font-extrabold text-white tracking-tight">
+          <span className="font-mono text-xs font-bold uppercase tracking-widest text-amber-500">URBAN INFRASTRUCTURE CHALLENGE</span>
+          <h2 className={classNames(
+            "font-display text-2xl sm:text-4xl font-extrabold tracking-tight",
+            isDark ? "text-white" : "text-neutral-950"
+          )}>
             Why Mumbai Needed an AI-Powered Civic Backbone
           </h2>
-          <p className="text-sm text-white/70 leading-relaxed">
+          <p className={classNames(
+            "text-sm leading-relaxed",
+            isDark ? "text-white/70" : "text-neutral-600"
+          )}>
             In one of the densest megacities on Earth, monsoon flash flooding and road deterioration demand faster civic intervention than paper bureaucracy can deliver.
           </p>
         </div>
 
         <div className="grid md:grid-cols-2 gap-8">
           {/* Reality Card */}
-          <div className="rounded-3xl p-8 space-y-5 border-l-4 border-l-amber-500 bg-neutral-900/70 border border-white/10 backdrop-blur-xl shadow-2xl">
-            <div className="w-12 h-12 rounded-2xl bg-amber-500/20 text-amber-400 border border-amber-400/30 flex items-center justify-center">
+          <div className={classNames(
+            "rounded-3xl p-8 space-y-5 border-l-4 border-l-amber-500 transition-all",
+            isDark
+              ? "bg-neutral-900/70 border border-white/10 backdrop-blur-xl shadow-2xl"
+              : "bg-white border border-amber-200/80 shadow-soft-lg"
+          )}>
+            <div className={classNames(
+              "w-12 h-12 rounded-2xl border flex items-center justify-center",
+              isDark ? "bg-amber-500/20 text-amber-400 border-amber-400/30" : "bg-amber-50 text-amber-600 border-amber-200"
+            )}>
               <AlertTriangle size={24} />
             </div>
             <div>
-              <span className="text-xs font-mono font-bold text-amber-400 uppercase tracking-wider">The Megacity Reality</span>
-              <h3 className="text-xl sm:text-2xl font-bold text-white mt-1">40,000+ Monsoon Hazards & Lost Complaints</h3>
+              <span className={classNames("text-xs font-mono font-bold uppercase tracking-wider", isDark ? "text-amber-400" : "text-amber-600")}>The Megacity Reality</span>
+              <h3 className={classNames("text-xl sm:text-2xl font-bold mt-1", isDark ? "text-white" : "text-neutral-950")}>40,000+ Monsoon Hazards & Lost Complaints</h3>
             </div>
-            <p className="text-sm text-white/70 leading-relaxed">
+            <p className={classNames("text-sm leading-relaxed", isDark ? "text-white/70" : "text-neutral-600")}>
               Every monsoon, heavy downpours batter Mumbai's road networks, resulting in thousands of dangerous potholes, overflowing storm drains, and open manholes across 24 disjointed administrative wards.
             </p>
-            <div className="space-y-3 pt-3 text-xs text-white/60 border-t border-white/10">
+            <div className={classNames("space-y-3 pt-3 text-xs border-t", isDark ? "text-white/60 border-white/10" : "text-neutral-600 border-neutral-200")}>
               <div className="flex items-start gap-2.5">
-                <span className="w-1.5 h-1.5 rounded-full bg-amber-400 mt-1.5 shrink-0" />
-                <span><strong className="text-white">Bureaucratic Bottlenecks:</strong> Telephone complaints lack visual proof and GPS coordinates, leaving field engineers guessing exact street locations.</span>
+                <span className="w-1.5 h-1.5 rounded-full bg-amber-500 mt-1.5 shrink-0" />
+                <span><strong className={isDark ? "text-white" : "text-neutral-900"}>Bureaucratic Bottlenecks:</strong> Telephone complaints lack visual proof and GPS coordinates, leaving field engineers guessing exact street locations.</span>
               </div>
               <div className="flex items-start gap-2.5">
-                <span className="w-1.5 h-1.5 rounded-full bg-amber-400 mt-1.5 shrink-0" />
-                <span><strong className="text-white">No Priority Ranking:</strong> A 2-foot trench outside a hospital was queued identically to a minor cosmetic hairline crack.</span>
+                <span className="w-1.5 h-1.5 rounded-full bg-amber-500 mt-1.5 shrink-0" />
+                <span><strong className={isDark ? "text-white" : "text-neutral-900"}>No Priority Ranking:</strong> A 2-foot trench outside a hospital was queued identically to a minor cosmetic hairline crack.</span>
               </div>
               <div className="flex items-start gap-2.5">
-                <span className="w-1.5 h-1.5 rounded-full bg-amber-400 mt-1.5 shrink-0" />
-                <span><strong className="text-white">Zero Accountability:</strong> Complaints were routinely marked 'resolved' on paperwork with zero photographic audit for citizens.</span>
+                <span className="w-1.5 h-1.5 rounded-full bg-amber-500 mt-1.5 shrink-0" />
+                <span><strong className={isDark ? "text-white" : "text-neutral-900"}>Zero Accountability:</strong> Complaints were routinely marked 'resolved' on paperwork with zero photographic audit for citizens.</span>
               </div>
             </div>
           </div>
 
           {/* Solution Card */}
-          <div className="rounded-3xl p-8 space-y-5 border-l-4 border-l-emerald-500 bg-neutral-900/70 border border-white/10 backdrop-blur-xl shadow-2xl">
-            <div className="w-12 h-12 rounded-2xl bg-emerald-500/20 text-emerald-400 border border-emerald-400/30 flex items-center justify-center">
+          <div className={classNames(
+            "rounded-3xl p-8 space-y-5 border-l-4 border-l-emerald-500 transition-all",
+            isDark
+              ? "bg-neutral-900/70 border border-white/10 backdrop-blur-xl shadow-2xl"
+              : "bg-white border border-emerald-200/80 shadow-soft-lg"
+          )}>
+            <div className={classNames(
+              "w-12 h-12 rounded-2xl border flex items-center justify-center",
+              isDark ? "bg-emerald-500/20 text-emerald-400 border-emerald-400/30" : "bg-emerald-50 text-emerald-600 border-emerald-200"
+            )}>
               <Shield size={24} />
             </div>
             <div>
-              <span className="text-xs font-mono font-bold text-emerald-400 uppercase tracking-wider">Our Solution</span>
-              <h3 className="text-xl sm:text-2xl font-bold text-white mt-1">Radical Civic Transparency via Computer Vision</h3>
+              <span className={classNames("text-xs font-mono font-bold uppercase tracking-wider", isDark ? "text-emerald-400" : "text-emerald-700")}>Our Solution</span>
+              <h3 className={classNames("text-xl sm:text-2xl font-bold mt-1", isDark ? "text-white" : "text-neutral-950")}>Radical Civic Transparency via Computer Vision</h3>
             </div>
-            <p className="text-sm text-white/70 leading-relaxed">
+            <p className={classNames("text-sm leading-relaxed", isDark ? "text-white/70" : "text-neutral-600")}>
               Kaiser AI transforms passive complaints into actionable, verified work orders. By coupling computer vision with sub-meter GIS mapping, we deliver immediate clarity for both citizen and ward engineer.
             </p>
-            <div className="space-y-3 pt-3 text-xs text-white/60 border-t border-white/10">
+            <div className={classNames("space-y-3 pt-3 text-xs border-t", isDark ? "text-white/60 border-white/10" : "text-neutral-600 border-neutral-200")}>
               <div className="flex items-start gap-2.5">
-                <CheckCircle2 size={16} className="text-emerald-400 shrink-0 mt-0.5" />
-                <span><strong className="text-white">Instant Sub-Meter Triage:</strong> Citizens photograph hazards; the AI detects category and routes to the exact ward within 500ms.</span>
+                <CheckCircle2 size={16} className={isDark ? "text-emerald-400 shrink-0 mt-0.5" : "text-emerald-600 shrink-0 mt-0.5"} />
+                <span><strong className={isDark ? "text-white" : "text-neutral-900"}>Instant Sub-Meter Triage:</strong> Citizens photograph hazards; the AI detects category and routes to the exact ward within 500ms.</span>
               </div>
               <div className="flex items-start gap-2.5">
-                <CheckCircle2 size={16} className="text-emerald-400 shrink-0 mt-0.5" />
-                <span><strong className="text-white">Monsoon-Aware Scoring:</strong> Algorithmic severity ranks high-risk flashpoints to allocate emergency crews before tragedy strikes.</span>
+                <CheckCircle2 size={16} className={isDark ? "text-emerald-400 shrink-0 mt-0.5" : "text-emerald-600 shrink-0 mt-0.5"} />
+                <span><strong className={isDark ? "text-white" : "text-neutral-900"}>Monsoon-Aware Scoring:</strong> Algorithmic severity ranks high-risk flashpoints to allocate emergency crews before tragedy strikes.</span>
               </div>
               <div className="flex items-start gap-2.5">
-                <CheckCircle2 size={16} className="text-emerald-400 shrink-0 mt-0.5" />
-                <span><strong className="text-white">Proof-of-Work Closing:</strong> Repairs require verifiable before-and-after photo verification certified by citizen feedback.</span>
+                <CheckCircle2 size={16} className={isDark ? "text-emerald-400 shrink-0 mt-0.5" : "text-emerald-600 shrink-0 mt-0.5"} />
+                <span><strong className={isDark ? "text-white" : "text-neutral-900"}>Proof-of-Work Closing:</strong> Repairs require verifiable before-and-after photo verification certified by citizen feedback.</span>
               </div>
             </div>
           </div>
@@ -276,17 +348,23 @@ export const AboutPage = () => {
       </section>
 
       {/* ── Interactive Technology Pillars ── */}
-      <section className="bg-neutral-900/50 border-y border-white/10 py-16">
+      <section className={classNames(
+        "border-y py-16 transition-colors",
+        isDark ? "bg-neutral-900/50 border-white/10" : "bg-white/80 border-neutral-200 shadow-inner"
+      )}>
         <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 space-y-12">
           <div className="text-center max-w-2xl mx-auto space-y-3">
-            <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-neutral-800 text-teal-300 text-xs font-mono">
+            <div className={classNames(
+              "inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-mono border",
+              isDark ? "bg-neutral-800 text-teal-300 border-neutral-700" : "bg-teal-50 text-teal-800 border-teal-200"
+            )}>
               <Cpu size={13} />
               <span>TECHNOLOGY ARCHITECTURE</span>
             </div>
-            <h2 className="font-display text-2xl sm:text-4xl font-extrabold text-white tracking-tight">
+            <h2 className={classNames("font-display text-2xl sm:text-4xl font-extrabold tracking-tight", isDark ? "text-white" : "text-neutral-950")}>
               The Engine Powering Smart City Governance
             </h2>
-            <p className="text-sm text-white/70">
+            <p className={classNames("text-sm", isDark ? "text-white/70" : "text-neutral-600")}>
               Click through our four core engineering subsystems designed to withstand real-world municipal infrastructure scale.
             </p>
           </div>
@@ -300,25 +378,36 @@ export const AboutPage = () => {
                 <button
                   key={pillar.id}
                   onClick={() => { sound.play('pop'); setActivePillar(idx); }}
-                  className={`p-4 rounded-2xl text-left border transition-all cursor-pointer flex flex-col justify-between ${
+                  className={classNames(
+                    "p-4 rounded-2xl text-left border transition-all cursor-pointer flex flex-col justify-between",
                     isSelected
-                      ? 'bg-neutral-900 border-emerald-400 shadow-[0_0_24px_rgba(52,211,153,0.25)] text-white'
-                      : 'bg-neutral-900/60 border-white/10 hover:bg-neutral-900/80 text-white/70'
-                  }`}
+                      ? isDark
+                        ? 'bg-neutral-900 border-emerald-400 shadow-[0_0_24px_rgba(52,211,153,0.25)] text-white'
+                        : 'bg-white border-emerald-500 shadow-md text-neutral-950 ring-2 ring-emerald-400/20'
+                      : isDark
+                        ? 'bg-neutral-900/60 border-white/10 hover:bg-neutral-900/80 text-white/70'
+                        : 'bg-slate-50 border-neutral-200 hover:bg-slate-100 text-neutral-700'
+                  )}
                 >
                   <div className="flex items-center justify-between mb-3">
-                    <div className={`w-9 h-9 rounded-xl flex items-center justify-center border ${
-                      isSelected ? 'bg-emerald-500/20 text-emerald-300 border-emerald-400/40' : 'bg-neutral-800 text-white/60 border-white/10'
-                    }`}>
+                    <div className={classNames(
+                      "w-9 h-9 rounded-xl flex items-center justify-center border",
+                      isSelected
+                        ? isDark ? 'bg-emerald-500/20 text-emerald-300 border-emerald-400/40' : 'bg-emerald-50 text-emerald-700 border-emerald-200'
+                        : isDark ? 'bg-neutral-800 text-white/60 border-white/10' : 'bg-white text-neutral-600 border-neutral-200 shadow-xs'
+                    )}>
                       <Icon size={18} />
                     </div>
-                    <span className="text-[10px] font-mono font-bold uppercase tracking-wider px-2 py-0.5 rounded bg-white/10 text-white/70">
+                    <span className={classNames(
+                      "text-[10px] font-mono font-bold uppercase tracking-wider px-2 py-0.5 rounded",
+                      isDark ? "bg-white/10 text-white/70" : "bg-neutral-200 text-neutral-700"
+                    )}>
                       0{idx + 1}
                     </span>
                   </div>
                   <div>
-                    <div className="text-xs text-emerald-400 font-mono font-bold mb-0.5">{pillar.tag}</div>
-                    <div className="text-sm font-bold text-white line-clamp-1">{pillar.title}</div>
+                    <div className={classNames("text-xs font-mono font-bold mb-0.5", isDark ? "text-emerald-400" : "text-emerald-700")}>{pillar.tag}</div>
+                    <div className={classNames("text-sm font-bold line-clamp-1", isDark ? "text-white" : "text-neutral-900")}>{pillar.title}</div>
                   </div>
                 </button>
               );
@@ -326,37 +415,43 @@ export const AboutPage = () => {
           </div>
 
           {/* Active Pillar Showcase Card */}
-          <div className="bg-neutral-900/80 rounded-3xl border border-white/15 p-6 sm:p-10 shadow-2xl backdrop-blur-2xl">
+          <div className={classNames(
+            "rounded-3xl border p-6 sm:p-10 shadow-2xl backdrop-blur-2xl transition-all",
+            isDark ? "bg-neutral-900/80 border-white/15" : "bg-white border-neutral-200 shadow-soft-xl"
+          )}>
             <div className="grid lg:grid-cols-12 gap-8 items-center">
               <div className="lg:col-span-7 space-y-5">
-                <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-emerald-500/15 text-emerald-300 border border-emerald-400/30 text-xs font-mono">
+                <div className={classNames(
+                  "inline-flex items-center gap-2 px-3 py-1 rounded-full text-xs font-mono border",
+                  isDark ? "bg-emerald-500/15 text-emerald-300 border-emerald-400/30" : "bg-emerald-50 text-emerald-800 border-emerald-200"
+                )}>
                   <span>{pillars[activePillar].tag}</span>
                 </div>
-                <h3 className="font-display text-2xl sm:text-3xl font-extrabold text-white">
+                <h3 className={classNames("font-display text-2xl sm:text-3xl font-extrabold", isDark ? "text-white" : "text-neutral-950")}>
                   {pillars[activePillar].title}
                 </h3>
-                <p className="text-sm sm:text-base text-white/75 leading-relaxed">
+                <p className={classNames("text-sm sm:text-base leading-relaxed", isDark ? "text-white/75" : "text-neutral-600")}>
                   {pillars[activePillar].description}
                 </p>
                 <div className="space-y-3 pt-2">
                   {pillars[activePillar].bullets.map((b, i) => (
-                    <div key={i} className="flex items-start gap-2.5 text-xs sm:text-sm text-white/70">
-                      <CheckCircle2 size={16} className="text-emerald-400 shrink-0 mt-0.5" />
+                    <div key={i} className={classNames("flex items-start gap-2.5 text-xs sm:text-sm", isDark ? "text-white/70" : "text-neutral-600")}>
+                      <CheckCircle2 size={16} className={isDark ? "text-emerald-400 shrink-0 mt-0.5" : "text-emerald-600 shrink-0 mt-0.5"} />
                       <span>{b}</span>
                     </div>
                   ))}
                 </div>
               </div>
 
-              <div className="lg:col-span-5 bg-neutral-950/80 rounded-2xl border border-white/10 p-6 space-y-4 font-mono text-xs shadow-inner">
-                <div className="flex items-center justify-between pb-3 border-b border-white/10 text-white/50">
+              <div className="lg:col-span-5 bg-neutral-950 rounded-2xl border border-neutral-800 p-6 space-y-4 font-mono text-xs shadow-inner text-neutral-100">
+                <div className="flex items-center justify-between pb-3 border-b border-neutral-800 text-white/50">
                   <span className="flex items-center gap-1.5"><Layers size={13} className="text-emerald-400" /> Pipeline Telemetry</span>
                   <span className="text-[10px] text-emerald-300 bg-emerald-500/20 px-2 py-0.5 rounded border border-emerald-400/30">LIVE READY</span>
                 </div>
                 <div className="space-y-2 text-white/80">
                   <div className="flex justify-between py-1 border-b border-white/5">
                     <span className="text-white/40">Latency:</span>
-                    <span className="text-emerald-400">284ms (Edge inference)</span>
+                    <span className="text-emerald-400">284ms (CLIP Zero-Shot)</span>
                   </div>
                   <div className="flex justify-between py-1 border-b border-white/5">
                     <span className="text-white/40">GIS Accuracy:</span>
@@ -371,8 +466,8 @@ export const AboutPage = () => {
                     <span className="text-amber-300">Geofenced EXIF Hash Match</span>
                   </div>
                 </div>
-                <div className="p-3 bg-neutral-900 rounded-xl border border-white/10 text-[11px] text-white/60">
-                  <p className="text-emerald-300 font-semibold mb-1">Architecture Standard:</p>
+                <div className="p-3 bg-neutral-900 rounded-xl border border-neutral-800 text-[11px] text-neutral-300">
+                  <p className="text-emerald-400 font-semibold mb-1">Architecture Standard:</p>
                   Built with decoupled RESTful microservices, Leaflet GIS, and DPDP-compliant citizen data masking.
                 </div>
               </div>
@@ -384,31 +479,45 @@ export const AboutPage = () => {
       {/* ── Before vs After Kaiser AI ── */}
       <section className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 space-y-10">
         <div className="text-center max-w-2xl mx-auto space-y-3">
-          <span className="font-mono text-xs font-bold uppercase tracking-widest text-emerald-400">TRANSFORMATIVE IMPACT</span>
-          <h2 className="font-display text-2xl sm:text-4xl font-extrabold text-white tracking-tight">
+          <span className={classNames("font-mono text-xs font-bold uppercase tracking-widest", isDark ? "text-emerald-400" : "text-emerald-700")}>TRANSFORMATIVE IMPACT</span>
+          <h2 className={classNames("font-display text-2xl sm:text-4xl font-extrabold tracking-tight", isDark ? "text-white" : "text-neutral-950")}>
             How Kaiser AI Outperforms Traditional Helplines
           </h2>
-          <p className="text-sm text-white/70">
+          <p className={classNames("text-sm", isDark ? "text-white/70" : "text-neutral-600")}>
             A direct comparison between legacy municipal grievance systems and Kaiser AI's automated intelligence.
           </p>
         </div>
 
-        <div className="overflow-hidden bg-neutral-900/80 rounded-3xl border border-white/15 shadow-2xl backdrop-blur-xl">
-          <div className="grid grid-cols-12 bg-neutral-950/70 border-b border-white/15 p-4 text-xs font-mono font-bold text-white/70 uppercase tracking-wider">
+        <div className={classNames(
+          "overflow-hidden rounded-3xl border shadow-2xl transition-all",
+          isDark ? "bg-neutral-900/80 border-white/15 backdrop-blur-xl" : "bg-white border-neutral-200 shadow-soft-xl"
+        )}>
+          <div className={classNames(
+            "grid grid-cols-12 border-b p-4 text-xs font-mono font-bold uppercase tracking-wider",
+            isDark ? "bg-neutral-950/70 border-white/15 text-white/70" : "bg-slate-100 border-neutral-200 text-neutral-700"
+          )}>
             <div className="col-span-3 sm:col-span-2">Metric</div>
-            <div className="col-span-4 sm:col-span-5 text-white/40">Traditional Municipal Helpline</div>
-            <div className="col-span-5 sm:col-span-5 text-emerald-400">Kaiser AI Platform</div>
+            <div className={classNames("col-span-4 sm:col-span-5", isDark ? "text-white/40" : "text-neutral-500")}>Traditional Municipal Helpline</div>
+            <div className={isDark ? "col-span-5 sm:col-span-5 text-emerald-400" : "col-span-5 sm:col-span-5 text-emerald-700"}>Kaiser AI Platform</div>
           </div>
-          <div className="divide-y divide-white/10">
+          <div className={classNames("divide-y", isDark ? "divide-white/10" : "divide-neutral-200")}>
             {comparisons.map((row, i) => (
-              <div key={i} className="grid grid-cols-12 p-4 sm:p-5 text-xs sm:text-sm items-center hover:bg-white/5 transition-colors">
-                <div className="col-span-3 sm:col-span-2 font-bold text-white">{row.metric}</div>
-                <div className="col-span-4 sm:col-span-5 text-white/50 pr-4 leading-relaxed flex items-start gap-1.5">
-                  <span className="text-rose-400 font-bold text-sm shrink-0">✕</span>
+              <div key={i} className={classNames(
+                "grid grid-cols-12 p-4 sm:p-5 text-xs sm:text-sm items-center transition-colors",
+                isDark ? "hover:bg-white/5" : "hover:bg-slate-50"
+              )}>
+                <div className={classNames("col-span-3 sm:col-span-2 font-bold", isDark ? "text-white" : "text-neutral-900")}>{row.metric}</div>
+                <div className={classNames("col-span-4 sm:col-span-5 pr-4 leading-relaxed flex items-start gap-1.5", isDark ? "text-white/50" : "text-neutral-600")}>
+                  <span className="text-rose-500 font-bold text-sm shrink-0">✕</span>
                   <span>{row.traditional}</span>
                 </div>
-                <div className="col-span-5 sm:col-span-5 text-emerald-200 font-medium leading-relaxed flex items-start gap-2 bg-emerald-500/10 p-3 rounded-2xl border border-emerald-400/25">
-                  <CheckCircle2 size={16} className="text-emerald-400 shrink-0 mt-0.5" />
+                <div className={classNames(
+                  "col-span-5 sm:col-span-5 font-medium leading-relaxed flex items-start gap-2 p-3 rounded-2xl border",
+                  isDark
+                    ? "bg-emerald-500/10 text-emerald-200 border-emerald-400/25"
+                    : "bg-emerald-50 text-emerald-900 border-emerald-200"
+                )}>
+                  <CheckCircle2 size={16} className={isDark ? "text-emerald-400 shrink-0 mt-0.5" : "text-emerald-600 shrink-0 mt-0.5"} />
                   <span>{row.kaiser}</span>
                 </div>
               </div>
@@ -420,33 +529,47 @@ export const AboutPage = () => {
       {/* ── Multidisciplinary Team ── */}
       <section className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 space-y-10">
         <div className="text-center max-w-2xl mx-auto space-y-3">
-          <span className="font-mono text-xs font-bold uppercase tracking-widest text-teal-300">OUR TEAM & CONTRIBUTORS</span>
-          <h2 className="font-display text-2xl sm:text-4xl font-extrabold text-white tracking-tight">
+          <span className={classNames("font-mono text-xs font-bold uppercase tracking-widest", isDark ? "text-teal-300" : "text-teal-700")}>OUR TEAM & CONTRIBUTORS</span>
+          <h2 className={classNames("font-display text-2xl sm:text-4xl font-extrabold tracking-tight", isDark ? "text-white" : "text-neutral-950")}>
             The Minds Behind Kaiser AI
           </h2>
-          <p className="text-sm text-white/70">
+          <p className={classNames("text-sm", isDark ? "text-white/70" : "text-neutral-600")}>
             A collaborative effort uniting computer vision research, full-stack systems engineering, and urban governance insights.
           </p>
         </div>
 
         <div className="grid sm:grid-cols-3 gap-6">
           {team.map((m, idx) => (
-            <div key={idx} className="rounded-3xl p-6 text-center space-y-4 bg-neutral-900/70 border border-white/10 hover:border-emerald-400/50 shadow-2xl backdrop-blur-xl flex flex-col justify-between transition-all group">
+            <div
+              key={idx}
+              className={classNames(
+                "rounded-3xl p-6 text-center space-y-4 border shadow-xl flex flex-col justify-between transition-all group",
+                isDark
+                  ? "bg-neutral-900/70 border-white/10 hover:border-emerald-400/50 backdrop-blur-xl"
+                  : "bg-white border-neutral-200 hover:border-emerald-500 shadow-soft-lg hover:shadow-soft-xl"
+              )}
+            >
               <div className="space-y-3">
                 <div className="w-16 h-16 rounded-2xl bg-gradient-to-tr from-emerald-500 via-teal-400 to-sky-400 text-neutral-950 font-black text-lg flex items-center justify-center mx-auto shadow-[0_0_20px_rgba(52,211,153,0.4)] group-hover:scale-105 transition-transform">
                   {m.initials}
                 </div>
                 <div>
-                  <h3 className="font-bold text-base text-white">{m.name}</h3>
-                  <p className="text-xs font-mono font-bold text-emerald-400">{m.role}</p>
-                  <p className="text-[11px] text-white/50 mt-0.5">{m.domain}</p>
+                  <h3 className={classNames("font-bold text-base", isDark ? "text-white" : "text-neutral-900")}>{m.name}</h3>
+                  <p className={classNames("text-xs font-mono font-bold", isDark ? "text-emerald-400" : "text-emerald-600")}>{m.role}</p>
+                  <p className={classNames("text-[11px] mt-0.5", isDark ? "text-white/50" : "text-neutral-500")}>{m.domain}</p>
                 </div>
-                <p className="text-xs text-white/70 leading-relaxed text-left pt-3 border-t border-white/10">
+                <p className={classNames(
+                  "text-xs leading-relaxed text-left pt-3 border-t",
+                  isDark ? "text-white/70 border-white/10" : "text-neutral-600 border-neutral-200"
+                )}>
                   {m.bio}
                 </p>
               </div>
               <div className="pt-2">
-                <span className="inline-block px-3 py-1 bg-white/5 text-white/60 border border-white/10 rounded-full text-[10px] font-mono">
+                <span className={classNames(
+                  "inline-block px-3 py-1 rounded-full text-[10px] font-mono border",
+                  isDark ? "bg-white/5 text-white/60 border-white/10" : "bg-slate-100 text-neutral-600 border-neutral-200"
+                )}>
                   Engineering Core
                 </span>
               </div>
@@ -458,11 +581,11 @@ export const AboutPage = () => {
       {/* ── FAQ Accordion ── */}
       <section className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 space-y-8">
         <div className="text-center space-y-2">
-          <span className="font-mono text-xs font-bold uppercase tracking-widest text-emerald-400">COMMON QUESTIONS</span>
-          <h2 className="font-display text-2xl sm:text-3xl font-extrabold text-white">
+          <span className={classNames("font-mono text-xs font-bold uppercase tracking-widest", isDark ? "text-emerald-400" : "text-emerald-700")}>COMMON QUESTIONS</span>
+          <h2 className={classNames("font-display text-2xl sm:text-3xl font-extrabold", isDark ? "text-white" : "text-neutral-950")}>
             Frequently Asked Questions
           </h2>
-          <p className="text-xs sm:text-sm text-white/60">
+          <p className={classNames("text-xs sm:text-sm", isDark ? "text-white/60" : "text-neutral-600")}>
             Learn more about how Kaiser AI works with citizens, housing societies, and municipal authorities.
           </p>
         </div>
@@ -473,23 +596,36 @@ export const AboutPage = () => {
             return (
               <div
                 key={index}
-                className="border border-white/10 rounded-2xl overflow-hidden bg-neutral-900/70 backdrop-blur-xl transition-all"
+                className={classNames(
+                  "border rounded-2xl overflow-hidden transition-all",
+                  isDark ? "border-white/10 bg-neutral-900/70 backdrop-blur-xl" : "border-neutral-200 bg-white shadow-soft"
+                )}
               >
                 <button
                   onClick={() => { sound.play('click'); setOpenFaq(isOpen ? null : index); }}
-                  className="w-full p-4 sm:p-5 text-left flex items-center justify-between gap-4 cursor-pointer hover:bg-white/5"
+                  className={classNames(
+                    "w-full p-4 sm:p-5 text-left flex items-center justify-between gap-4 cursor-pointer transition-colors",
+                    isDark ? "hover:bg-white/5" : "hover:bg-slate-50"
+                  )}
                   aria-expanded={isOpen}
                 >
-                  <span className="font-bold text-sm sm:text-base text-white">
+                  <span className={classNames("font-bold text-sm sm:text-base", isDark ? "text-white" : "text-neutral-900")}>
                     {faq.q}
                   </span>
                   <ChevronDown
                     size={18}
-                    className={`text-white/60 shrink-0 transition-transform duration-200 ${isOpen ? 'rotate-180 text-emerald-400' : ''}`}
+                    className={classNames(
+                      "shrink-0 transition-transform duration-200",
+                      isDark ? "text-white/60" : "text-neutral-400",
+                      isOpen ? 'rotate-180 text-emerald-500' : ''
+                    )}
                   />
                 </button>
                 {isOpen && (
-                  <div className="px-4 sm:px-5 pb-5 text-xs sm:text-sm text-white/70 leading-relaxed border-t border-white/10 pt-3 bg-neutral-950/40 animate-fade-in">
+                  <div className={classNames(
+                    "px-4 sm:px-5 pb-5 text-xs sm:text-sm leading-relaxed border-t pt-3 animate-fade-in",
+                    isDark ? "text-white/70 border-white/10 bg-neutral-950/40" : "text-neutral-600 border-neutral-100 bg-slate-50/50"
+                  )}>
                     {faq.a}
                   </div>
                 )}
@@ -501,9 +637,14 @@ export const AboutPage = () => {
 
       {/* ── Bottom Call-to-Action ── */}
       <section className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="bg-neutral-900/80 border border-emerald-500/30 text-white rounded-3xl p-8 sm:p-12 text-center space-y-6 shadow-[0_0_50px_rgba(52,211,153,0.15)] backdrop-blur-2xl relative overflow-hidden">
+        <div className={classNames(
+          "rounded-3xl p-8 sm:p-12 text-center space-y-6 relative overflow-hidden transition-all",
+          isDark
+            ? "bg-neutral-900/80 border border-emerald-500/30 text-white shadow-[0_0_50px_rgba(52,211,153,0.15)] backdrop-blur-2xl"
+            : "bg-gradient-to-br from-slate-900 via-neutral-900 to-emerald-950 border border-emerald-500/40 text-white shadow-soft-xl"
+        )}>
           <div className="max-w-2xl mx-auto space-y-3">
-            <h2 className="font-display text-2xl sm:text-4xl font-extrabold tracking-tight">
+            <h2 className="font-display text-2xl sm:text-4xl font-extrabold tracking-tight text-white">
               Ready to Report a Hazard in Your Neighborhood?
             </h2>
             <p className="text-sm sm:text-base text-white/70 leading-relaxed">

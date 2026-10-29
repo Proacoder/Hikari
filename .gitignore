@@ -32,8 +32,13 @@ venv/
 *.pyc
 *.pt
 *.onnx
+*.bin
+*.pth
+*.safetensors
 ml_service/.venv/
 ml_service/models/*.pt
+backend/models/ai_detector/*.bin
+backend/models/ai_detector/pytorch_model.bin
 
 # Database & local data
 *.db

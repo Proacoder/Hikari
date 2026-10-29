@@ -74,7 +74,7 @@ export const HolographicScanner = ({
       {isScanning && (
         <div className="absolute inset-x-0 h-1 bg-gradient-to-r from-transparent via-cyan-400 to-transparent shadow-[0_0_15px_3px_rgba(6,182,212,0.9)] animate-laser-scan pointer-events-none z-20">
           <div className="absolute right-4 -top-3 text-[10px] font-mono text-cyan-300 font-bold bg-slate-900/80 px-1.5 py-0.5 rounded border border-cyan-500/50">
-            YOLOv8 RADAR ACTIVE · {telemetryCount}%
+            MODEL 1: CLIP INSPECTOR ACTIVE · {telemetryCount}%
           </div>
         </div>
       )}
@@ -83,10 +83,10 @@ export const HolographicScanner = ({
       <div className="absolute top-3 inset-x-3 flex items-center justify-between z-10 pointer-events-none">
         <div className="flex items-center gap-2 bg-slate-900/85 backdrop-blur-md px-3 py-1 rounded-full border border-cyan-500/40 text-cyan-300 text-xs font-mono font-semibold">
           <Cpu size={14} className={isScanning ? 'animate-spin text-cyan-400' : 'text-emerald-400'} />
-          <span>{isScanning ? 'NEURAL TRIAGE IN PROGRESS' : 'VISION TELEMETRY VERIFIED'}</span>
+          <span>{isScanning ? 'MODEL 1 & 1.5: CLIP & ViT INSPECTION' : 'MODEL 1 & 1.5: VERIFIED CAMERA DEFECT'}</span>
         </div>
         <div className="bg-slate-900/85 backdrop-blur-md px-2.5 py-1 rounded-full border border-slate-700 text-[11px] font-mono text-slate-300">
-          BMC GIS: 19.076° N, 72.877° E
+          PROVENANCE: {defectData?.authenticity?.is_ai_generated ? 'SYNTHETIC AI' : 'GENUINE PHOTO'}
         </div>
       </div>
 
@@ -97,7 +97,7 @@ export const HolographicScanner = ({
           <div className="flex justify-between items-start">
             <span className="w-4 h-4 border-t-2 border-l-2 border-cyan-400 -mt-2 -ml-2" />
             <div className="bg-cyan-500/90 text-slate-950 font-mono text-[10px] font-black px-2 py-0.5 rounded shadow">
-              TARGET: {defectData.defectType?.toUpperCase() || 'CIVIC DEFECT'}
+              TARGET: {(defectData.category || defectData.defectType || 'CIVIC DEFECT').toUpperCase()}
             </div>
             <span className="w-4 h-4 border-t-2 border-r-2 border-cyan-400 -mt-2 -mr-2" />
           </div>
@@ -105,7 +105,7 @@ export const HolographicScanner = ({
           <div className="flex justify-between items-end">
             <span className="w-4 h-4 border-b-2 border-l-2 border-cyan-400 -mb-2 -ml-2" />
             <div className="bg-slate-900/90 text-cyan-300 border border-cyan-500/50 font-mono text-[11px] font-semibold px-2 py-0.5 rounded backdrop-blur">
-              CONFIDENCE: {Math.round((defectData.confidence || 0.94) * 100)}%
+              CONFIDENCE: {typeof defectData.confidence === 'string' ? defectData.confidence : `${Math.round((defectData.confidence || 0.94) * 100)}%`}
             </div>
             <span className="w-4 h-4 border-b-2 border-r-2 border-cyan-400 -mb-2 -mr-2" />
           </div>
@@ -120,28 +120,28 @@ export const HolographicScanner = ({
           </div>
           <div>
             <div className="text-xs font-mono font-bold text-cyan-300 flex items-center gap-1.5">
-              <span>{defectData?.defectType || 'Analyzing Target Surface...'}</span>
+              <span>{defectData?.category || defectData?.defectType || 'Analyzing Target Surface...'}</span>
               {!isScanning && (
                 <span className="inline-block w-2 h-2 rounded-full bg-emerald-400 shadow-[0_0_8px_#34d399]" />
               )}
             </div>
             <p className="text-[11px] text-slate-400 line-clamp-1">
-              {defectData?.recommendedCategory
-                ? `Mapped Category: ${defectData.recommendedCategory} · Severity: ${defectData.recommendedSeverity}/100`
-                : 'Extracting geometry, depth, and spatial coordinates...'}
+              {defectData
+                ? `Mapped: ${defectData.category || defectData.defectType} · Routing: ${defectData.assignedDept || 'Civic Dept'} · SLA: ${defectData.slaHours || 24}h`
+                : 'Extracting geometry, municipal defect classification...'}
             </p>
           </div>
         </div>
 
-        {defectData?.recommendedSeverity && (
+        {(defectData?.severity || defectData?.recommendedSeverity) && (
           <div className="flex items-center gap-2">
             <div className="text-right font-mono text-[11px] text-slate-300">
-              <span className="text-amber-400 font-bold">{defectData.recommendedSeverity}</span> / 100
+              <span className="text-amber-400 font-bold">{defectData?.severity || defectData?.recommendedSeverity}</span> / 100
             </div>
             <div className="w-16 h-2 bg-slate-700 rounded-full overflow-hidden">
               <div
                 className="h-full bg-gradient-to-r from-emerald-400 via-amber-400 to-red-500 transition-all duration-700 ease-out"
-                style={{ width: `${Math.min(100, defectData.recommendedSeverity)}%` }}
+                style={{ width: `${Math.min(100, Number(defectData?.severity || defectData?.recommendedSeverity))}%` }}
               />
             </div>
           </div>

@@ -106,7 +106,7 @@ class ComplaintModel(Base):
     landmark = Column(String(255), nullable=True)
     image_url = Column(Text, nullable=True)
     resolved_image_url = Column(Text, nullable=True)
-    upvote_count = Column(Integer, default=0)
+    upvote_count = Column(Integer, default=1)
 
     created_by_id = Column(String(50), nullable=True, index=True)
     created_by_name = Column(String(100), nullable=True)
@@ -117,6 +117,22 @@ class ComplaintModel(Base):
 
     ai_category = Column(String(50), nullable=True)
     ai_confidence = Column(Float, nullable=True)
+
+    # CLIP validation metadata
+    clip_category = Column(String(100), nullable=True)
+    clip_score = Column(Float, nullable=True)
+    clip_status = Column(String(50), default="inconclusive", nullable=True)
+    clip_explanation = Column(Text, nullable=True)
+
+    # Image authenticity & forensics metadata
+    authenticity_verdict = Column(String(50), default="inconclusive", nullable=True)
+    authenticity_score = Column(Float, nullable=True)
+    authenticity_details = Column(Text, nullable=True)
+
+    # Semantic and spatial duplicate tracking
+    duplicate_status = Column(String(50), default="no_candidate", nullable=True)
+    duplicate_parent_id = Column(String(50), ForeignKey("complaints.id"), nullable=True)
+    duplicate_score = Column(Float, nullable=True)
 
     created_at = Column(DateTime, default=lambda: datetime.now(timezone.utc), index=True)
     resolved_at = Column(DateTime, nullable=True)
@@ -198,6 +214,34 @@ class NotificationModel(Base):
     created_at = Column(DateTime, default=lambda: datetime.now(timezone.utc))
 
 
+class OtpChallengeModel(Base):
+    """Cryptographic single-use OTP challenge for citizen verification."""
+    __tablename__ = "otp_challenges"
+
+    id = Column(String(50), primary_key=True, index=True)
+    email = Column(String(150), nullable=False, index=True)
+    otp_hash = Column(String(128), nullable=False)
+    salt = Column(String(64), nullable=False)
+    expires_at = Column(DateTime, nullable=False, index=True)
+    attempts = Column(Integer, default=0)
+    max_attempts = Column(Integer, default=3)
+    is_used = Column(Boolean, default=False, index=True)
+    created_at = Column(DateTime, default=lambda: datetime.now(timezone.utc), index=True)
+
+
+class DuplicateReviewModel(Base):
+    """Staff review log for semantic/spatial duplicate candidates (no auto-merge)."""
+    __tablename__ = "duplicate_reviews"
+
+    id = Column(String(50), primary_key=True, index=True)
+    complaint_id = Column(String(50), ForeignKey("complaints.id"), nullable=False, index=True)
+    candidate_id = Column(String(50), ForeignKey("complaints.id"), nullable=False, index=True)
+    officer_id = Column(String(50), nullable=True)
+    decision = Column(String(50), nullable=False)  # confirmed_duplicate, dismissed
+    notes = Column(Text, nullable=True)
+    created_at = Column(DateTime, default=lambda: datetime.now(timezone.utc), index=True)
+
+
 # Composite index for spatial proximity queries
 Index("idx_complaint_coords", ComplaintModel.latitude, ComplaintModel.longitude)
 
@@ -268,6 +312,16 @@ def _migrate_schema():
             ("rating", "INTEGER"),
             ("feedback_tags", "VARCHAR(255)"),
             ("feedback_comment", "TEXT"),
+            ("clip_category", "VARCHAR(100)"),
+            ("clip_score", "FLOAT"),
+            ("clip_status", "VARCHAR(50) DEFAULT 'inconclusive'"),
+            ("clip_explanation", "TEXT"),
+            ("authenticity_verdict", "VARCHAR(50) DEFAULT 'inconclusive'"),
+            ("authenticity_score", "FLOAT"),
+            ("authenticity_details", "TEXT"),
+            ("duplicate_status", "VARCHAR(50) DEFAULT 'no_candidate'"),
+            ("duplicate_parent_id", "VARCHAR(50)"),
+            ("duplicate_score", "FLOAT"),
         ]
         with engine.begin() as conn:
             for col_name, col_type in new_columns:
@@ -365,7 +419,7 @@ def init_db():
                     ward_id=comp.get("ward", 1), landmark=comp.get("landmark", ""),
                     image_url=comp.get("imageUrl"),
                     resolved_image_url=comp.get("resolvedImageUrl"),
-                    upvote_count=comp.get("upvoteCount", 0),
+                    upvote_count=comp.get("upvoteCount", 1),
                     created_by_id=created_by.get("id"),
                     created_by_name=created_by.get("name"),
                     created_by_email=created_by.get("email"),

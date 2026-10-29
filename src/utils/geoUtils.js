@@ -100,44 +100,44 @@ export const analyzeComplaintDynamic = (title = '', description = '') => {
   let severity = 50;
   let slaHours = 48;
 
-  // 1. Drainage & Manhole (handles common typos: mangole, menhole, mainhole, chamber, dhakkan)
-  if (/(drain|drainage|gutter|guttar|manhole|mangole|menhole|mainhole|man-hole|chamber|cover missing|dhakkan|sewage|sewer|waterlog|waterlogging|clog|stagnant|monsoon flood|overflow|sinkhole|naali|nalah|gutter lid|open hole)/i.test(text)) {
+  // 1. Drainage & Manhole (handles common typos: mangole, menhole, mainhole, chamber, dhakkan) + Marathi & Hindi
+  if (/(drain|drainage|gutter|guttar|manhole|mangole|menhole|mainhole|man-hole|chamber|cover missing|dhakkan|sewage|sewer|waterlog|waterlogging|clog|stagnant|monsoon flood|overflow|sinkhole|naali|nalah|gutter lid|open hole|गटर|गटार|मॅनहोल|मैनहोल|नाली|नाला|सांडपाणी|सीवर|जलभराव|जलजमाव|ढक्कन|उघडे मॅनहोल|खुला मैनहोल)/i.test(text)) {
     category = 'Drainage';
     assignedDept = 'Storm Water Drainage (SWD) Department';
     severity = 80;
     slaHours = 12;
   }
-  // 2. Roads & Potholes (handles pot hole, khadda, crater, trench)
-  else if (/(pothole|potholes|pot hole|pothoe|crater|asphalt|tar road|uneven road|pavement|divider|speed breaker|road work|khadda|kaddha|patch work|trench)/i.test(text)) {
+  // 2. Roads & Potholes (handles pot hole, khadda, crater, trench) + Marathi & Hindi
+  else if (/(pothole|potholes|pot hole|pothoe|crater|asphalt|tar road|uneven road|pavement|divider|speed breaker|road work|khadda|kaddha|patch work|trench|खड्डा|खड्डे|गड्ढा|गड्ढे|सडक|सड़क|रस्ता|डांबर|फूटपाथ|फुटपाथ)/i.test(text)) {
     category = 'Pothole';
     assignedDept = 'Roads & Traffic Department';
     severity = 65;
     slaHours = 24;
   }
-  // 3. Garbage & Sanitation (handles kachra, kachda, waste, dump)
-  else if (/(garbage|trash|waste|dump|kachra|kachda|litter|bins|stench|filth|debris|smell|dead animal|solid waste|deonar)/i.test(text)) {
+  // 3. Garbage & Sanitation (handles kachra, kachda, waste, dump) + Marathi & Hindi
+  else if (/(garbage|trash|waste|dump|kachra|kachda|litter|bins|stench|filth|debris|smell|dead animal|solid waste|deonar|कचरा|कचऱ्याचा|कूड़ा|कूडा|घाण|दुर्गंधी|कचराकुंडी|गंदगी|बदबू|कचरे का ढेर)/i.test(text)) {
     category = 'Garbage';
     assignedDept = 'Solid Waste Management (SWM)';
     severity = 60;
     slaHours = 24;
   }
-  // 4. Streetlight & Electrical Hazards
-  else if (/(light|streetlight|street light|dark|darkness|pole|lamp|wire|electr|spark|blackout|tube light|blinking|live wire)/i.test(text)) {
+  // 4. Streetlight & Electrical Hazards + Marathi & Hindi
+  else if (/(light|streetlight|street light|dark|darkness|pole|lamp|wire|electr|spark|blackout|tube light|blinking|live wire|पथदिवा|स्ट्रीट लाइट|स्ट्रीटलाईट|दिवा|अंधार|अंधेरा|बत्ती|वीज|बिजली|खंभा|पोल|करंट|विद्युत)/i.test(text)) {
     category = 'Streetlight';
     assignedDept = 'Mechanical & Electrical Department';
     severity = 55;
     slaHours = 36;
   }
-  // 5. Water Pipeline Leakage & Contamination
-  else if (/(water|pipe|leak|leakage|pipeline|pipeline burst|contamination|drinking water|supply|burst|pani|paani)/i.test(text)) {
+  // 5. Water Pipeline Leakage & Contamination + Marathi & Hindi
+  else if (/(water|pipe|leak|leakage|pipeline|pipeline burst|contamination|drinking water|supply|burst|pani|paani|पाणी|पानी|पाईप|पाइप|जल|गळती|रिसाव|जल रिसाव|पाणी गळती|दूषित पाणी)/i.test(text)) {
     category = 'Water Leakage';
     assignedDept = 'Hydraulic Engineer Department';
     severity = 70;
     slaHours = 20;
   }
 
-  // Critical Safety Escalation (Open Manhole / Live Wire / Disaster Danger)
-  const isCriticalHazard = /(dangerous|danger|open|uncovered|broken|deep|accident|injured|hospital|fatal|emergency|collapse|live wire|electrocution)/i.test(text);
+  // Critical Safety Escalation (Open Manhole / Live Wire / Disaster Danger) + Marathi & Hindi
+  const isCriticalHazard = /(dangerous|danger|open|uncovered|broken|deep|accident|injured|hospital|fatal|emergency|collapse|live wire|electrocution|धोकादायक|धोका|खतरनाक|खतरा|जीवघेणा|अपघात|दुर्घटना|उघडा|उघडे|खुला|तोडफोड|तुटलेला|गंभीर|तातडीने|तातडी)/i.test(text);
   if (isCriticalHazard) {
     if (category === 'Drainage') {
       // Open manhole is an extreme priority 1 hazard in Mumbai

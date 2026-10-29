@@ -4,6 +4,7 @@ import { Toaster } from 'react-hot-toast';
 import { AuthProvider, useAuth } from './context/AuthContext';
 import { LanguageProvider } from './context/LanguageContext';
 import { NotificationProvider } from './context/NotificationContext';
+import { ThemeProvider } from './context/ThemeContext';
 import { SplashScreen } from './components/common/SplashScreen';
 import { PublicLayout, CitizenLayout, OfficerLayout, AdminLayout } from './components/layout/Layouts';
 
@@ -92,95 +93,97 @@ function App() {
   const [splash, setSplash] = useState(() => sessionStorage.getItem('kaiser_splash') !== '1');
   const finishSplash = useCallback(() => { sessionStorage.setItem('kaiser_splash', '1'); setSplash(false); }, []);
   return (
-    <LanguageProvider>
-      {splash && <SplashScreen onDone={finishSplash} />}
-      <AuthProvider>
-        <NotificationProvider>
-          <Toaster
-            position="top-right"
-            toastOptions={{
-              duration: 4000,
-              style: {
-                borderRadius: '12px',
-                background: '#ffffff',
-                color: '#0f172a',
-                fontSize: '13px',
-                border: '1px solid #e2e8f0',
-                boxShadow: '0 10px 15px -3px rgba(0, 0, 0, 0.1)',
-              },
-            }}
-          />
-          <BrowserRouter>
-            <Suspense fallback={<PageLoader />}>
-              <Routes>
-                {/* Public Marketing & Auth Routes */}
-                <Route element={<PublicLayout />}>
-                  <Route path="/" element={<LandingPage />} />
-                  <Route path="/how-it-works" element={<HowItWorksPage />} />
-                  <Route path="/about" element={<AboutPage />} />
-                  <Route path="/contact" element={<ContactPage />} />
-                  <Route path="/auth" element={<RedirectIfAuth><AuthPage /></RedirectIfAuth>} />
-                  <Route path="/login" element={<RedirectIfAuth><AuthPage /></RedirectIfAuth>} />
-                  <Route path="/register" element={<RedirectIfAuth><AuthPage /></RedirectIfAuth>} />
-                </Route>
+    <ThemeProvider>
+      <LanguageProvider>
+        {splash && <SplashScreen onDone={finishSplash} />}
+        <AuthProvider>
+          <NotificationProvider>
+            <Toaster
+              position="top-right"
+              toastOptions={{
+                duration: 4000,
+                style: {
+                  borderRadius: '12px',
+                  background: '#ffffff',
+                  color: '#0f172a',
+                  fontSize: '13px',
+                  border: '1px solid #e2e8f0',
+                  boxShadow: '0 10px 15px -3px rgba(0, 0, 0, 0.1)',
+                },
+              }}
+            />
+            <BrowserRouter>
+              <Suspense fallback={<PageLoader />}>
+                <Routes>
+                  {/* Public Marketing & Auth Routes */}
+                  <Route element={<PublicLayout />}>
+                    <Route path="/" element={<LandingPage />} />
+                    <Route path="/how-it-works" element={<HowItWorksPage />} />
+                    <Route path="/about" element={<AboutPage />} />
+                    <Route path="/contact" element={<ContactPage />} />
+                    <Route path="/auth" element={<RedirectIfAuth><AuthPage /></RedirectIfAuth>} />
+                    <Route path="/login" element={<RedirectIfAuth><AuthPage /></RedirectIfAuth>} />
+                    <Route path="/register" element={<RedirectIfAuth><AuthPage /></RedirectIfAuth>} />
+                  </Route>
 
-                {/* Officer Portal Login — standalone (no layout wrapper) */}
-                <Route path="/officer-login" element={<RedirectIfAuth><OfficerLoginPage /></RedirectIfAuth>} />
+                  {/* Officer Portal Login — standalone (no layout wrapper) */}
+                  <Route path="/officer-login" element={<RedirectIfAuth><OfficerLoginPage /></RedirectIfAuth>} />
 
-                {/* Citizen App Portal — requires citizen role */}
-                <Route path="/app" element={
-                  <RequireAuth allowedRoles={['citizen']}>
-                    <CitizenLayout />
-                  </RequireAuth>
-                }>
-                  <Route index element={<CitizenDashboard />} />
-                  <Route path="report" element={<ReportIssuePage />} />
-                  <Route path="my-complaints" element={<MyComplaintsPage />} />
-                  <Route path="map" element={<IssueMapPage />} />
-                  <Route path="leaderboard" element={<CivicLeaderboardPage />} />
-                  <Route path="notifications" element={<NotificationsPage />} />
-                  <Route path="profile" element={<CitizenProfilePage />} />
-                  <Route path="complaint/:id" element={<ComplaintDetailPage />} />
-                </Route>
+                  {/* Citizen App Portal — requires citizen role */}
+                  <Route path="/app" element={
+                    <RequireAuth allowedRoles={['citizen']}>
+                      <CitizenLayout />
+                    </RequireAuth>
+                  }>
+                    <Route index element={<CitizenDashboard />} />
+                    <Route path="report" element={<ReportIssuePage />} />
+                    <Route path="my-complaints" element={<MyComplaintsPage />} />
+                    <Route path="map" element={<IssueMapPage />} />
+                    <Route path="leaderboard" element={<CivicLeaderboardPage />} />
+                    <Route path="notifications" element={<NotificationsPage />} />
+                    <Route path="profile" element={<CitizenProfilePage />} />
+                    <Route path="complaint/:id" element={<ComplaintDetailPage />} />
+                  </Route>
 
-                {/* Ward Officer Portal — requires officer role, scoped to own officer ID */}
-                <Route path="/officer" element={
-                  <RequireAuth allowedRoles={['officer']}>
-                    <OfficerLayout />
-                  </RequireAuth>
-                }>
-                  <Route index element={<OfficerDashboard />} />
-                  <Route path="notifications" element={<NotificationsPage />} />
-                  <Route path=":officerId/notifications" element={<NotificationsPage />} />
-                  <Route path=":officerId/*" element={<OfficerDashboard />} />
-                  <Route path="*" element={<OfficerDashboard />} />
-                </Route>
+                  {/* Ward Officer Portal — requires officer role, scoped to own officer ID */}
+                  <Route path="/officer" element={
+                    <RequireAuth allowedRoles={['officer']}>
+                      <OfficerLayout />
+                    </RequireAuth>
+                  }>
+                    <Route index element={<OfficerDashboard />} />
+                    <Route path="notifications" element={<NotificationsPage />} />
+                    <Route path=":officerId/notifications" element={<NotificationsPage />} />
+                    <Route path=":officerId/*" element={<OfficerDashboard />} />
+                    <Route path="*" element={<OfficerDashboard />} />
+                  </Route>
 
-                {/* BMC City Admin Console — requires admin role */}
-                <Route path="/admin" element={
-                  <RequireAuth allowedRoles={['admin']}>
-                    <AdminLayout />
-                  </RequireAuth>
-                }>
-                  <Route index element={<AdminDashboard />} />
-                  <Route path="wards" element={<AdminDashboard />} />
-                  <Route path="officers" element={<AdminDashboard />} />
-                  <Route path="analytics" element={<AdminDashboard />} />
-                  <Route path="disaster" element={<AdminDashboard />} />
-                  <Route path="complaints" element={<AdminDashboard />} />
-                  <Route path="reports" element={<AdminDashboard />} />
-                  <Route path="notifications" element={<NotificationsPage />} />
-                </Route>
+                  {/* BMC City Admin Console — requires admin role */}
+                  <Route path="/admin" element={
+                    <RequireAuth allowedRoles={['admin']}>
+                      <AdminLayout />
+                    </RequireAuth>
+                  }>
+                    <Route index element={<AdminDashboard />} />
+                    <Route path="wards" element={<AdminDashboard />} />
+                    <Route path="officers" element={<AdminDashboard />} />
+                    <Route path="analytics" element={<AdminDashboard />} />
+                    <Route path="disaster" element={<AdminDashboard />} />
+                    <Route path="complaints" element={<AdminDashboard />} />
+                    <Route path="reports" element={<AdminDashboard />} />
+                    <Route path="notifications" element={<NotificationsPage />} />
+                  </Route>
 
-                {/* Catch-all redirect */}
-                <Route path="*" element={<Navigate to="/" replace />} />
-              </Routes>
-              <CivicAiAssistant />
-            </Suspense>
-          </BrowserRouter>
-        </NotificationProvider>
-      </AuthProvider>
-    </LanguageProvider>
+                  {/* Catch-all redirect */}
+                  <Route path="*" element={<Navigate to="/" replace />} />
+                </Routes>
+                <CivicAiAssistant />
+              </Suspense>
+            </BrowserRouter>
+          </NotificationProvider>
+        </AuthProvider>
+      </LanguageProvider>
+    </ThemeProvider>
   );
 }
 

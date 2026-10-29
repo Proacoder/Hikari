@@ -6,6 +6,7 @@ import {
   RefreshCw, CheckCircle2, ChevronRight, Phone
 } from 'lucide-react';
 import { sound } from '../../utils/soundEffects';
+import { useTheme } from '../../context/ThemeContext';
 
 const WATER_STATIONS = [
   {
@@ -15,9 +16,9 @@ const WATER_STATIONS = [
     waterLevel: 1.42,
     maxSafe: 2.70,
     status: 'NORMAL',
-    statusColor: 'text-emerald-400 bg-emerald-500/15 border-emerald-400/30',
-    waveColor: 'text-emerald-400',
-    liquidBg: 'from-emerald-500/30 to-teal-900/40',
+    statusColor: 'text-emerald-700 bg-emerald-100/80 border-emerald-300 dark:text-emerald-400 dark:bg-emerald-500/15 dark:border-emerald-400/30',
+    waveColor: 'text-emerald-500/30 dark:text-emerald-400',
+    liquidBg: 'from-emerald-400/15 to-teal-500/20 dark:from-emerald-500/30 dark:to-teal-900/40',
     pumps: '6/6 Online (1,800 L/s)',
     dischargeRate: '420 m³/min',
     riskLevel: 'Low',
@@ -29,9 +30,9 @@ const WATER_STATIONS = [
     waterLevel: 0.48,
     maxSafe: 0.60,
     status: 'ACTIVE PUMPING',
-    statusColor: 'text-amber-300 bg-amber-500/15 border-amber-400/30',
-    waveColor: 'text-amber-400',
-    liquidBg: 'from-amber-500/30 to-orange-900/40',
+    statusColor: 'text-amber-800 bg-amber-100/80 border-amber-300 dark:text-amber-300 dark:bg-amber-500/15 dark:border-amber-400/30',
+    waveColor: 'text-amber-500/30 dark:text-amber-400',
+    liquidBg: 'from-amber-400/15 to-orange-500/20 dark:from-amber-500/30 dark:to-orange-900/40',
     pumps: '4/4 Online (1,200 L/s)',
     dischargeRate: '310 m³/min',
     riskLevel: 'Moderate',
@@ -43,9 +44,9 @@ const WATER_STATIONS = [
     waterLevel: 0.32,
     maxSafe: 0.75,
     status: 'OPTIMAL DRAINAGE',
-    statusColor: 'text-emerald-400 bg-emerald-500/15 border-emerald-400/30',
-    waveColor: 'text-teal-400',
-    liquidBg: 'from-teal-500/30 to-cyan-900/40',
+    statusColor: 'text-emerald-700 bg-emerald-100/80 border-emerald-300 dark:text-emerald-400 dark:bg-emerald-500/15 dark:border-emerald-400/30',
+    waveColor: 'text-teal-500/30 dark:text-teal-400',
+    liquidBg: 'from-teal-400/15 to-cyan-500/20 dark:from-teal-500/30 dark:to-cyan-900/40',
     pumps: '8/8 Online (2,400 L/s)',
     dischargeRate: '580 m³/min',
     riskLevel: 'Low',
@@ -57,9 +58,9 @@ const WATER_STATIONS = [
     waterLevel: 0.18,
     maxSafe: 0.50,
     status: 'ALL LANES CLEAR',
-    statusColor: 'text-sky-300 bg-sky-500/15 border-sky-400/30',
-    waveColor: 'text-sky-400',
-    liquidBg: 'from-sky-500/30 to-blue-900/40',
+    statusColor: 'text-sky-800 bg-sky-100/80 border-sky-300 dark:text-sky-300 dark:bg-sky-500/15 dark:border-sky-400/30',
+    waveColor: 'text-sky-500/30 dark:text-sky-400',
+    liquidBg: 'from-sky-400/15 to-blue-500/20 dark:from-sky-500/30 dark:to-blue-900/40',
     pumps: '4/4 Online (1,000 L/s)',
     dischargeRate: '240 m³/min',
     riskLevel: 'Safe',
@@ -71,9 +72,9 @@ const WATER_STATIONS = [
     waterLevel: 0.88,
     maxSafe: 1.05,
     status: 'ELEVATED WATCH',
-    statusColor: 'text-rose-300 bg-rose-500/15 border-rose-400/30',
-    waveColor: 'text-rose-400',
-    liquidBg: 'from-rose-500/30 to-rose-950/40',
+    statusColor: 'text-rose-800 bg-rose-100/80 border-rose-300 dark:text-rose-300 dark:bg-rose-500/15 dark:border-rose-400/30',
+    waveColor: 'text-rose-500/30 dark:text-rose-400',
+    liquidBg: 'from-rose-400/15 to-rose-600/20 dark:from-rose-500/30 dark:to-rose-950/40',
     pumps: '6/6 Online (1,500 L/s)',
     dischargeRate: '460 m³/min',
     riskLevel: 'Elevated',
@@ -85,9 +86,9 @@ const WATER_STATIONS = [
     waterLevel: 0.12,
     maxSafe: 0.55,
     status: 'PUMPS STANDBY',
-    statusColor: 'text-emerald-400 bg-emerald-500/15 border-emerald-400/30',
-    waveColor: 'text-emerald-400',
-    liquidBg: 'from-emerald-500/30 to-teal-900/40',
+    statusColor: 'text-emerald-700 bg-emerald-100/80 border-emerald-300 dark:text-emerald-400 dark:bg-emerald-500/15 dark:border-emerald-400/30',
+    waveColor: 'text-emerald-500/30 dark:text-emerald-400',
+    liquidBg: 'from-emerald-400/15 to-teal-500/20 dark:from-emerald-500/30 dark:to-teal-900/40',
     pumps: '3/3 Standby',
     dischargeRate: '0 m³/min',
     riskLevel: 'Safe',
@@ -95,6 +96,7 @@ const WATER_STATIONS = [
 ];
 
 export const WaterTelemetrySection = () => {
+  const { isDark } = useTheme();
   const [selectedStation, setSelectedStation] = useState(WATER_STATIONS[0]);
   const [lastSync, setLastSync] = useState('14:24:10 IST');
 
@@ -108,38 +110,38 @@ export const WaterTelemetrySection = () => {
     <section className="relative w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 select-none">
       
       {/* ── Section Header with Cyber Accent ── */}
-      <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 pb-8 border-b border-white/10">
+      <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 pb-8 border-b border-neutral-200 dark:border-white/10">
         <div className="space-y-3">
           <div className="flex items-center gap-2.5">
-            <span className="w-2.5 h-2.5 rounded-full bg-teal-400 shadow-[0_0_12px_#2dd4bf] animate-ping" />
-            <span className="font-mono text-xs font-bold tracking-[.3em] uppercase text-teal-300">
+            <span className="w-2.5 h-2.5 rounded-full bg-teal-500 dark:bg-teal-400 shadow-[0_0_12px_#14b8a6] dark:shadow-[0_0_12px_#2dd4bf] animate-ping" />
+            <span className="font-mono text-xs font-bold tracking-[.3em] uppercase text-teal-700 dark:text-teal-300">
               LIVE BMC HYDROLOGICAL RADAR & WATER TELEMETRY
             </span>
           </div>
-          <h2 className="font-display text-3xl sm:text-5xl font-extrabold text-white tracking-tight">
+          <h2 className="font-display text-3xl sm:text-5xl font-extrabold text-neutral-900 dark:text-white tracking-tight">
             Mumbai Water & Flood{' '}
-            <span className="bg-gradient-to-r from-teal-300 via-emerald-400 to-sky-400 bg-clip-text text-transparent">
+            <span className="bg-gradient-to-r from-teal-600 via-emerald-600 to-sky-600 dark:from-teal-300 dark:via-emerald-400 dark:to-sky-400 bg-clip-text text-transparent">
               Command Telemetry
             </span>
           </h2>
-          <p className="text-sm sm:text-base text-white/70 max-w-2xl leading-relaxed">
+          <p className="text-sm sm:text-base text-neutral-600 dark:text-white/70 max-w-2xl leading-relaxed">
             Real-time ultrasonic water depth sensors across 24 wards, automated dewatering sump stations, and live Arabian Sea tidal advisories.
           </p>
         </div>
 
         {/* Live Status Pills */}
         <div className="flex flex-wrap items-center gap-3">
-          <div className="px-4 py-2 rounded-2xl bg-neutral-900/80 border border-teal-500/30 text-xs font-mono text-teal-300 flex items-center gap-2 shadow-lg backdrop-blur-xl">
-            <Waves size={15} className="animate-pulse text-teal-400" />
-            <span>64/64 PUMPS ACTIVE</span>
+          <div className="px-4 py-2 rounded-2xl bg-white dark:bg-neutral-900/80 border border-teal-200 dark:border-teal-500/30 text-xs font-mono text-teal-800 dark:text-teal-300 flex items-center gap-2 shadow-sm dark:shadow-lg backdrop-blur-xl">
+            <Waves size={15} className="animate-pulse text-teal-600 dark:text-teal-400" />
+            <span className="font-semibold">64/64 PUMPS ACTIVE</span>
           </div>
           <button
             onClick={handleRefresh}
-            className="px-4 py-2 rounded-2xl bg-white/5 hover:bg-white/10 border border-white/15 text-xs font-mono text-white/80 hover:text-white flex items-center gap-2 transition-all cursor-pointer"
+            className="px-4 py-2 rounded-2xl bg-neutral-100 hover:bg-neutral-200 dark:bg-white/5 dark:hover:bg-white/10 border border-neutral-200 dark:border-white/15 text-xs font-mono text-neutral-700 dark:text-white/80 hover:text-neutral-900 dark:hover:text-white flex items-center gap-2 transition-all cursor-pointer shadow-xs"
             title="Refresh hydrological telemetry"
           >
-            <RefreshCw size={13} className="text-emerald-400" />
-            <span>SYNC: {lastSync}</span>
+            <RefreshCw size={13} className="text-emerald-600 dark:text-emerald-400" />
+            <span className="font-medium">SYNC: {lastSync}</span>
           </button>
         </div>
       </div>
@@ -150,11 +152,11 @@ export const WaterTelemetrySection = () => {
         {/* Left Column (8 cols): Water Sensor Station Cards */}
         <div className="lg:col-span-8 space-y-6">
           <div className="flex items-center justify-between">
-            <h3 className="font-mono text-xs font-bold tracking-[.25em] text-white/70 uppercase flex items-center gap-2">
-              <Gauge size={14} className="text-teal-400" />
+            <h3 className="font-mono text-xs font-bold tracking-[.25em] text-neutral-600 dark:text-white/70 uppercase flex items-center gap-2">
+              <Gauge size={14} className="text-teal-600 dark:text-teal-400" />
               ULTRASONIC FLOOD SENSORS ({WATER_STATIONS.length} MONITORED HOTSPOTS)
             </h3>
-            <span className="text-xs font-mono text-emerald-400/90">ALL STATIONS REPORTING</span>
+            <span className="text-xs font-mono text-emerald-700 dark:text-emerald-400/90 font-semibold">ALL STATIONS REPORTING</span>
           </div>
 
           <div className="grid sm:grid-cols-2 gap-4">
@@ -171,14 +173,14 @@ export const WaterTelemetrySection = () => {
                   }}
                   className={`group relative rounded-3xl p-5 border transition-all cursor-pointer overflow-hidden backdrop-blur-xl ${
                     isSelected
-                      ? 'bg-neutral-900/90 border-teal-400/60 shadow-[0_0_30px_rgba(45,212,191,0.2)]'
-                      : 'bg-neutral-900/60 border-white/10 hover:border-white/25 hover:bg-neutral-900/75'
+                      ? 'bg-white dark:bg-neutral-900/90 border-teal-500 dark:border-teal-400/60 shadow-md dark:shadow-[0_0_30px_rgba(45,212,191,0.2)] ring-2 ring-teal-500/20'
+                      : 'bg-white/80 dark:bg-neutral-900/60 border-neutral-200 dark:border-white/10 hover:border-teal-300 dark:hover:border-white/25 hover:bg-white dark:hover:bg-neutral-900/75 shadow-xs'
                   }`}
                 >
-                  {/* Subtle water fill level background inside card */}
+                  {/* Water fill level background inside card */}
                   <div
                     className={`absolute bottom-0 inset-x-0 bg-gradient-to-t ${station.liquidBg} pointer-events-none transition-all duration-700`}
-                    style={{ height: `${fillPct}%`, opacity: 0.6 }}
+                    style={{ height: `${fillPct}%`, opacity: 0.7 }}
                   />
 
                   {/* Water Wave Line on card bottom */}
@@ -191,10 +193,10 @@ export const WaterTelemetrySection = () => {
                   {/* Header Row */}
                   <div className="relative z-10 flex items-start justify-between gap-2">
                     <div>
-                      <span className="text-[10px] font-mono tracking-wider text-white/50 block">
+                      <span className="text-[10px] font-mono tracking-wider text-neutral-500 dark:text-white/50 block font-medium">
                         {station.id} · {station.ward}
                       </span>
-                      <h4 className="text-base font-bold text-white group-hover:text-teal-300 transition-colors pt-0.5">
+                      <h4 className="text-base font-bold text-neutral-900 dark:text-white group-hover:text-teal-600 dark:group-hover:text-teal-300 transition-colors pt-0.5">
                         {station.name}
                       </h4>
                     </div>
@@ -205,36 +207,36 @@ export const WaterTelemetrySection = () => {
 
                   {/* Big Water Depth Gauge Display */}
                   <div className="relative z-10 my-4 flex items-baseline gap-2">
-                    <span className="font-mono text-3xl font-extrabold text-white tracking-tight">
+                    <span className="font-mono text-3xl font-extrabold text-neutral-900 dark:text-white tracking-tight">
                       {station.waterLevel.toFixed(2)}
                     </span>
-                    <span className="text-xs font-mono text-white/60">meters depth</span>
-                    <span className="text-xs font-mono text-white/40 ml-auto">
+                    <span className="text-xs font-mono text-neutral-600 dark:text-white/60 font-semibold">meters depth</span>
+                    <span className="text-xs font-mono text-neutral-500 dark:text-white/40 ml-auto">
                       Cap: {fillPct}% ({station.maxSafe}m max)
                     </span>
                   </div>
 
                   {/* Animated Progress Bar */}
-                  <div className="relative z-10 w-full h-2 bg-white/10 rounded-full overflow-hidden">
+                  <div className="relative z-10 w-full h-2 bg-neutral-200 dark:bg-white/10 rounded-full overflow-hidden">
                     <div
                       className={`h-full rounded-full transition-all duration-1000 ${
                         fillPct > 80
                           ? 'bg-rose-500 shadow-[0_0_8px_#f43f5e]'
                           : fillPct > 55
                           ? 'bg-amber-400 shadow-[0_0_8px_#fbbf24]'
-                          : 'bg-emerald-400 shadow-[0_0_8px_#34d399]'
+                          : 'bg-emerald-500 dark:bg-emerald-400 shadow-[0_0_8px_#34d399]'
                       }`}
                       style={{ width: `${fillPct}%` }}
                     />
                   </div>
 
                   {/* Pump & Flow Telemetry Footer */}
-                  <div className="relative z-10 mt-3.5 pt-3 border-t border-white/10 flex items-center justify-between text-[11px] font-mono text-white/60">
-                    <span className="flex items-center gap-1.5">
-                      <Droplets size={12} className="text-teal-400" />
+                  <div className="relative z-10 mt-3.5 pt-3 border-t border-neutral-200 dark:border-white/10 flex items-center justify-between text-[11px] font-mono text-neutral-600 dark:text-white/60">
+                    <span className="flex items-center gap-1.5 font-medium">
+                      <Droplets size={12} className="text-teal-600 dark:text-teal-400" />
                       {station.pumps}
                     </span>
-                    <span className="text-white/80 font-semibold">{station.dischargeRate}</span>
+                    <span className="text-neutral-800 dark:text-white/80 font-bold">{station.dischargeRate}</span>
                   </div>
                 </div>
               );
@@ -242,20 +244,20 @@ export const WaterTelemetrySection = () => {
           </div>
 
           {/* Quick Disaster Management Action Strip */}
-          <div className="rounded-3xl bg-neutral-900/70 border border-white/15 p-5 flex flex-col sm:flex-row items-center justify-between gap-4 backdrop-blur-xl">
+          <div className="rounded-3xl bg-white dark:bg-neutral-900/70 border border-neutral-200 dark:border-white/15 p-5 flex flex-col sm:flex-row items-center justify-between gap-4 backdrop-blur-xl shadow-sm dark:shadow-none">
             <div className="flex items-center gap-3.5">
-              <div className="w-10 h-10 rounded-2xl bg-rose-500/20 border border-rose-500/30 text-rose-400 flex items-center justify-center shrink-0">
+              <div className="w-10 h-10 rounded-2xl bg-rose-100 dark:bg-rose-500/20 border border-rose-200 dark:border-rose-500/30 text-rose-600 dark:text-rose-400 flex items-center justify-center shrink-0">
                 <AlertTriangle size={20} className="animate-bounce" />
               </div>
               <div>
-                <h5 className="text-sm font-bold text-white">Spotted Unreported Waterlogging or Open Manhole?</h5>
-                <p className="text-xs text-white/60">Report with photo for instant 12-hour high-priority monsoon dispatch.</p>
+                <h5 className="text-sm font-bold text-neutral-900 dark:text-white">Spotted Unreported Waterlogging or Open Manhole?</h5>
+                <p className="text-xs text-neutral-600 dark:text-white/60">Report with photo for instant 12-hour high-priority monsoon dispatch.</p>
               </div>
             </div>
             <a
               href="/app/report"
               onClick={() => sound.play('click')}
-              className="px-5 py-2.5 rounded-full bg-gradient-to-r from-teal-400 to-emerald-400 text-neutral-950 font-black text-xs tracking-wider uppercase flex items-center gap-2 hover:scale-105 active:scale-95 transition-all shadow-md shrink-0 cursor-pointer"
+              className="px-5 py-2.5 rounded-full bg-gradient-to-r from-teal-500 to-emerald-500 hover:from-teal-600 hover:to-emerald-600 dark:from-teal-400 dark:to-emerald-400 text-white dark:text-neutral-950 font-black text-xs tracking-wider uppercase flex items-center gap-2 hover:scale-105 active:scale-95 transition-all shadow-md shrink-0 cursor-pointer"
             >
               <span>Report Water Hazard</span>
               <ArrowUpRight size={14} />
@@ -267,22 +269,22 @@ export const WaterTelemetrySection = () => {
         <div className="lg:col-span-4 space-y-6">
           
           {/* ── Card 1: Santacruz Doppler Radar ── */}
-          <div className="rounded-3xl bg-neutral-900/80 border border-white/15 p-5 backdrop-blur-2xl shadow-xl relative overflow-hidden group">
+          <div className="rounded-3xl bg-white dark:bg-neutral-900/80 border border-neutral-200 dark:border-white/15 p-5 backdrop-blur-2xl shadow-sm dark:shadow-xl relative overflow-hidden group">
             {/* Top Glow */}
-            <div className="absolute -top-12 -right-12 w-36 h-36 bg-teal-500/20 rounded-full blur-2xl pointer-events-none" />
+            <div className="absolute -top-12 -right-12 w-36 h-36 bg-teal-500/10 dark:bg-teal-500/20 rounded-full blur-2xl pointer-events-none" />
 
-            <div className="flex items-center justify-between pb-3 border-b border-white/10 text-xs font-mono">
-              <span className="font-bold text-white flex items-center gap-2">
-                <Radio size={14} className="text-emerald-400 animate-pulse" />
+            <div className="flex items-center justify-between pb-3 border-b border-neutral-200 dark:border-white/10 text-xs font-mono">
+              <span className="font-bold text-neutral-900 dark:text-white flex items-center gap-2">
+                <Radio size={14} className="text-emerald-600 dark:text-emerald-400 animate-pulse" />
                 SANTACRUZ DOPPLER RADAR
               </span>
-              <span className="text-[10px] text-emerald-400 bg-emerald-500/15 border border-emerald-400/30 px-2 py-0.5 rounded-full">
+              <span className="text-[10px] text-emerald-800 bg-emerald-100 border border-emerald-300 dark:text-emerald-400 dark:bg-emerald-500/15 dark:border-emerald-400/30 px-2 py-0.5 rounded-full font-bold">
                 SCANNING
               </span>
             </div>
 
             {/* Simulated High-Tech Rotating Radar Screen */}
-            <div className="relative w-full aspect-square max-w-[260px] mx-auto my-4 rounded-full border-2 border-teal-500/30 bg-neutral-950/80 flex items-center justify-center overflow-hidden shadow-inner">
+            <div className="relative w-full aspect-square max-w-[260px] mx-auto my-4 rounded-full border-2 border-teal-500/40 bg-slate-950 flex items-center justify-center overflow-hidden shadow-inner">
               
               {/* Concentric Range Rings */}
               <div className="absolute inset-4 rounded-full border border-teal-500/20 pointer-events-none" />
@@ -310,69 +312,69 @@ export const WaterTelemetrySection = () => {
 
               {/* Center Radar Node */}
               <div className="w-2.5 h-2.5 rounded-full bg-teal-300 shadow-[0_0_10px_#2dd4bf] relative z-10" />
-              <span className="absolute bottom-2 text-[9px] font-mono text-teal-400/60 font-bold">RANGE 50 KM</span>
+              <span className="absolute bottom-2 text-[9px] font-mono text-teal-400/80 font-bold">RANGE 50 KM</span>
             </div>
 
             {/* Radar Telemetry Specs */}
-            <div className="space-y-2 pt-2 border-t border-white/10 text-[11px] font-mono">
-              <div className="flex justify-between text-white/70">
+            <div className="space-y-2 pt-2 border-t border-neutral-200 dark:border-white/10 text-[11px] font-mono">
+              <div className="flex justify-between text-neutral-600 dark:text-white/70">
                 <span>Rainfall Intensity:</span>
-                <span className="text-teal-300 font-bold">38.4 mm/hr (Heavy)</span>
+                <span className="text-teal-700 dark:text-teal-300 font-bold">38.4 mm/hr (Heavy)</span>
               </div>
-              <div className="flex justify-between text-white/70">
+              <div className="flex justify-between text-neutral-600 dark:text-white/70">
                 <span>Wind Speed / Direction:</span>
-                <span className="text-white font-semibold">24 km/h · WSW</span>
+                <span className="text-neutral-900 dark:text-white font-semibold">24 km/h · WSW</span>
               </div>
-              <div className="flex justify-between text-white/70">
+              <div className="flex justify-between text-neutral-600 dark:text-white/70">
                 <span>IMD Storm Advisory:</span>
-                <span className="text-amber-300 font-bold">YELLOW WATCH</span>
+                <span className="text-amber-700 dark:text-amber-300 font-bold">YELLOW WATCH</span>
               </div>
             </div>
           </div>
 
           {/* ── Card 2: Arabian Sea High Tide Clock ── */}
-          <div className="rounded-3xl bg-neutral-900/80 border border-white/15 p-5 backdrop-blur-2xl shadow-xl relative overflow-hidden">
-            <div className="flex items-center justify-between pb-3 border-b border-white/10 text-xs font-mono">
-              <span className="font-bold text-white flex items-center gap-2">
-                <Compass size={14} className="text-sky-400" />
+          <div className="rounded-3xl bg-white dark:bg-neutral-900/80 border border-neutral-200 dark:border-white/15 p-5 backdrop-blur-2xl shadow-sm dark:shadow-xl relative overflow-hidden">
+            <div className="flex items-center justify-between pb-3 border-b border-neutral-200 dark:border-white/10 text-xs font-mono">
+              <span className="font-bold text-neutral-900 dark:text-white flex items-center gap-2">
+                <Compass size={14} className="text-sky-600 dark:text-sky-400" />
                 ARABIAN SEA TIDAL CLOCK
               </span>
-              <span className="text-[10px] text-sky-400 bg-sky-500/15 border border-sky-400/30 px-2 py-0.5 rounded-full">
+              <span className="text-[10px] text-sky-800 bg-sky-100 border border-sky-300 dark:text-sky-400 dark:bg-sky-500/15 dark:border-sky-400/30 px-2 py-0.5 rounded-full font-bold">
                 LIVE IMD LINK
               </span>
             </div>
 
             {/* Big Tide Indicator */}
             <div className="my-4 text-center space-y-1">
-              <span className="text-xs font-mono text-white/50 uppercase tracking-widest block">Next Predicted Peak</span>
-              <div className="font-mono text-4xl font-black text-sky-300 tracking-tight flex items-baseline justify-center gap-1.5">
-                4.22 <span className="text-base text-white/70 font-semibold">meters</span>
+              <span className="text-xs font-mono text-neutral-500 dark:text-white/50 uppercase tracking-widest block font-medium">Next Predicted Peak</span>
+              <div className="font-mono text-4xl font-black text-sky-700 dark:text-sky-300 tracking-tight flex items-baseline justify-center gap-1.5">
+                4.22 <span className="text-base text-neutral-600 dark:text-white/70 font-semibold">meters</span>
               </div>
-              <p className="text-xs font-mono text-amber-300 font-bold">HIGH TIDE at 14:15 hrs IST</p>
+              <p className="text-xs font-mono text-amber-700 dark:text-amber-300 font-bold">HIGH TIDE at 14:15 hrs IST</p>
             </div>
 
             {/* Interactive Tide Sine Wave Curve */}
-            <div className="w-full h-16 bg-neutral-950/70 rounded-2xl border border-white/10 p-2 relative overflow-hidden flex items-end">
-              <svg viewBox="0 0 300 50" preserveAspectRatio="none" className="w-full h-full text-sky-400 fill-none stroke-current stroke-2">
+            <div className="w-full h-16 bg-sky-50 dark:bg-neutral-950/70 rounded-2xl border border-sky-200 dark:border-white/10 p-2 relative overflow-hidden flex items-end">
+              <svg viewBox="0 0 300 50" preserveAspectRatio="none" className="w-full h-full text-sky-500 dark:text-sky-400 fill-none stroke-current stroke-2">
                 <path d="M0,35 Q75,-5 150,30 T300,10" />
               </svg>
               {/* Current time marker on wave */}
               <div className="absolute top-2 left-[58%] -translate-x-1/2 flex flex-col items-center">
-                <span className="w-2.5 h-2.5 rounded-full bg-sky-300 shadow-[0_0_10px_#38bdf8] animate-ping" />
-                <span className="text-[8px] font-mono text-sky-300 font-bold mt-0.5">NOW</span>
+                <span className="w-2.5 h-2.5 rounded-full bg-sky-500 dark:bg-sky-300 shadow-[0_0_10px_#0284c7] dark:shadow-[0_0_10px_#38bdf8] animate-ping" />
+                <span className="text-[8px] font-mono text-sky-700 dark:text-sky-300 font-bold mt-0.5">NOW</span>
               </div>
             </div>
 
             {/* Promenade Safety Advisory */}
-            <div className="mt-4 pt-3 border-t border-white/10 space-y-2 text-[11px]">
-              <div className="p-2.5 rounded-xl bg-amber-500/10 border border-amber-500/20 text-amber-200">
+            <div className="mt-4 pt-3 border-t border-neutral-200 dark:border-white/10 space-y-2 text-[11px]">
+              <div className="p-2.5 rounded-xl bg-amber-50 dark:bg-amber-500/10 border border-amber-200 dark:border-amber-500/20 text-amber-900 dark:text-amber-200">
                 <p className="font-semibold text-[11px] leading-tight">
                   Marine Drive, Bandra Bandstand & Worli Sea Face: Heavy wave action expected. Citizens advised to remain behind safety barriers.
                 </p>
               </div>
-              <div className="flex items-center justify-between font-mono text-[10px] text-white/50 pt-1">
+              <div className="flex items-center justify-between font-mono text-[10px] text-neutral-500 dark:text-white/50 pt-1">
                 <span>BMC Disaster Central:</span>
-                <a href="tel:1916" className="text-emerald-400 font-bold hover:underline flex items-center gap-1">
+                <a href="tel:1916" className="text-emerald-700 dark:text-emerald-400 font-bold hover:underline flex items-center gap-1">
                   <Phone size={10} />
                   1916 (Toll-Free)
                 </a>
@@ -387,4 +389,3 @@ export const WaterTelemetrySection = () => {
     </section>
   );
 };
-

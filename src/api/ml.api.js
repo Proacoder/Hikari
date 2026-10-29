@@ -1,13 +1,14 @@
 /**
  * Kaiser AI Unified ML Service Client (FastAPI on http://localhost:5000)
- * Integrates YOLOv8 defect detection, DBSCAN spatial deduplication, and monsoon risk forecasting.
+ * Integrates OpenAI CLIP defect classification, ViT synthetic image authenticity detection,
+ * Sentence-BERT & DBSCAN spatial deduplication, and monsoon risk forecasting.
  */
 
-const ML_SERVICE_URL = import.meta.env.VITE_ML_SERVICE_URL || 'http://localhost:5001/api/ml';
+const ML_SERVICE_URL = import.meta.env.VITE_ML_SERVICE_URL || 'http://localhost:5000/api/ml';
 
 
 /**
- * Sends image to local YOLOv8 engine for civic defect detection and bounding box segmentation.
+ * Sends image to local OpenAI CLIP + ViT engine for civic defect detection, spam rejection, and bounding box segmentation.
  * Supports File object or Base64 string.
  */
 export const detectDefectWithYOLO = async (fileOrBase64, hintTitle = '') => {
@@ -35,6 +36,9 @@ export const detectDefectWithYOLO = async (fileOrBase64, hintTitle = '') => {
   }
   return null;
 };
+
+// Model 1 OpenAI CLIP Zero-Shot Inspection alias
+export const detectDefectWithCLIP = detectDefectWithYOLO;
 
 /**
  * Executes DBSCAN geodesic clustering on candidate grievance against active neighborhood tickets.
@@ -139,34 +143,8 @@ export const queryNvidiaChat = async (query, language = 'en', userWard = 8, mode
   return null;
 };
 
-
 /**
- * Automated Quality Audit (AQA) Resolution Verification Engine.
- * Sends before and after image Base64 to compute remediation score and anti-fraud checks.
- */
-export const verifyResolutionWithML = async ({ complaintId, category, beforeBase64, afterBase64 }) => {
-  try {
-    const res = await fetch(`${ML_SERVICE_URL}/verify-resolution`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        complaint_id: complaintId,
-        category: category || 'Pothole',
-        before_image_base64: beforeBase64,
-        after_image_base64: afterBase64,
-      }),
-    });
-    if (res.ok) {
-      return await res.json();
-    }
-  } catch (err) {
-    console.info('Resolution verification ML engine offline:', err);
-  }
-  return null;
-};
-
-/**
- * Validates complaint photo with backend CLIP model across categories.
+ * Validates complaint photo with backend CLIP model across 15 categories.
  */
 export const validateImageWithCLIP = async (fileOrBase64, textHint = '') => {
   try {

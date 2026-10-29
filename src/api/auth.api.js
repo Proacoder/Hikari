@@ -148,6 +148,37 @@ export const register = async (payload) => {
   return res.data;
 };
 
+// POST /api/auth/forgot-password
+export const requestPasswordReset = async (email) => {
+  if (MOCK_MODE) {
+    await mockDelay();
+    const cleanEmail = sanitizeInput(email).toLowerCase();
+    return successResponse({
+      message: `Password recovery code dispatched to ${cleanEmail}.`,
+      email: cleanEmail,
+      dev_otp: '123456',
+    });
+  }
+  const res = await apiClient.post('/auth/forgot-password', { email });
+  return res.data;
+};
+
+// POST /api/auth/reset-password
+export const resetPassword = async ({ email, otp, newPassword }) => {
+  if (MOCK_MODE) {
+    await mockDelay();
+    return successResponse({
+      message: 'Password reset successful. You can now log in with your new password.',
+    });
+  }
+  const res = await apiClient.post('/auth/reset-password', {
+    email,
+    otp,
+    new_password: newPassword,
+  });
+  return res.data;
+};
+
 
 // GET /api/auth/verify
 export const verifyToken = async () => {

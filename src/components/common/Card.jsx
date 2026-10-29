@@ -4,7 +4,7 @@ import { classNames } from '../../utils/formatters';
 export const Card = ({ children, className = '', padding = 'p-6', hover = false, ...props }) => (
   <div
     className={classNames(
-      'bg-white rounded-2xl border border-neutral-100 shadow-soft',
+      'bg-white dark:bg-neutral-900 text-neutral-900 dark:text-neutral-100 rounded-2xl border border-neutral-100 dark:border-neutral-800 shadow-soft transition-colors duration-200',
       padding,
       hover && 'hover:shadow-soft-md hover:-translate-y-0.5 transition-all duration-200 cursor-pointer',
       className

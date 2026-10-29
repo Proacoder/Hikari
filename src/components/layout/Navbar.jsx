@@ -1,10 +1,11 @@
-// ─── Sovereign Civic Dark Cyber Navbar ─────────────────────────────────────────
+// ─── Sovereign Civic Adaptive Navbar (Light & Dark Mode) ───────────────────────
 import { useState, useEffect, useRef, useLayoutEffect } from 'react';
 import { Link, NavLink, useNavigate, useLocation } from 'react-router-dom';
-import { Menu, X, Globe, ChevronDown, Bell, Search, Volume2, VolumeX } from 'lucide-react';
+import { Menu, X, Globe, ChevronDown, Bell, Search, Volume2, VolumeX, Sun, Moon } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 import { useLanguage } from '../../context/LanguageContext';
 import { useNotifications } from '../../context/NotificationContext';
+import { useTheme } from '../../context/ThemeContext';
 import { Button } from '../common/Button';
 import { classNames } from '../../utils/formatters';
 import { CommandPalette } from '../common/CommandPalette';
@@ -14,6 +15,7 @@ export const Navbar = () => {
   const { user, role, logout } = useAuth();
   const { language, setLanguage, t, supportedLanguages } = useLanguage();
   const { unreadCount, toggleDrawer } = useNotifications();
+  const { theme, isDark, setTheme } = useTheme();
   const navigate = useNavigate();
   const [menuOpen, setMenuOpen]   = useState(false);
   const [langOpen, setLangOpen]   = useState(false);
@@ -86,9 +88,13 @@ export const Navbar = () => {
       <div
         className={classNames(
           'max-w-7xl mx-auto rounded-2xl border transition-all duration-300',
-          scrolled
-            ? 'bg-neutral-950/90 backdrop-blur-xl border-white/20 text-white shadow-[0_12px_36px_rgba(0,0,0,0.65)]'
-            : 'bg-neutral-950/65 backdrop-blur-md border-white/15 text-white shadow-soft-sm'
+          isDark
+            ? scrolled
+              ? 'bg-neutral-950/90 backdrop-blur-xl border-white/20 text-white shadow-[0_12px_36px_rgba(0,0,0,0.65)]'
+              : 'bg-neutral-950/65 backdrop-blur-md border-white/15 text-white shadow-soft-sm'
+            : scrolled
+              ? 'bg-white/95 backdrop-blur-xl border-neutral-200/90 text-neutral-900 shadow-[0_12px_36px_rgba(0,0,0,0.08)]'
+              : 'bg-white/85 backdrop-blur-md border-neutral-200/70 text-neutral-900 shadow-soft-sm'
         )}
       >
         <div className="px-3 sm:px-5">
@@ -99,8 +105,8 @@ export const Navbar = () => {
                 <img src="/kaiser-mark.png" alt="Kaiser AI" className="w-full h-full object-contain" />
                 <span className="absolute inset-0 bg-gradient-to-tr from-transparent via-white/70 to-transparent translate-x-[-120%] group-hover:translate-x-[120%] transition-transform duration-700" />
               </div>
-              <span className="font-display font-extrabold text-lg tracking-tight text-white">
-                Kaiser<span className="bg-gradient-to-r from-emerald-400 to-teal-300 bg-clip-text text-transparent ml-0.5">AI</span>
+              <span className={classNames('font-display font-extrabold text-lg tracking-tight', isDark ? 'text-white' : 'text-neutral-900')}>
+                Kaiser<span className="bg-gradient-to-r from-emerald-500 to-teal-400 bg-clip-text text-transparent ml-0.5">AI</span>
               </span>
             </Link>
 
@@ -108,7 +114,10 @@ export const Navbar = () => {
             <nav ref={navRef} onMouseLeave={resetPill} className="hidden md:flex items-center gap-1 relative" aria-label="Main navigation">
               <span
                 aria-hidden
-                className="absolute top-0 bottom-0 rounded-xl shadow-xs transition-all duration-300 ease-out bg-white/10"
+                className={classNames(
+                  'absolute top-0 bottom-0 rounded-xl shadow-xs transition-all duration-300 ease-out',
+                  isDark ? 'bg-white/10' : 'bg-neutral-200/70'
+                )}
                 style={{ left: pill.left, width: pill.width, opacity: pill.show ? 1 : 0 }}
               />
               {navLinks.map((link) => (
@@ -120,7 +129,9 @@ export const Navbar = () => {
                   className={({ isActive }) =>
                     classNames(
                       'relative z-10 px-4 py-2 rounded-xl text-sm font-semibold transition-colors duration-200',
-                      isActive ? 'text-emerald-400 font-bold' : 'text-white/80 hover:text-white'
+                      isActive
+                        ? isDark ? 'text-emerald-400 font-bold' : 'text-emerald-600 font-bold'
+                        : isDark ? 'text-white/80 hover:text-white' : 'text-neutral-600 hover:text-neutral-900'
                     )
                   }
                 >
@@ -130,19 +141,27 @@ export const Navbar = () => {
             </nav>
 
             {/* Right Controls */}
-            <div className="hidden md:flex items-center gap-2.5">
+            <div className="hidden md:flex items-center gap-2">
               {/* Quick Spotlight Search trigger */}
               <button
                 onClick={() => {
                   sound.play('pop');
                   setCmdOpen(true);
                 }}
-                className="flex items-center gap-2 px-3 py-1.5 text-xs rounded-xl transition-all border border-white/15 bg-white/10 hover:bg-white/20 text-white/80 hover:text-white shadow-xs cursor-pointer active:scale-95"
+                className={classNames(
+                  'flex items-center gap-2 px-2.5 py-1.5 text-xs rounded-xl transition-all shadow-xs cursor-pointer active:scale-95',
+                  isDark
+                    ? 'border border-white/15 bg-white/10 hover:bg-white/20 text-white/80 hover:text-white'
+                    : 'border border-neutral-200 bg-neutral-100 hover:bg-neutral-200/80 text-neutral-700'
+                )}
                 title="Spotlight Search (Ctrl+K)"
               >
-                <Search size={14} className="text-white/70" />
+                <Search size={14} className={isDark ? 'text-white/70' : 'text-neutral-500'} />
                 <span className="hidden lg:inline font-semibold">Quick Find</span>
-                <kbd className="hidden sm:inline-block px-1.5 py-0.5 text-[9px] font-mono font-bold rounded border border-white/20 bg-white/15 text-white/80 shadow-xs">
+                <kbd className={classNames(
+                  'hidden sm:inline-block px-1.5 py-0.5 text-[9px] font-mono font-bold rounded border shadow-xs',
+                  isDark ? 'border-white/20 bg-white/15 text-white/80' : 'border-neutral-300 bg-white text-neutral-600'
+                )}>
                   Ctrl K
                 </kbd>
               </button>
@@ -153,11 +172,63 @@ export const Navbar = () => {
                   const s = sound.toggle();
                   setSoundOn(s);
                 }}
-                className="p-2 rounded-xl transition-colors text-white/70 hover:text-white hover:bg-white/10 cursor-pointer"
+                className={classNames(
+                  'p-2 rounded-xl transition-colors cursor-pointer',
+                  isDark ? 'text-white/70 hover:text-white hover:bg-white/10' : 'text-neutral-600 hover:text-neutral-900 hover:bg-neutral-100'
+                )}
                 title={soundOn ? 'Sound Effects Active (Click to mute)' : 'Sound Effects Muted (Click to enable)'}
               >
-                {soundOn ? <Volume2 size={16} className="text-emerald-400" /> : <VolumeX size={16} className="text-white/40" />}
+                {soundOn ? <Volume2 size={16} className={isDark ? 'text-emerald-400' : 'text-emerald-600'} /> : <VolumeX size={16} className={isDark ? 'text-white/40' : 'text-neutral-400'} />}
               </button>
+
+              {/* ── Segmented Theme Mode Switcher (Light / Dark) ── */}
+              <div
+                className={classNames(
+                  'flex items-center p-0.5 rounded-xl border transition-all',
+                  isDark ? 'border-white/15 bg-white/10' : 'border-neutral-200 bg-neutral-100'
+                )}
+                role="group"
+                aria-label="Theme mode switcher"
+              >
+                <button
+                  type="button"
+                  onClick={() => {
+                    if (isDark) {
+                      sound.play('click');
+                      setTheme('light');
+                    }
+                  }}
+                  className={classNames(
+                    'flex items-center gap-1 px-2.5 py-1 rounded-lg text-xs font-semibold transition-all cursor-pointer',
+                    !isDark
+                      ? 'bg-white text-emerald-700 shadow-xs font-bold border border-neutral-200/60'
+                      : 'text-neutral-400 hover:text-white'
+                  )}
+                  title="Switch to Light Mode"
+                >
+                  <Sun size={13} className={!isDark ? 'text-amber-500' : 'text-neutral-400'} />
+                  <span className="hidden sm:inline text-[11px]">Light</span>
+                </button>
+                <button
+                  type="button"
+                  onClick={() => {
+                    if (!isDark) {
+                      sound.play('click');
+                      setTheme('dark');
+                    }
+                  }}
+                  className={classNames(
+                    'flex items-center gap-1 px-2.5 py-1 rounded-lg text-xs font-semibold transition-all cursor-pointer',
+                    isDark
+                      ? 'bg-neutral-800 text-emerald-300 shadow-xs font-bold border border-white/20'
+                      : 'text-neutral-500 hover:text-neutral-900'
+                  )}
+                  title="Switch to Dark Mode"
+                >
+                  <Moon size={13} className={isDark ? 'text-cyan-400' : 'text-neutral-400'} />
+                  <span className="hidden sm:inline text-[11px]">Dark</span>
+                </button>
+              </div>
 
               {/* Language Selector */}
               <div className="relative" ref={langRef}>
@@ -166,15 +237,21 @@ export const Navbar = () => {
                     sound.play('pop');
                     setLangOpen((p) => !p);
                   }}
-                  className="flex items-center gap-1.5 px-3 py-2 text-sm rounded-xl transition-colors border border-transparent text-white/80 hover:text-white hover:bg-white/10 cursor-pointer"
+                  className={classNames(
+                    'flex items-center gap-1.5 px-2.5 py-1.5 text-xs rounded-xl transition-colors cursor-pointer font-semibold',
+                    isDark ? 'text-white/80 hover:text-white hover:bg-white/10' : 'text-neutral-700 hover:text-neutral-900 hover:bg-neutral-100'
+                  )}
                   aria-label="Select language"
                 >
-                  <Globe size={15} className="text-emerald-400" />
-                  <span className="font-semibold text-xs">{currentLangObj.native}</span>
-                  <ChevronDown size={13} className={classNames('transition-transform', langOpen && 'rotate-180')} />
+                  <Globe size={14} className={isDark ? 'text-emerald-400' : 'text-emerald-600'} />
+                  <span className="hidden sm:inline">{currentLangObj.native}</span>
+                  <ChevronDown size={12} className={classNames('transition-transform', langOpen && 'rotate-180')} />
                 </button>
                 {langOpen && (
-                  <div className="absolute right-0 mt-2 w-48 rounded-2xl border border-white/20 py-1.5 z-50 animate-fade-in shadow-2xl bg-neutral-900/95 backdrop-blur-2xl text-white overflow-hidden">
+                  <div className={classNames(
+                    'absolute right-0 mt-2 w-48 rounded-2xl border py-1.5 z-50 animate-fade-in shadow-2xl backdrop-blur-2xl overflow-hidden',
+                    isDark ? 'border-white/20 bg-neutral-900/95 text-white' : 'border-neutral-200 bg-white/98 text-neutral-900 shadow-soft-xl'
+                  )}>
                     {supportedLanguages.map((lang) => (
                       <button
                         key={lang.code}
@@ -186,14 +263,20 @@ export const Navbar = () => {
                         className={classNames(
                           'w-full text-left px-4 py-2.5 text-xs flex items-center justify-between transition-all cursor-pointer',
                           language === lang.code
-                            ? 'bg-emerald-500/20 text-emerald-300 font-bold border-l-2 border-emerald-400'
-                            : 'text-white/80 hover:bg-white/10 hover:text-white'
+                            ? isDark
+                              ? 'bg-emerald-500/20 text-emerald-300 font-bold border-l-2 border-emerald-400'
+                              : 'bg-emerald-50 text-emerald-800 font-bold border-l-2 border-emerald-600'
+                            : isDark
+                            ? 'text-white/80 hover:bg-white/10 hover:text-white'
+                            : 'text-neutral-700 hover:bg-neutral-100 hover:text-neutral-900'
                         )}
                       >
                         <span className="font-semibold text-xs">{lang.native}</span>
                         <span className={classNames(
                           'text-[10px] uppercase font-mono px-1.5 py-0.5 rounded',
-                          language === lang.code ? 'bg-emerald-400/25 text-emerald-300 font-bold' : 'bg-white/10 text-white/50'
+                          language === lang.code
+                            ? isDark ? 'bg-emerald-400/25 text-emerald-300 font-bold' : 'bg-emerald-100 text-emerald-800 font-bold'
+                            : isDark ? 'bg-white/10 text-white/50' : 'bg-neutral-100 text-neutral-500'
                         )}>
                           {lang.code}
                         </span>
@@ -208,7 +291,10 @@ export const Navbar = () => {
                 <>
                   <button
                     onClick={toggleDrawer}
-                    className="relative p-2 rounded-xl transition-colors text-white/80 hover:text-white hover:bg-white/10"
+                    className={classNames(
+                      'relative p-2 rounded-xl transition-colors',
+                      isDark ? 'text-white/80 hover:text-white hover:bg-white/10' : 'text-neutral-700 hover:text-neutral-900 hover:bg-neutral-100'
+                    )}
                     aria-label="Notifications"
                   >
                     <Bell size={18} />
@@ -221,17 +307,20 @@ export const Navbar = () => {
 
                   <button
                     onClick={() => navigate(dashboardPath)}
-                    className="px-3 py-1.5 rounded-xl text-xs font-semibold text-white hover:bg-white/10 transition-colors"
+                    className={classNames(
+                      'px-3 py-1.5 rounded-xl text-xs font-semibold transition-colors',
+                      isDark ? 'text-white hover:bg-white/10' : 'text-neutral-800 hover:bg-neutral-100'
+                    )}
                   >
                     {t('nav.dashboard', 'Dashboard')}
                   </button>
-                  <div className="flex items-center gap-2 pl-2 border-l border-white/20">
-                    <div className="w-8 h-8 rounded-full bg-emerald-500/20 text-emerald-300 border border-emerald-400/40 flex items-center justify-center font-semibold text-xs">
+                  <div className={classNames('flex items-center gap-2 pl-2 border-l', isDark ? 'border-white/20' : 'border-neutral-200')}>
+                    <div className="w-8 h-8 rounded-full bg-emerald-500/20 text-emerald-400 border border-emerald-400/40 flex items-center justify-center font-semibold text-xs">
                       {user.avatarInitials || user.name?.[0]}
                     </div>
                     <button
                       onClick={handleLogout}
-                      className="text-xs text-white/60 hover:text-white transition-colors"
+                      className={classNames('text-xs transition-colors', isDark ? 'text-white/60 hover:text-white' : 'text-neutral-500 hover:text-neutral-900')}
                     >
                       {t('nav.signOut', 'Sign Out')}
                     </button>
@@ -242,14 +331,17 @@ export const Navbar = () => {
                   <Link
                     to="/login"
                     onClick={() => sound.play('click')}
-                    className="text-sm font-semibold px-3 py-2 rounded-xl transition-colors text-white/90 hover:text-white hover:bg-white/10"
+                    className={classNames(
+                      'text-xs font-semibold px-3 py-2 rounded-xl transition-colors',
+                      isDark ? 'text-white/90 hover:text-white hover:bg-white/10' : 'text-neutral-700 hover:text-neutral-900 hover:bg-neutral-100'
+                    )}
                   >
                     {t('nav.signIn', 'Sign In')}
                   </Link>
                   <Link
                     to="/register"
                     onClick={() => sound.play('click')}
-                    className="glow-btn relative overflow-hidden shine px-4 py-2 rounded-xl bg-gradient-to-r from-emerald-500 via-brand-500 to-teal-400 text-neutral-950 font-black text-xs tracking-wider uppercase shadow-[0_0_20px_rgba(52,211,153,0.35)] hover:scale-105 active:scale-95 transition-all"
+                    className="glow-btn relative overflow-hidden shine px-3.5 py-1.5 rounded-xl bg-gradient-to-r from-emerald-500 via-brand-500 to-teal-400 text-neutral-950 font-black text-xs tracking-wider uppercase shadow-[0_0_20px_rgba(52,211,153,0.35)] hover:scale-105 active:scale-95 transition-all"
                   >
                     {t('nav.signUp', 'Sign Up')}
                   </Link>
@@ -257,12 +349,27 @@ export const Navbar = () => {
               )}
             </div>
 
-            {/* Mobile Menu Toggle */}
+            {/* Mobile Menu Toggle & Theme Toggle */}
             <div className="flex items-center gap-1 md:hidden">
+              <button
+                type="button"
+                onClick={() => {
+                  sound.play('click');
+                  toggleTheme();
+                }}
+                className={classNames(
+                  'p-2 rounded-xl transition-colors cursor-pointer',
+                  isDark ? 'text-white/80 hover:bg-white/10' : 'text-neutral-700 hover:bg-neutral-100'
+                )}
+                title={`Switch to ${isDark ? 'Light' : 'Dark'} Mode`}
+              >
+                {isDark ? <Sun size={17} className="text-amber-400" /> : <Moon size={17} className="text-neutral-700" />}
+              </button>
+
               {user && (
                 <button
                   onClick={toggleDrawer}
-                  className="relative p-2 rounded-xl text-white/80 hover:bg-white/10"
+                  className={classNames('relative p-2 rounded-xl', isDark ? 'text-white/80 hover:bg-white/10' : 'text-neutral-700 hover:bg-neutral-100')}
                   aria-label="Notifications"
                 >
                   <Bell size={18} />
@@ -274,7 +381,7 @@ export const Navbar = () => {
                 </button>
               )}
               <button
-                className="p-2 rounded-xl text-white/90 hover:bg-white/10 transition-colors"
+                className={classNames('p-2 rounded-xl transition-colors', isDark ? 'text-white/90 hover:bg-white/10' : 'text-neutral-800 hover:bg-neutral-100')}
                 onClick={() => setMenuOpen((p) => !p)}
                 aria-label={menuOpen ? 'Close menu' : 'Open menu'}
               >
@@ -286,28 +393,85 @@ export const Navbar = () => {
 
         {/* Mobile Menu Drawer */}
         {menuOpen && (
-          <div className="md:hidden border-t border-white/15 bg-neutral-950/95 backdrop-blur-2xl px-4 py-3 space-y-2 text-white animate-fade-in rounded-b-2xl">
+          <div className={classNames(
+            'md:hidden border-t px-4 py-3 space-y-2 animate-fade-in rounded-b-2xl backdrop-blur-2xl',
+            isDark ? 'border-white/15 bg-neutral-950/95 text-white' : 'border-neutral-200 bg-white/98 text-neutral-900 shadow-xl'
+          )}>
+            {/* Theme Switcher in Mobile Drawer */}
+            <div className={classNames(
+              'flex items-center justify-between p-2.5 rounded-xl border',
+              isDark ? 'bg-white/5 border-white/10' : 'bg-neutral-100 border-neutral-200'
+            )}>
+              <span className={classNames('text-xs font-semibold', isDark ? 'text-white/80' : 'text-neutral-700')}>
+                Theme Appearance:
+              </span>
+              <div
+                className={classNames(
+                  'flex items-center p-0.5 rounded-lg border',
+                  isDark ? 'border-white/15 bg-white/10' : 'border-neutral-200 bg-white'
+                )}
+              >
+                <button
+                  type="button"
+                  onClick={() => {
+                    sound.play('click');
+                    setTheme('light');
+                  }}
+                  className={classNames(
+                    'flex items-center gap-1 px-2.5 py-1 rounded-md text-xs font-semibold cursor-pointer transition-all',
+                    !isDark ? 'bg-neutral-100 text-emerald-700 font-bold shadow-xs' : 'text-neutral-400 hover:text-white'
+                  )}
+                >
+                  <Sun size={13} className={!isDark ? 'text-amber-500' : ''} />
+                  <span>Light</span>
+                </button>
+                <button
+                  type="button"
+                  onClick={() => {
+                    sound.play('click');
+                    setTheme('dark');
+                  }}
+                  className={classNames(
+                    'flex items-center gap-1 px-2.5 py-1 rounded-md text-xs font-semibold cursor-pointer transition-all',
+                    isDark ? 'bg-neutral-800 text-emerald-300 font-bold shadow-xs' : 'text-neutral-500 hover:text-neutral-900'
+                  )}
+                >
+                  <Moon size={13} className={isDark ? 'text-cyan-400' : ''} />
+                  <span>Dark</span>
+                </button>
+              </div>
+            </div>
+
             {/* Sound Effects Toggle */}
-            <div className="flex items-center justify-between p-2.5 bg-white/5 rounded-xl border border-white/10">
+            <div className={classNames(
+              'flex items-center justify-between p-2.5 rounded-xl border',
+              isDark ? 'bg-white/5 border-white/10' : 'bg-neutral-100 border-neutral-200'
+            )}>
               <div className="flex items-center gap-2">
-                {soundOn ? <Volume2 size={15} className="text-emerald-400" /> : <VolumeX size={15} className="text-white/40" />}
-                <span className="text-xs font-semibold text-white/80">Sound Effects:</span>
+                {soundOn ? <Volume2 size={15} className="text-emerald-400" /> : <VolumeX size={15} className={isDark ? 'text-white/40' : 'text-neutral-400'} />}
+                <span className={classNames('text-xs font-semibold', isDark ? 'text-white/80' : 'text-neutral-700')}>Sound Effects:</span>
               </div>
               <button
                 onClick={() => {
                   const s = sound.toggle();
                   setSoundOn(s);
                 }}
-                className="px-2.5 py-1 rounded-lg text-xs font-medium bg-white/10 border border-white/15 text-white cursor-pointer"
+                className={classNames(
+                  'px-2.5 py-1 rounded-lg text-xs font-medium cursor-pointer',
+                  isDark ? 'bg-white/10 border border-white/15 text-white' : 'bg-white border border-neutral-200 text-neutral-800 shadow-xs'
+                )}
               >
                 {soundOn ? 'Enabled (Mute)' : 'Muted (Enable)'}
               </button>
             </div>
 
             {/* Language Selector */}
-            <div className="flex items-center gap-2 p-2.5 bg-white/5 rounded-xl border border-white/10">
-              <Globe size={15} className="text-emerald-400 shrink-0" />
-              <span className="text-xs font-semibold text-white/80">{t('common.language', 'Language')}:</span>
+            <div className={classNames(
+              'flex items-center gap-2 p-2.5 rounded-xl border',
+              isDark ? 'bg-white/5 border-white/10' : 'bg-neutral-100 border-neutral-200'
+            )}>
+              <Globe size={15} className={isDark ? 'text-emerald-400' : 'text-emerald-600'} />
+              <span className={classNames('text-xs font-semibold', isDark ? 'text-white/80' : 'text-neutral-700')}>{t('common.language', 'Language')}:</span>
               <div className="flex gap-1.5 ml-auto">
                 {supportedLanguages.map((lang) => (
                   <button
@@ -317,7 +481,7 @@ export const Navbar = () => {
                       'px-2 py-1 rounded-lg text-xs font-medium transition-colors',
                       language === lang.code
                         ? 'bg-emerald-500 text-neutral-950 font-bold'
-                        : 'text-white/80 bg-white/10 border border-white/15'
+                        : isDark ? 'text-white/80 bg-white/10 border border-white/15' : 'text-neutral-700 bg-white border border-neutral-200'
                     )}
                   >
                     {lang.native}
@@ -335,7 +499,9 @@ export const Navbar = () => {
                 className={({ isActive }) =>
                   classNames(
                     'block px-3.5 py-2.5 rounded-xl text-sm font-medium transition-colors',
-                    isActive ? 'text-emerald-400 bg-white/10 font-bold' : 'text-white/80 hover:bg-white/5'
+                    isActive
+                      ? isDark ? 'text-emerald-400 bg-white/10 font-bold' : 'text-emerald-600 bg-emerald-50 font-bold'
+                      : isDark ? 'text-white/80 hover:bg-white/5' : 'text-neutral-700 hover:bg-neutral-50'
                   )
                 }
               >
@@ -343,13 +509,13 @@ export const Navbar = () => {
               </NavLink>
             ))}
 
-            <div className="pt-2 border-t border-white/10 flex flex-col gap-2">
+            <div className={classNames('pt-2 border-t flex flex-col gap-2', isDark ? 'border-white/10' : 'border-neutral-200')}>
               {user ? (
                 <>
                   <Button fullWidth size="sm" variant="secondary" onClick={() => { navigate(dashboardPath); setMenuOpen(false); }}>
                     {t('nav.dashboard', 'Go to Dashboard')}
                   </Button>
-                  <Button fullWidth size="sm" variant="ghost" onClick={handleLogout} className="text-white/70">
+                  <Button fullWidth size="sm" variant="ghost" onClick={handleLogout} className={isDark ? 'text-white/70' : 'text-neutral-600'}>
                     {t('nav.signOut', 'Sign Out')}
                   </Button>
                 </>

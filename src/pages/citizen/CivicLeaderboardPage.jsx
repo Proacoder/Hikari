@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import {
   Award, Trophy, TrendingUp,
   Gift, CheckCircle2, ChevronRight, Sparkles, MapPin, FileText
@@ -8,9 +8,7 @@ import { Badge } from '../../components/common/Badge';
 import { Button } from '../../components/common/Button';
 import { MunicipalCertificateModal } from '../../components/citizen/MunicipalCertificateModal';
 import { getCitizenCertificate } from '../../api/complaints.api';
-import { getWardAnalytics } from '../../api/analytics.api';
 import { getCurrentSessionUser } from '../../api/auth.api';
-import { MUMBAI_WARDS } from '../../utils/mockData';
 import toast from 'react-hot-toast';
 
 const createVoucher = (reward) => ({
@@ -47,37 +45,6 @@ export const CivicLeaderboardPage = () => {
       return [];
     }
   });
-
-  const [liveWards, setLiveWards] = useState([]);
-
-  useEffect(() => {
-    let ignore = false;
-    async function loadWards() {
-      try {
-        const res = await getWardAnalytics();
-        if (!ignore && res?.data && res.data.length > 0) {
-          const sorted = [...res.data].sort((a, b) => (b.resolved - a.resolved) || (b.rate - a.rate));
-          const enriched = sorted.map((w, idx) => {
-            const wardInfo = MUMBAI_WARDS.find(mw => mw.id === w.wardId || mw.name === w.ward);
-            return {
-              rank: idx + 1,
-              name: w.ward,
-              area: wardInfo?.area || `Ward #${w.wardId}`,
-              resolved: w.resolved,
-              speedDays: w.avgDays != null ? w.avgDays : parseFloat((1.8 + (idx * 0.1)).toFixed(1)),
-              score: w.rate,
-              trend: w.resolved > 0 ? `+${Math.min(10, (w.rate * 0.05).toFixed(1))}%` : 'Stable',
-            };
-          });
-          setLiveWards(enriched);
-        }
-      } catch (err) {
-        console.warn('Failed to load ward analytics in leaderboard:', err);
-      }
-    }
-    loadWards();
-    return () => { ignore = true; };
-  }, []);
 
   const rank = karmaPoints > 1500 ? 5 : karmaPoints > 800 ? 42 : 118;
   const currentTier = karmaPoints > 1500 ? 'Mayor’s Vanguard' : karmaPoints > 600 ? 'BMC Civic Champion' : 'Civic Contributor';
@@ -209,12 +176,12 @@ export const CivicLeaderboardPage = () => {
       </div>
 
       {/* Navigation Tabs */}
-      <div className="flex border-b border-neutral-200 gap-6 text-sm font-bold text-neutral-500">
+      <div className="flex border-b border-neutral-200 dark:border-neutral-800 gap-6 text-sm font-bold text-neutral-500 dark:text-neutral-400 overflow-x-auto">
         <button
           type="button"
           onClick={() => setActiveTab('citizens')}
-          className={`pb-3 transition-colors flex items-center gap-2 ${
-            activeTab === 'citizens' ? 'text-brand-600 border-b-2 border-brand-600' : 'hover:text-neutral-800'
+          className={`pb-3 transition-colors flex items-center gap-2 whitespace-nowrap cursor-pointer ${
+            activeTab === 'citizens' ? 'text-brand-600 dark:text-brand-400 border-b-2 border-brand-600 dark:border-brand-400' : 'hover:text-neutral-800 dark:hover:text-neutral-200'
           }`}
         >
           <Trophy size={16} /> Top Citizens
@@ -222,8 +189,8 @@ export const CivicLeaderboardPage = () => {
         <button
           type="button"
           onClick={() => setActiveTab('wards')}
-          className={`pb-3 transition-colors flex items-center gap-2 ${
-            activeTab === 'wards' ? 'text-brand-600 border-b-2 border-brand-600' : 'hover:text-neutral-800'
+          className={`pb-3 transition-colors flex items-center gap-2 whitespace-nowrap cursor-pointer ${
+            activeTab === 'wards' ? 'text-brand-600 dark:text-brand-400 border-b-2 border-brand-600 dark:border-brand-400' : 'hover:text-neutral-800 dark:hover:text-neutral-200'
           }`}
         >
           <MapPin size={16} /> 24 Ward Rankings
@@ -231,8 +198,8 @@ export const CivicLeaderboardPage = () => {
         <button
           type="button"
           onClick={() => setActiveTab('badges')}
-          className={`pb-3 transition-colors flex items-center gap-2 ${
-            activeTab === 'badges' ? 'text-brand-600 border-b-2 border-brand-600' : 'hover:text-neutral-800'
+          className={`pb-3 transition-colors flex items-center gap-2 whitespace-nowrap cursor-pointer ${
+            activeTab === 'badges' ? 'text-brand-600 dark:text-brand-400 border-b-2 border-brand-600 dark:border-brand-400' : 'hover:text-neutral-800 dark:hover:text-neutral-200'
           }`}
         >
           <Award size={16} /> Badges ({badges.filter((b) => b.unlocked).length}/{badges.length})
@@ -240,8 +207,8 @@ export const CivicLeaderboardPage = () => {
         <button
           type="button"
           onClick={() => setActiveTab('rewards')}
-          className={`pb-3 transition-colors flex items-center gap-2 ${
-            activeTab === 'rewards' ? 'text-brand-600 border-b-2 border-brand-600' : 'hover:text-neutral-800'
+          className={`pb-3 transition-colors flex items-center gap-2 whitespace-nowrap cursor-pointer ${
+            activeTab === 'rewards' ? 'text-brand-600 dark:text-brand-400 border-b-2 border-brand-600 dark:border-brand-400' : 'hover:text-neutral-800 dark:hover:text-neutral-200'
           }`}
         >
           <Gift size={16} /> Civic Rewards Store
@@ -249,8 +216,8 @@ export const CivicLeaderboardPage = () => {
         <button
           type="button"
           onClick={() => setActiveTab('vouchers')}
-          className={`pb-3 transition-colors flex items-center gap-2 ${
-            activeTab === 'vouchers' ? 'text-brand-600 border-b-2 border-brand-600' : 'hover:text-neutral-800'
+          className={`pb-3 transition-colors flex items-center gap-2 whitespace-nowrap cursor-pointer ${
+            activeTab === 'vouchers' ? 'text-brand-600 dark:text-brand-400 border-b-2 border-brand-600 dark:border-brand-400' : 'hover:text-neutral-800 dark:hover:text-neutral-200'
           }`}
         >
           <CheckCircle2 size={16} /> My Vouchers ({claimedVouchers.length})
@@ -260,25 +227,25 @@ export const CivicLeaderboardPage = () => {
       {/* Tab 1: Top Citizens Leaderboard */}
       {activeTab === 'citizens' && (
         <div className="space-y-4">
-          <Card className="p-0 overflow-hidden bg-white border-neutral-200 shadow-sm" padding="">
-            <div className="p-4 border-b border-neutral-100 flex items-center justify-between">
+          <Card className="p-0 overflow-hidden shadow-sm" padding="">
+            <div className="p-4 border-b border-neutral-100 dark:border-neutral-800 flex items-center justify-between">
               <div>
-                <h3 className="font-bold text-neutral-900 text-sm">Mumbai Top Citizen Champions</h3>
-                <p className="text-xs text-neutral-500">Calculated weekly from verified grievances and municipal confirmations</p>
+                <h3 className="font-bold text-neutral-900 dark:text-neutral-100 text-sm">Mumbai Top Citizen Champions</h3>
+                <p className="text-xs text-neutral-500 dark:text-neutral-400">Calculated weekly from verified grievances and municipal confirmations</p>
               </div>
               <Badge variant="emerald">Live Leaderboard</Badge>
             </div>
 
-            <div className="divide-y divide-neutral-100">
+            <div className="divide-y divide-neutral-100 dark:divide-neutral-800">
               {topCitizens.map((c) => (
                 <div
                   key={c.rank}
                   className={`p-4 flex items-center justify-between gap-4 transition-colors ${
-                    c.isUser ? 'bg-brand-50/50 font-semibold' : 'hover:bg-neutral-50'
+                    c.isUser ? 'bg-brand-50/50 dark:bg-brand-950/40 font-semibold' : 'hover:bg-neutral-50 dark:hover:bg-neutral-800/50'
                   }`}
                 >
                   <div className="flex items-center gap-3">
-                    <span className="w-7 text-center font-bold text-neutral-500 text-sm">
+                    <span className="w-7 text-center font-bold text-neutral-500 dark:text-neutral-400 text-sm">
                       {c.badge || `#${c.rank}`}
                     </span>
                     <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-brand-600 to-sky-600 text-white font-bold flex items-center justify-center text-xs shadow-sm">
@@ -286,21 +253,21 @@ export const CivicLeaderboardPage = () => {
                     </div>
                     <div>
                       <div className="flex items-center gap-2">
-                        <span className="text-neutral-900 text-sm font-bold">{c.name}</span>
+                        <span className="text-neutral-900 dark:text-neutral-100 text-sm font-bold">{c.name}</span>
                         {c.isUser && (
-                          <span className="px-1.5 py-0.5 rounded text-[10px] font-bold bg-brand-100 text-brand-700">
+                          <span className="px-1.5 py-0.5 rounded text-[10px] font-bold bg-brand-100 dark:bg-brand-900/60 text-brand-700 dark:text-brand-300">
                             YOU
                           </span>
                         )}
                       </div>
-                      <span className="text-xs text-neutral-500">{c.ward}</span>
+                      <span className="text-xs text-neutral-500 dark:text-neutral-400">{c.ward}</span>
                     </div>
                   </div>
 
                   <div className="flex items-center gap-4 text-right">
                     <div>
-                      <div className="font-mono font-extrabold text-brand-700 text-sm">{c.points} pts</div>
-                      <div className="text-[11px] text-neutral-400">{c.tier}</div>
+                      <div className="font-mono font-extrabold text-brand-700 dark:text-brand-400 text-sm">{c.points} pts</div>
+                      <div className="text-[11px] text-neutral-400 dark:text-neutral-500">{c.tier}</div>
                     </div>
                     <ChevronRight size={16} className="text-neutral-400 hidden sm:block" />
                   </div>
@@ -313,18 +280,18 @@ export const CivicLeaderboardPage = () => {
 
       {/* Tab 2: 24 Ward Rankings */}
       {activeTab === 'wards' && (
-        <Card className="p-0 overflow-hidden bg-white border-neutral-200 shadow-sm" padding="">
-          <div className="p-4 border-b border-neutral-100 flex items-center justify-between">
+        <Card className="p-0 overflow-hidden shadow-sm" padding="">
+          <div className="p-4 border-b border-neutral-100 dark:border-neutral-800 flex items-center justify-between">
             <div>
-              <h3 className="font-bold text-neutral-900 text-sm">Inter-Ward Governance Rankings</h3>
-              <p className="text-xs text-neutral-500">Ranked by resolution speed, citizen feedback, and SLA compliance</p>
+              <h3 className="font-bold text-neutral-900 dark:text-neutral-100 text-sm">Inter-Ward Governance Rankings</h3>
+              <p className="text-xs text-neutral-500 dark:text-neutral-400">Ranked by resolution speed, citizen feedback, and SLA compliance</p>
             </div>
-            <span className="text-xs text-neutral-400">Updated Daily · 24 BMC Wards</span>
+            <span className="text-xs text-neutral-400 dark:text-neutral-500">Updated Daily · 24 BMC Wards</span>
           </div>
 
           <div className="overflow-x-auto">
             <table className="w-full text-xs text-left">
-              <thead className="bg-neutral-50 text-neutral-500 font-bold border-b border-neutral-100 uppercase text-[10px]">
+              <thead className="bg-neutral-50 dark:bg-neutral-800 text-neutral-500 dark:text-neutral-400 font-bold border-b border-neutral-100 dark:border-neutral-800 uppercase text-[10px]">
                 <tr>
                   <th className="p-3.5">Rank</th>
                   <th className="p-3.5">Ward & Location</th>
@@ -334,22 +301,22 @@ export const CivicLeaderboardPage = () => {
                   <th className="p-3.5">Trend</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-neutral-100">
-                {(liveWards.length > 0 ? liveWards : wardRankings).map((w) => (
-                  <tr key={w.rank} className="hover:bg-neutral-50 transition-colors">
-                    <td className="p-3.5 font-bold text-neutral-700">#{w.rank}</td>
+              <tbody className="divide-y divide-neutral-100 dark:divide-neutral-800">
+                {wardRankings.map((w) => (
+                  <tr key={w.rank} className="hover:bg-neutral-50 dark:hover:bg-neutral-800/50 transition-colors">
+                    <td className="p-3.5 font-bold text-neutral-700 dark:text-neutral-300">#{w.rank}</td>
                     <td className="p-3.5">
-                      <div className="font-bold text-neutral-900">{w.name}</div>
-                      <div className="text-[11px] text-neutral-400">{w.area}</div>
+                      <div className="font-bold text-neutral-900 dark:text-neutral-100">{w.name}</div>
+                      <div className="text-[11px] text-neutral-400 dark:text-neutral-500">{w.area}</div>
                     </td>
-                    <td className="p-3.5 font-semibold text-emerald-600">{w.resolved} Grievances</td>
-                    <td className="p-3.5 text-neutral-600 font-mono">{w.speedDays} Days</td>
+                    <td className="p-3.5 font-semibold text-emerald-600 dark:text-emerald-400">{w.resolved} Grievances</td>
+                    <td className="p-3.5 text-neutral-600 dark:text-neutral-300 font-mono">{w.speedDays} Days</td>
                     <td className="p-3.5">
-                      <span className="px-2 py-0.5 rounded-full font-bold bg-brand-50 text-brand-700 border border-brand-200">
+                      <span className="px-2 py-0.5 rounded-full font-bold bg-brand-50 dark:bg-brand-950/40 text-brand-700 dark:text-brand-300 border border-brand-200 dark:border-brand-800/50">
                         {w.score} / 100
                       </span>
                     </td>
-                    <td className="p-3.5 font-semibold text-emerald-600 flex items-center gap-1">
+                    <td className="p-3.5 font-semibold text-emerald-600 dark:text-emerald-400 flex items-center gap-1">
                       <TrendingUp size={12} /> {w.trend}
                     </td>
                   </tr>
@@ -368,29 +335,29 @@ export const CivicLeaderboardPage = () => {
               key={b.id}
               className={`p-4 border transition-all ${
                 b.unlocked
-                  ? 'bg-white border-neutral-200 shadow-soft-xs hover:shadow-soft-md'
-                  : 'bg-neutral-50/60 border-neutral-200 opacity-70'
+                  ? 'shadow-soft-xs hover:shadow-soft-md'
+                  : 'bg-neutral-50/60 dark:bg-neutral-850/60 border-neutral-200 dark:border-neutral-800 opacity-70'
               }`}
               padding=""
             >
               <div className="flex items-start gap-3">
-                <div className="w-12 h-12 rounded-2xl bg-neutral-100 flex items-center justify-center text-2xl shadow-inner shrink-0">
+                <div className="w-12 h-12 rounded-2xl bg-neutral-100 dark:bg-neutral-800 flex items-center justify-center text-2xl shadow-inner shrink-0">
                   {b.icon}
                 </div>
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center justify-between gap-1">
-                    <h4 className="font-bold text-neutral-900 text-xs truncate">{b.title}</h4>
+                    <h4 className="font-bold text-neutral-900 dark:text-neutral-100 text-xs truncate">{b.title}</h4>
                     {b.unlocked ? (
-                      <span className="text-[10px] font-bold text-emerald-600 bg-emerald-50 px-1.5 py-0.2 rounded border border-emerald-200">
+                      <span className="text-[10px] font-bold text-emerald-600 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-950/50 px-1.5 py-0.2 rounded border border-emerald-200 dark:border-emerald-800">
                         Unlocked
                       </span>
                     ) : (
-                      <span className="text-[10px] text-neutral-400 font-semibold">{b.progress}</span>
+                      <span className="text-[10px] text-neutral-400 dark:text-neutral-500 font-semibold">{b.progress}</span>
                     )}
                   </div>
-                  <p className="text-[11px] text-neutral-500 mt-1 leading-snug">{b.desc}</p>
+                  <p className="text-[11px] text-neutral-500 dark:text-neutral-400 mt-1 leading-snug">{b.desc}</p>
                   {b.unlocked && (
-                    <span className="text-[10px] text-neutral-400 block mt-2">Earned {b.date}</span>
+                    <span className="text-[10px] text-neutral-400 dark:text-neutral-500 block mt-2">Earned {b.date}</span>
                   )}
                 </div>
               </div>
@@ -402,9 +369,9 @@ export const CivicLeaderboardPage = () => {
       {/* Tab 4: Civic Rewards Store */}
       {activeTab === 'rewards' && (
         <div className="space-y-4">
-          <div className="p-4 bg-amber-50/80 border border-amber-200 rounded-2xl text-xs text-amber-800 flex items-center justify-between flex-wrap gap-2">
+          <div className="p-4 bg-amber-50/80 dark:bg-amber-950/40 border border-amber-200 dark:border-amber-800/40 rounded-2xl text-xs text-amber-800 dark:text-amber-300 flex items-center justify-between flex-wrap gap-2">
             <span className="flex items-center gap-1.5">
-              <Gift size={16} className="text-amber-600" />
+              <Gift size={16} className="text-amber-600 dark:text-amber-400" />
               <strong>Municipal Civic Redemption:</strong> Points can be redeemed for public transit subsidies, municipal horticulture kits, and the official Certificate of Civic Recognition.
             </span>
             <span className="font-bold font-mono">Available: {karmaPoints} Karma Points</span>
@@ -412,15 +379,15 @@ export const CivicLeaderboardPage = () => {
 
           <div className="grid sm:grid-cols-2 gap-4">
             {rewards.map((r) => (
-              <Card key={r.id} className="p-4 bg-white border-neutral-200 shadow-sm flex flex-col justify-between" padding="">
+              <Card key={r.id} className="p-4 shadow-sm flex flex-col justify-between" padding="">
                 <div className="flex items-start gap-3 mb-3">
-                  <div className="w-12 h-12 rounded-2xl bg-brand-50 flex items-center justify-center text-2xl shadow-inner shrink-0">
+                  <div className="w-12 h-12 rounded-2xl bg-brand-50 dark:bg-brand-950/50 flex items-center justify-center text-2xl shadow-inner shrink-0">
                     {r.icon}
                   </div>
                   <div>
-                    <h4 className="font-bold text-neutral-900 text-sm">{r.title}</h4>
-                    <p className="text-xs text-neutral-500 mt-0.5 leading-snug">{r.desc}</p>
-                    <span className="text-xs font-bold text-brand-700 font-mono mt-1.5 inline-block">
+                    <h4 className="font-bold text-neutral-900 dark:text-neutral-100 text-sm">{r.title}</h4>
+                    <p className="text-xs text-neutral-500 dark:text-neutral-400 mt-0.5 leading-snug">{r.desc}</p>
+                    <span className="text-xs font-bold text-brand-700 dark:text-brand-400 font-mono mt-1.5 inline-block">
                       Cost: {r.cost} Points
                     </span>
                   </div>
@@ -443,19 +410,19 @@ export const CivicLeaderboardPage = () => {
       {/* Tab 5: My Claimed Vouchers */}
       {activeTab === 'vouchers' && (
         <div className="space-y-4">
-          <div className="p-4 bg-emerald-50/80 border border-emerald-200 rounded-2xl text-xs text-emerald-900 flex items-center justify-between flex-wrap gap-2">
+          <div className="p-4 bg-emerald-50/80 dark:bg-emerald-950/40 border border-emerald-200 dark:border-emerald-800/40 rounded-2xl text-xs text-emerald-900 dark:text-emerald-300 flex items-center justify-between flex-wrap gap-2">
             <span className="flex items-center gap-1.5 font-medium">
-              <CheckCircle2 size={16} className="text-emerald-600" />
+              <CheckCircle2 size={16} className="text-emerald-600 dark:text-emerald-400" />
               <strong>Municipal Pass Ledger:</strong> Present these digital codes at BMC ward desks, metro stations, or municipal lots for instant redemption.
             </span>
-            <span className="font-mono font-bold text-emerald-800">{claimedVouchers.length} Claimed Vouchers</span>
+            <span className="font-mono font-bold text-emerald-800 dark:text-emerald-300">{claimedVouchers.length} Claimed Vouchers</span>
           </div>
 
           {claimedVouchers.length === 0 ? (
-            <Card className="p-12 text-center bg-white border-neutral-200">
-              <Gift size={36} className="mx-auto text-neutral-300 mb-3" />
-              <h4 className="font-bold text-neutral-900 text-sm">No vouchers claimed yet</h4>
-              <p className="text-xs text-neutral-500 mt-1 mb-4">Redeem your civic karma points for parking vouchers, metro transit credit, or property rebates.</p>
+            <Card className="p-12 text-center">
+              <Gift size={36} className="mx-auto text-neutral-300 dark:text-neutral-600 mb-3" />
+              <h4 className="font-bold text-neutral-900 dark:text-neutral-100 text-sm">No vouchers claimed yet</h4>
+              <p className="text-xs text-neutral-500 dark:text-neutral-400 mt-1 mb-4">Redeem your civic karma points for parking vouchers, metro transit credit, or property rebates.</p>
               <Button variant="primary" size="sm" onClick={() => setActiveTab('rewards')}>
                 Browse Rewards Store →
               </Button>
@@ -463,24 +430,24 @@ export const CivicLeaderboardPage = () => {
           ) : (
             <div className="grid sm:grid-cols-2 gap-4">
               {claimedVouchers.map((v) => (
-                <Card key={v.id} className="p-5 bg-white border-neutral-200 shadow-sm space-y-3">
+                <Card key={v.id} className="p-5 shadow-sm space-y-3">
                   <div className="flex items-start justify-between">
                     <div className="flex items-center gap-3">
-                      <div className="w-10 h-10 rounded-xl bg-emerald-50 flex items-center justify-center text-xl shadow-inner">
+                      <div className="w-10 h-10 rounded-xl bg-emerald-50 dark:bg-emerald-950/50 flex items-center justify-center text-xl shadow-inner">
                         {v.icon}
                       </div>
                       <div>
-                        <h4 className="font-bold text-neutral-900 text-sm">{v.title}</h4>
-                        <span className="text-[10px] text-neutral-400">Claimed {v.claimedAt} · Valid until {v.validUntil}</span>
+                        <h4 className="font-bold text-neutral-900 dark:text-neutral-100 text-sm">{v.title}</h4>
+                        <span className="text-[10px] text-neutral-400 dark:text-neutral-500">Claimed {v.claimedAt} · Valid until {v.validUntil}</span>
                       </div>
                     </div>
                     <Badge variant="success" size="sm">Active</Badge>
                   </div>
-                  <p className="text-xs text-neutral-600">{v.desc}</p>
-                  <div className="p-2.5 bg-neutral-50 border border-neutral-200 rounded-xl flex items-center justify-between">
+                  <p className="text-xs text-neutral-600 dark:text-neutral-300">{v.desc}</p>
+                  <div className="p-2.5 bg-neutral-50 dark:bg-neutral-800/80 border border-neutral-200 dark:border-neutral-700 rounded-xl flex items-center justify-between">
                     <div>
-                      <span className="text-[10px] uppercase font-bold text-neutral-400 block tracking-wider">Pass Code</span>
-                      <span className="font-mono font-black text-sm text-brand-700">{v.code}</span>
+                      <span className="text-[10px] uppercase font-bold text-neutral-400 dark:text-neutral-500 block tracking-wider">Pass Code</span>
+                      <span className="font-mono font-black text-sm text-brand-700 dark:text-brand-400">{v.code}</span>
                     </div>
                     <Button
                       variant="outline"

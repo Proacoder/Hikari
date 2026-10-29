@@ -93,16 +93,6 @@ export const LeafletMap = ({
   const centerLat = center?.[0];
   const centerLng = center?.[1];
 
-  const onPositionChangeRef = useRef(onPositionChange);
-  useEffect(() => {
-    onPositionChangeRef.current = onPositionChange;
-  }, [onPositionChange]);
-
-  const onComplaintClickRef = useRef(onComplaintClick);
-  useEffect(() => {
-    onComplaintClickRef.current = onComplaintClick;
-  }, [onComplaintClick]);
-
   // Intercept Leaflet popup navigation links for client-side routing
   useEffect(() => {
     const container = mapContainerRef.current;
@@ -126,114 +116,61 @@ export const LeafletMap = ({
     };
   }, [navigate]);
 
-  const initialCenterRef = useRef(center);
-
-  // Initialize Map once
+  // Initialize Map
   useEffect(() => {
-    const container = mapContainerRef.current;
-    if (!container) return;
-    if (mapInstanceRef.current) return;
+    if (!mapContainerRef.current) return;
 
-    const c = initialCenterRef.current;
-    const initialCenter = (c && c[0] != null && c[1] != null && !isNaN(c[0]))
-      ? [Number(c[0]), Number(c[1])]
-      : [19.0760, 72.8777];
+    if (!mapInstanceRef.current) {
+      const map = L.map(mapContainerRef.current, {
+        center: center,
+        zoom: zoom,
+        zoomControl: true,
+        scrollWheelZoom: true,
+      });
 
-    const map = L.map(container, {
-      center: initialCenter,
-      zoom: zoom,
-      zoomControl: true,
-      scrollWheelZoom: true,
-    });
+      // OpenStreetMap Tiles
+      L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors | Kaiser AI',
+        maxZoom: 19,
+      }).addTo(map);
 
-    // OpenStreetMap Tiles
-    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-      attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors | Kaiser AI',
-      maxZoom: 19,
-    }).addTo(map);
+      const markersGroup = L.layerGroup().addTo(map);
+      markersLayerRef.current = markersGroup;
+      mapInstanceRef.current = map;
 
-    const markersGroup = L.layerGroup().addTo(map);
-    markersLayerRef.current = markersGroup;
-    mapInstanceRef.current = map;
-
-    // Handle map clicks in picker mode
-    const handleMapClick = (e) => {
-      if (!pickerMode) return;
-      const { lat, lng } = e.latlng;
-      const roundedLat = parseFloat(lat.toFixed(6));
-      const roundedLng = parseFloat(lng.toFixed(6));
-
-      if (!pickerMarkerRef.current) {
-        const marker = L.marker([roundedLat, roundedLng], {
-          icon: createPickerIcon(),
-          draggable: true,
-          zIndexOffset: 1000,
-        }).addTo(map);
-
-        marker.on('dragend', (event) => {
-          const position = event.target.getLatLng();
-          const dLat = parseFloat(position.lat.toFixed(6));
-          const dLng = parseFloat(position.lng.toFixed(6));
-          onPositionChangeRef.current?.({ lat: dLat, lng: dLng });
-        });
-
-        pickerMarkerRef.current = marker;
-      } else {
-        pickerMarkerRef.current.setLatLng([roundedLat, roundedLng]);
-        if (!map.hasLayer(pickerMarkerRef.current)) {
-          pickerMarkerRef.current.addTo(map);
-        }
+      // Handle map clicks in picker mode
+      let clickHandler = null;
+      if (pickerMode && onPositionChange) {
+        clickHandler = (e) => {
+          const { lat, lng } = e.latlng;
+          onPositionChange({ lat, lng });
+        };
+        map.on('click', clickHandler);
       }
 
-      onPositionChangeRef.current?.({ lat: roundedLat, lng: roundedLng });
-    };
-
-    map.on('click', handleMapClick);
-
-    const resizeTimer = setTimeout(() => {
-      map.invalidateSize();
-    }, 150);
+      // Store click handler for cleanup
+      mapInstanceRef.current._pickerClickHandler = clickHandler;
+    }
 
     return () => {
-      clearTimeout(resizeTimer);
-      if (pickerMarkerRef.current) {
-        pickerMarkerRef.current.remove();
-        pickerMarkerRef.current = null;
+      if (mapInstanceRef.current) {
+        // Remove picker mode click handler if it exists
+        if (mapInstanceRef.current._pickerClickHandler) {
+          mapInstanceRef.current.off('click', mapInstanceRef.current._pickerClickHandler);
+          mapInstanceRef.current._pickerClickHandler = null;
+        }
+        mapInstanceRef.current.remove();
+        mapInstanceRef.current = null;
       }
-      if (markersLayerRef.current) {
-        markersLayerRef.current.clearLayers();
-        markersLayerRef.current = null;
-      }
-      if (geoJsonLayerRef.current) {
-        geoJsonLayerRef.current.remove();
-        geoJsonLayerRef.current = null;
-      }
-      map.off('click', handleMapClick);
-      map.remove();
-      mapInstanceRef.current = null;
     };
-  }, [pickerMode, zoom]);
+  }, [center, onPositionChange, pickerMode, zoom]);
 
-  // Handle container resize
+  // Update Center if changed
   useEffect(() => {
-    if (mapInstanceRef.current) {
-      mapInstanceRef.current.invalidateSize();
+    if (mapInstanceRef.current && center) {
+      mapInstanceRef.current.setView(center, zoom);
     }
-  }, [height]);
-
-  // Update Center if changed externally
-  useEffect(() => {
-    const map = mapInstanceRef.current;
-    if (!map || centerLat == null || centerLng == null) return;
-    const targetLat = Number(centerLat);
-    const targetLng = Number(centerLng);
-    if (isNaN(targetLat) || isNaN(targetLng)) return;
-
-    const currentCenter = map.getCenter();
-    if (Math.abs(currentCenter.lat - targetLat) > 0.0001 || Math.abs(currentCenter.lng - targetLng) > 0.0001) {
-      map.setView([targetLat, targetLng], zoom || map.getZoom());
-    }
-  }, [centerLat, centerLng, zoom]);
+  }, [centerLat, centerLng, zoom, center]);
 
   // Update Markers or Ward Polygons based on mapViewMode
   useEffect(() => {
@@ -285,8 +222,8 @@ export const LeafletMap = ({
 
         marker.bindPopup(popupContent, { maxWidth: 280, className: 'kaiser-map-popup' });
 
-        if (onComplaintClickRef.current) {
-          marker.on('click', () => onComplaintClickRef.current(c));
+        if (onComplaintClick) {
+          marker.on('click', () => onComplaintClick(c));
         }
 
         markersLayerRef.current.addLayer(marker);
@@ -336,46 +273,35 @@ export const LeafletMap = ({
 
       geoJsonLayerRef.current = geoLayer;
     }
-  }, [complaints, pickerMode, mapViewMode]);
+  }, [complaints, pickerMode, mapViewMode, onComplaintClick]);
 
   // Update Picker Marker
-  const posLat = selectedPosition?.lat;
-  const posLng = selectedPosition?.lng;
   useEffect(() => {
-    const map = mapInstanceRef.current;
-    if (!map || !pickerMode) return;
+    if (!mapInstanceRef.current) return;
 
-    if (posLat != null && posLng != null) {
-      const lat = Number(posLat);
-      const lng = Number(posLng);
-      if (isNaN(lat) || isNaN(lng)) return;
-
+    if (pickerMode && selectedPosition) {
       if (!pickerMarkerRef.current) {
-        const marker = L.marker([lat, lng], {
+        const marker = L.marker([selectedPosition.lat, selectedPosition.lng], {
           icon: createPickerIcon(),
-          draggable: true,
-          zIndexOffset: 1000,
-        }).addTo(map);
+          draggable: true
+        }).addTo(mapInstanceRef.current);
 
         marker.on('dragend', (event) => {
           const position = event.target.getLatLng();
-          const dLat = parseFloat(position.lat.toFixed(6));
-          const dLng = parseFloat(position.lng.toFixed(6));
-          onPositionChangeRef.current?.({ lat: dLat, lng: dLng });
+          if (onPositionChange) {
+            onPositionChange({ lat: position.lat, lng: position.lng });
+          }
         });
 
         pickerMarkerRef.current = marker;
       } else {
-        pickerMarkerRef.current.setLatLng([lat, lng]);
-        if (!map.hasLayer(pickerMarkerRef.current)) {
-          pickerMarkerRef.current.addTo(map);
-        }
+        pickerMarkerRef.current.setLatLng([selectedPosition.lat, selectedPosition.lng]);
       }
     } else if (pickerMarkerRef.current) {
       pickerMarkerRef.current.remove();
       pickerMarkerRef.current = null;
     }
-  }, [pickerMode, posLat, posLng]);
+  }, [pickerMode, selectedPosition, onPositionChange]);
 
   return (
     <div className={`relative rounded-2xl overflow-hidden shadow-soft-sm border border-neutral-200 z-10 ${className}`}>
@@ -411,7 +337,7 @@ export const LeafletMap = ({
 
       <div
         ref={mapContainerRef}
-        style={{ height: height || '400px', width: '100%' }}
+        style={{ height, width: '100%', minHeight: '300px' }}
       />
     </div>
   );

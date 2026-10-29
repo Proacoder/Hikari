@@ -88,7 +88,7 @@ export const ComplaintCard = ({ complaint }) => {
           <div className="flex items-start gap-3">
             <CategoryIcon category={category} size="sm" />
             <div className="flex-1 min-w-0">
-              <p className="text-sm font-semibold text-neutral-900 leading-snug line-clamp-2">{title}</p>
+              <p className="text-sm font-semibold text-neutral-900 dark:text-neutral-100 leading-snug line-clamp-2">{title}</p>
               <div className="flex items-center gap-1.5 mt-1 text-xs text-neutral-400">
                 <MapPin size={11} />
                 <span>Ward {ward}</span>
@@ -99,7 +99,7 @@ export const ComplaintCard = ({ complaint }) => {
             </div>
           </div>
 
-          <div className="flex items-center justify-between mt-3 pt-3 border-t border-neutral-50">
+          <div className="flex items-center justify-between mt-3 pt-3 border-t border-neutral-100 dark:border-neutral-800">
             <div className="flex items-center gap-3 text-xs text-neutral-500">
               <span className="flex items-center gap-1">
                 <ThumbsUp size={13} />

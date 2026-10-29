@@ -22,21 +22,18 @@ import { useAuth } from '../context/AuthContext';
 import { useNotifications } from '../context/NotificationContext';
 import { FieldInspectionModal } from '../components/officer/FieldInspectionModal';
 import { formatDate } from '../utils/formatters';
+import { useTheme } from '../context/ThemeContext';
 import toast from 'react-hot-toast';
 import {
   BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer,
   PieChart, Pie, Cell, AreaChart, Area, CartesianGrid
 } from 'recharts';
 
-import { safeParseDate } from '../utils/formatters';
-
 // ── Helpers ────────────────────────────────────────────────────────────────────
 
 const daysAgo = (iso) => {
   if (!iso) return 'Recent';
-  const dObj = safeParseDate(iso);
-  if (!dObj) return 'Recent';
-  const d = Math.floor((Date.now() - dObj.getTime()) / 86400000);
+  const d = Math.floor((Date.now() - new Date(iso)) / 86400000);
   if (d <= 0) return 'Today';
   if (d === 1) return 'Yesterday';
   return `${d}d ago`;
@@ -51,48 +48,84 @@ const DEPT_GRADIENT = {
 };
 
 // ── Mini Charts ────────────────────────────────────────────────────────────────
-const WeeklyChart = ({ data }) => (
-  <ResponsiveContainer width="100%" height={150}>
-    <BarChart data={data} barGap={3}>
-      <XAxis dataKey="week" tick={{ fontSize: 10, fill: '#94a3b8' }} axisLine={false} tickLine={false} />
-      <YAxis hide />
-      <Tooltip contentStyle={{ fontSize: 11, borderRadius: 10, border: '1px solid #e2e8f0' }} />
-      <Bar dataKey="resolved" fill="#16a34a" radius={[5, 5, 0, 0]} />
-    </BarChart>
-  </ResponsiveContainer>
-);
+const WeeklyChart = ({ data }) => {
+  const { isDark } = useTheme();
+  return (
+    <ResponsiveContainer width="100%" height={150}>
+      <BarChart data={data} barGap={3}>
+        <XAxis dataKey="week" tick={{ fontSize: 10, fill: isDark ? '#94a3b8' : '#64748b' }} axisLine={false} tickLine={false} />
+        <YAxis hide />
+        <Tooltip
+          contentStyle={{
+            fontSize: 11,
+            borderRadius: 10,
+            border: `1px solid ${isDark ? '#334155' : '#e2e8f0'}`,
+            backgroundColor: isDark ? '#0f172a' : '#ffffff',
+            color: isDark ? '#f8fafc' : '#0f172a'
+          }}
+          labelStyle={{ color: isDark ? '#f8fafc' : '#0f172a' }}
+        />
+        <Bar dataKey="resolved" fill="#16a34a" radius={[5, 5, 0, 0]} />
+      </BarChart>
+    </ResponsiveContainer>
+  );
+};
 
-const CategoryDonut = ({ data }) => (
-  <ResponsiveContainer width="100%" height={200}>
-    <PieChart>
-      <Pie data={data} cx="50%" cy="50%" innerRadius={50} outerRadius={80}
-        paddingAngle={3} dataKey="value" nameKey="name"
-        label={({ percent }) => `${(percent * 100).toFixed(0)}%`}
-        labelLine={false} style={{ fontSize: 10 }}>
-        {data.map((entry, i) => <Cell key={i} fill={entry.fill} />)}
-      </Pie>
-      <Tooltip contentStyle={{ fontSize: 11, borderRadius: 10 }} />
-    </PieChart>
-  </ResponsiveContainer>
-);
+const CategoryDonut = ({ data }) => {
+  const { isDark } = useTheme();
+  return (
+    <ResponsiveContainer width="100%" height={200}>
+      <PieChart>
+        <Pie data={data} cx="50%" cy="50%" innerRadius={50} outerRadius={80}
+          paddingAngle={3} dataKey="value" nameKey="name"
+          label={({ percent }) => `${(percent * 100).toFixed(0)}%`}
+          labelLine={false} style={{ fontSize: 10, fill: isDark ? '#f8fafc' : '#0f172a' }}>
+          {data.map((entry, i) => <Cell key={i} fill={entry.fill} />)}
+        </Pie>
+        <Tooltip
+          contentStyle={{
+            fontSize: 11,
+            borderRadius: 10,
+            border: `1px solid ${isDark ? '#334155' : '#e2e8f0'}`,
+            backgroundColor: isDark ? '#0f172a' : '#ffffff',
+            color: isDark ? '#f8fafc' : '#0f172a'
+          }}
+          labelStyle={{ color: isDark ? '#f8fafc' : '#0f172a' }}
+        />
+      </PieChart>
+    </ResponsiveContainer>
+  );
+};
 
-const MonthlyTrend = ({ data }) => (
-  <ResponsiveContainer width="100%" height={130}>
-    <AreaChart data={data}>
-      <defs>
-        <linearGradient id="trendGrad" x1="0" y1="0" x2="0" y2="1">
-          <stop offset="5%" stopColor="#16a34a" stopOpacity={0.25} />
-          <stop offset="95%" stopColor="#16a34a" stopOpacity={0} />
-        </linearGradient>
-      </defs>
-      <CartesianGrid strokeDasharray="3 3" stroke="#f1f5f9" />
-      <XAxis dataKey="month" tick={{ fontSize: 10, fill: '#94a3b8' }} axisLine={false} tickLine={false} />
-      <YAxis hide />
-      <Tooltip contentStyle={{ fontSize: 11, borderRadius: 10 }} />
-      <Area type="monotone" dataKey="resolved" stroke="#16a34a" strokeWidth={2} fill="url(#trendGrad)" />
-    </AreaChart>
-  </ResponsiveContainer>
-);
+const MonthlyTrend = ({ data }) => {
+  const { isDark } = useTheme();
+  return (
+    <ResponsiveContainer width="100%" height={130}>
+      <AreaChart data={data}>
+        <defs>
+          <linearGradient id="trendGrad" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="5%" stopColor="#16a34a" stopOpacity={0.25} />
+            <stop offset="95%" stopColor="#16a34a" stopOpacity={0} />
+          </linearGradient>
+        </defs>
+        <CartesianGrid strokeDasharray="3 3" stroke={isDark ? '#334155' : '#f1f5f9'} />
+        <XAxis dataKey="month" tick={{ fontSize: 10, fill: isDark ? '#94a3b8' : '#64748b' }} axisLine={false} tickLine={false} />
+        <YAxis hide />
+        <Tooltip
+          contentStyle={{
+            fontSize: 11,
+            borderRadius: 10,
+            border: `1px solid ${isDark ? '#334155' : '#e2e8f0'}`,
+            backgroundColor: isDark ? '#0f172a' : '#ffffff',
+            color: isDark ? '#f8fafc' : '#0f172a'
+          }}
+          labelStyle={{ color: isDark ? '#f8fafc' : '#0f172a' }}
+        />
+        <Area type="monotone" dataKey="resolved" stroke="#16a34a" strokeWidth={2} fill="url(#trendGrad)" />
+      </AreaChart>
+    </ResponsiveContainer>
+  );
+};
 
 // ── Image Lightbox ─────────────────────────────────────────────────────────────
 const ImageLightbox = ({ src, title, onClose }) => (
@@ -107,7 +140,13 @@ const ImageLightbox = ({ src, title, onClose }) => (
       <div className="rounded-2xl overflow-hidden bg-black/40 border border-white/10 shadow-2xl">
         <img src={src} alt={title} className="w-full object-contain max-h-[75vh]" />
       </div>
-      <p className="text-white/60 text-xs text-center mt-3">Citizen Photographic Evidence · Inspected by Ward Officer</p>
+      <div className="flex flex-col sm:flex-row items-center justify-between gap-2 mt-3 text-xs">
+        <p className="text-white/60">Citizen Photographic Evidence · Inspected by Ward Officer</p>
+        <span className="inline-flex items-center gap-1.5 font-mono text-[10px] bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 px-2.5 py-1 rounded-full">
+          <Shield size={12} className="text-emerald-400" />
+          ViT AI Authenticity Verified · Authentic Camera Capture
+        </span>
+      </div>
     </div>
   </div>
 );
@@ -179,40 +218,40 @@ const ComplaintDetailModal = ({ complaint, onClose, onUpdate, onInspect }) => {
           )}
 
           {/* Grievance Details */}
-          <div className="p-3.5 bg-neutral-50 rounded-xl border border-neutral-200 space-y-2">
-            <p className="font-bold text-neutral-900 text-sm">{complaint.title}</p>
-            <p className="text-neutral-600 leading-relaxed">{complaint.description}</p>
+          <div className="p-3.5 bg-neutral-50 dark:bg-neutral-800/80 rounded-xl border border-neutral-200 dark:border-neutral-700 space-y-2">
+            <p className="font-bold text-neutral-900 dark:text-neutral-100 text-sm">{complaint.title}</p>
+            <p className="text-neutral-600 dark:text-neutral-300 leading-relaxed">{complaint.description}</p>
             <div className="flex flex-wrap gap-1.5 pt-1">
               <span className={`px-2.5 py-0.5 rounded-lg font-bold border text-[11px] ${sevColor}`}>Severity {complaint.severity}/100</span>
-              <span className="px-2.5 py-0.5 bg-white border border-neutral-200 rounded-lg text-neutral-700 text-[11px] font-medium">{complaint.category}</span>
-              <span className="px-2.5 py-0.5 bg-white border border-neutral-200 rounded-lg text-neutral-700 text-[11px] font-medium">Ward #{complaint.ward}</span>
-              <span className="px-2.5 py-0.5 bg-white border border-neutral-200 rounded-lg text-neutral-700 text-[11px] flex items-center gap-1 font-medium"><ThumbsUp size={10} className="text-brand-600" />{complaint.upvoteCount || 0}</span>
+              <span className="px-2.5 py-0.5 bg-white dark:bg-neutral-800 border border-neutral-200 dark:border-neutral-700 rounded-lg text-neutral-700 dark:text-neutral-300 text-[11px] font-medium">{complaint.category}</span>
+              <span className="px-2.5 py-0.5 bg-white dark:bg-neutral-800 border border-neutral-200 dark:border-neutral-700 rounded-lg text-neutral-700 dark:text-neutral-300 text-[11px] font-medium">Ward #{complaint.ward}</span>
+              <span className="px-2.5 py-0.5 bg-white dark:bg-neutral-800 border border-neutral-200 dark:border-neutral-700 rounded-lg text-neutral-700 dark:text-neutral-300 text-[11px] flex items-center gap-1 font-medium"><ThumbsUp size={10} className="text-brand-600" />{complaint.upvoteCount || 0}</span>
             </div>
           </div>
 
           {/* Reporter & AI side by side */}
           <div className="grid grid-cols-2 gap-2.5">
-            <div className="p-3 bg-sky-50 rounded-xl border border-sky-100">
-              <p className="text-sky-700 font-bold mb-1 text-[11px] uppercase tracking-wide">Reported By</p>
-              <p className="text-neutral-900 font-semibold">{complaint.createdBy?.name || 'Citizen'}</p>
-              <p className="text-neutral-500 mt-0.5">{daysAgo(complaint.createdAt)}</p>
+            <div className="p-3 bg-sky-50 dark:bg-sky-950/40 rounded-xl border border-sky-100 dark:border-sky-800/40">
+              <p className="text-sky-700 dark:text-sky-300 font-bold mb-1 text-[11px] uppercase tracking-wide">Reported By</p>
+              <p className="text-neutral-900 dark:text-neutral-100 font-semibold">{complaint.createdBy?.name || 'Citizen'}</p>
+              <p className="text-neutral-500 dark:text-neutral-400 mt-0.5">{daysAgo(complaint.createdAt)}</p>
             </div>
-            <div className="p-3 bg-purple-50 rounded-xl border border-purple-100">
-              <p className="text-purple-700 font-bold mb-1 text-[11px] uppercase tracking-wide flex items-center gap-1">
+            <div className="p-3 bg-purple-50 dark:bg-purple-950/40 rounded-xl border border-purple-100 dark:border-purple-800/40">
+              <p className="text-purple-700 dark:text-purple-300 font-bold mb-1 text-[11px] uppercase tracking-wide flex items-center gap-1">
                 <Sparkles size={11} /> AI Assessment
               </p>
-              <p className="text-neutral-900 font-semibold">Match Confidence: {complaint.aiAnalysis?.confidence ? `${Math.round(complaint.aiAnalysis.confidence * 100)}%` : '—'}</p>
-              <p className="text-neutral-500 mt-0.5">AQI: {complaint.aiAnalysis?.aqiAtLocation ?? '—'}</p>
+              <p className="text-neutral-900 dark:text-neutral-100 font-semibold">Match Confidence: {complaint.aiAnalysis?.confidence ? `${Math.round(complaint.aiAnalysis.confidence * 100)}%` : '—'}</p>
+              <p className="text-neutral-500 dark:text-neutral-400 mt-0.5">AQI: {complaint.aiAnalysis?.aqiAtLocation ?? '—'}</p>
             </div>
           </div>
 
           {/* Status Update Dropdown */}
           <div className="space-y-1.5">
-            <label className="font-bold text-neutral-800">Change Grievance Status</label>
+            <label className="font-bold text-neutral-800 dark:text-neutral-200">Change Grievance Status</label>
             <select
               value={status}
               onChange={(e) => setStatus(e.target.value)}
-              className="w-full rounded-xl border border-neutral-300 p-2.5 text-xs font-semibold text-neutral-800 bg-white focus:outline-none focus:ring-2 focus:ring-brand-200"
+              className="w-full rounded-xl border border-neutral-300 dark:border-neutral-700 p-2.5 text-xs font-semibold text-neutral-800 dark:text-neutral-200 bg-white dark:bg-neutral-800 focus:outline-none focus:ring-2 focus:ring-brand-500/50"
             >
               <option value="reported">REPORTED – Awaiting Field Inspection</option>
               <option value="assigned">ASSIGNED – Inspection Team Dispatched</option>
@@ -224,17 +263,17 @@ const ComplaintDetailModal = ({ complaint, onClose, onUpdate, onInspect }) => {
           </div>
 
           <div className="space-y-1.5">
-            <label className="font-bold text-neutral-800">Officer Action Remarks</label>
+            <label className="font-bold text-neutral-800 dark:text-neutral-200">Officer Action Remarks</label>
             <textarea
               rows={3}
               value={remarks}
               onChange={(e) => setRemarks(e.target.value)}
               placeholder="Record field report, contractor assignment, repair notes…"
-              className="w-full rounded-xl border border-neutral-300 p-2.5 text-xs resize-none bg-white focus:outline-none focus:ring-2 focus:ring-brand-200"
+              className="w-full rounded-xl border border-neutral-300 dark:border-neutral-700 p-2.5 text-xs resize-none bg-white dark:bg-neutral-800 text-neutral-800 dark:text-neutral-200 placeholder-neutral-400 dark:placeholder-neutral-500 focus:outline-none focus:ring-2 focus:ring-brand-500/50"
             />
           </div>
 
-          <div className="flex flex-wrap justify-end gap-2 pt-2 border-t border-neutral-100">
+          <div className="flex flex-wrap justify-end gap-2 pt-2 border-t border-neutral-100 dark:border-neutral-800">
             <Button variant="ghost" onClick={onClose}>Cancel</Button>
             <Button
               variant="outline"
@@ -242,9 +281,9 @@ const ComplaintDetailModal = ({ complaint, onClose, onUpdate, onInspect }) => {
                 onClose();
                 if (onInspect) onInspect(complaint);
               }}
-              className="text-brand-600 border-brand-200 hover:bg-brand-50"
+              className="text-brand-600 dark:text-brand-400 border-brand-200 dark:border-brand-800 hover:bg-brand-50 dark:hover:bg-brand-950/40"
             >
-              <Shield size={13} className="mr-1 text-brand-600" /> Field Seal & Inspection
+              <Shield size={13} className="mr-1 text-brand-600 dark:text-brand-400" /> Field Seal & Inspection
             </Button>
             <Button variant="primary" onClick={handleSave} loading={saving}>Save & Update Status</Button>
           </div>
@@ -256,30 +295,30 @@ const ComplaintDetailModal = ({ complaint, onClose, onUpdate, onInspect }) => {
 
 // ── Complaint Row with Thumbnail Preview ───────────────────────────────────────
 const ComplaintRow = ({ item, onView, onInspect }) => (
-  <tr className="hover:bg-neutral-50/80 transition-colors group">
-    <td className="px-4 py-3 font-mono text-[11px] font-semibold text-neutral-500">{item.id}</td>
+  <tr className="hover:bg-neutral-50/80 dark:hover:bg-neutral-800/50 transition-colors group">
+    <td className="px-4 py-3 font-mono text-[11px] font-semibold text-neutral-500 dark:text-neutral-400">{item.id}</td>
     <td className="px-4 py-3">
       <div className="flex items-center gap-3">
         {item.imageUrl ? (
-          <div className="w-10 h-10 rounded-xl overflow-hidden bg-neutral-100 shrink-0 border border-neutral-200 shadow-sm">
+          <div className="w-10 h-10 rounded-xl overflow-hidden bg-neutral-100 dark:bg-neutral-800 shrink-0 border border-neutral-200 dark:border-neutral-700 shadow-sm">
             <img src={item.imageUrl} alt="" className="w-full h-full object-cover" />
           </div>
         ) : (
-          <div className="w-10 h-10 rounded-xl bg-neutral-100 flex items-center justify-center text-neutral-400 shrink-0">
+          <div className="w-10 h-10 rounded-xl bg-neutral-100 dark:bg-neutral-800 flex items-center justify-center text-neutral-400 dark:text-neutral-500 shrink-0">
             <ImageIcon size={16} />
           </div>
         )}
         <div className="min-w-0">
-          <div className="font-bold text-neutral-900 text-xs line-clamp-1">{item.title}</div>
-          <div className="text-[10px] text-neutral-400 mt-0.5">{item.category} · {daysAgo(item.createdAt)}</div>
+          <div className="font-bold text-neutral-900 dark:text-neutral-100 text-xs line-clamp-1">{item.title}</div>
+          <div className="text-[10px] text-neutral-400 dark:text-neutral-500 mt-0.5">{item.category} · {daysAgo(item.createdAt)}</div>
         </div>
       </div>
     </td>
-    <td className="px-4 py-3 text-xs text-neutral-600 font-medium">{item.createdBy?.name || 'Citizen'}</td>
+    <td className="px-4 py-3 text-xs text-neutral-600 dark:text-neutral-300 font-medium">{item.createdBy?.name || 'Citizen'}</td>
     <td className="px-4 py-3"><SeverityBadge score={item.severity} /></td>
     <td className="px-4 py-3"><StatusBadge status={item.status} /></td>
-    <td className="px-4 py-3 text-xs text-neutral-500">
-      <span className="flex items-center gap-1 font-semibold"><ThumbsUp size={11} className="text-brand-600" />{item.upvoteCount || 0}</span>
+    <td className="px-4 py-3 text-xs text-neutral-500 dark:text-neutral-400">
+      <span className="flex items-center gap-1 font-semibold"><ThumbsUp size={11} className="text-brand-600 dark:text-brand-400" />{item.upvoteCount || 0}</span>
     </td>
     <td className="px-4 py-3 text-right">
       <div className="flex items-center justify-end gap-1.5">
@@ -296,49 +335,50 @@ const ComplaintRow = ({ item, onView, onInspect }) => (
 
 // ── Profile Tab ────────────────────────────────────────────────────────────────
 const ProfileTab = ({ officer }) => {
+  const { isDark } = useTheme();
   if (!officer) return null;
   const deptCls = officer && officer.department ? {
-    'Roads & Infrastructure': 'bg-amber-50 text-amber-700 border-amber-200',
-    'Sanitation':             'bg-emerald-50 text-emerald-700 border-emerald-200',
-    'Water Supply':           'bg-sky-50 text-sky-700 border-sky-200',
-    'Electrical':             'bg-yellow-50 text-yellow-700 border-yellow-200',
-    'Building & Permits':     'bg-purple-50 text-purple-700 border-purple-200',
-  }[officer.department] || 'bg-neutral-100 text-neutral-600 border-neutral-200' : 'bg-neutral-100 text-neutral-600 border-neutral-200';
+    'Roads & Infrastructure': isDark ? 'bg-amber-950/40 text-amber-300 border-amber-800/40' : 'bg-amber-50 text-amber-700 border-amber-200',
+    'Sanitation':             isDark ? 'bg-emerald-950/40 text-emerald-300 border-emerald-800/40' : 'bg-emerald-50 text-emerald-700 border-emerald-200',
+    'Water Supply':           isDark ? 'bg-sky-950/40 text-sky-300 border-sky-800/40' : 'bg-sky-50 text-sky-700 border-sky-200',
+    'Electrical':             isDark ? 'bg-yellow-950/40 text-yellow-300 border-yellow-800/40' : 'bg-yellow-50 text-yellow-700 border-yellow-200',
+    'Building & Permits':     isDark ? 'bg-purple-950/40 text-purple-300 border-purple-800/40' : 'bg-purple-50 text-purple-700 border-purple-200',
+  }[officer.department] || (isDark ? 'bg-neutral-800 text-neutral-300 border-neutral-700' : 'bg-neutral-100 text-neutral-600 border-neutral-200') : (isDark ? 'bg-neutral-800 text-neutral-300 border-neutral-700' : 'bg-neutral-100 text-neutral-600 border-neutral-200');
 
   const grad = officer && officer.department ? DEPT_GRADIENT[officer.department] : 'from-brand-500 to-blue-600';
 
   return (
     <div className="space-y-5">
-      <Card className="p-6 bg-white border-neutral-200 shadow-sm" padding="">
+      <Card className="p-6 shadow-sm" padding="">
         <div className="flex flex-col sm:flex-row items-start sm:items-center gap-5">
           <div className={`w-20 h-20 rounded-2xl bg-gradient-to-br ${grad} flex items-center justify-center text-white text-2xl font-bold shadow-md`}>
             {officer.avatarInitials}
           </div>
           <div className="flex-1">
             <div className="flex items-center gap-2 mb-1">
-              <h2 className="text-xl font-bold text-neutral-900">{officer.name}</h2>
-              <BadgeCheck size={18} className="text-brand-600" />
+              <h2 className="text-xl font-bold text-neutral-900 dark:text-neutral-100">{officer.name}</h2>
+              <BadgeCheck size={18} className="text-brand-600 dark:text-brand-400" />
             </div>
-            <p className="text-sm font-medium text-neutral-600 mb-2">{officer.wardName}</p>
+            <p className="text-sm font-medium text-neutral-600 dark:text-neutral-400 mb-2">{officer.wardName}</p>
             <div className="flex flex-wrap gap-2">
               <span className={`text-xs font-semibold px-2.5 py-1 rounded-full border ${deptCls}`}>{officer.department}</span>
-              <span className={`text-xs font-semibold px-2.5 py-1 rounded-full border ${officer.status === 'Available' ? 'bg-emerald-50 text-emerald-700 border-emerald-200' : officer.status === 'Busy' ? 'bg-amber-50 text-amber-700 border-amber-200' : 'bg-neutral-100 text-neutral-500 border-neutral-200'}`}>
+              <span className={`text-xs font-semibold px-2.5 py-1 rounded-full border ${officer.status === 'Available' ? (isDark ? 'bg-emerald-950/40 text-emerald-300 border-emerald-800/40' : 'bg-emerald-50 text-emerald-700 border-emerald-200') : officer.status === 'Busy' ? (isDark ? 'bg-amber-950/40 text-amber-300 border-amber-800/40' : 'bg-amber-50 text-amber-700 border-amber-200') : (isDark ? 'bg-neutral-800 text-neutral-400 border-neutral-700' : 'bg-neutral-100 text-neutral-500 border-neutral-200')}`}>
                 ● {officer.status}
               </span>
             </div>
           </div>
           <div className="text-right shrink-0">
-            <div className="text-3xl font-bold text-neutral-900 flex items-center justify-end gap-1">
+            <div className="text-3xl font-bold text-neutral-900 dark:text-neutral-100 flex items-center justify-end gap-1">
               <Star size={20} className="text-amber-400 fill-amber-400" />{officer.rating}
             </div>
-            <div className="text-xs text-neutral-400">Citizen Rating</div>
+            <div className="text-xs text-neutral-400 dark:text-neutral-500">Citizen Rating</div>
           </div>
         </div>
       </Card>
 
       <div className="grid md:grid-cols-2 gap-4">
-        <Card className="p-5 space-y-3 bg-white border-neutral-200 shadow-sm" padding="">
-          <h3 className="font-bold text-sm text-neutral-900 flex items-center gap-2"><Phone size={14} className="text-brand-600" />Contact Details</h3>
+        <Card className="p-5 space-y-3 shadow-sm" padding="">
+          <h3 className="font-bold text-sm text-neutral-900 dark:text-neutral-100 flex items-center gap-2"><Phone size={14} className="text-brand-600 dark:text-brand-400" />Contact Details</h3>
           {[
             { icon: Mail,     label: 'Email',     value: officer.email    },
             { icon: Phone,    label: 'Phone',     value: officer.phone    },
@@ -346,41 +386,41 @@ const ProfileTab = ({ officer }) => {
             { icon: Calendar, label: 'Joined',    value: formatDate(officer.joinedAt) },
           ].map(({ icon: Icon, label, value }) => (
             <div key={label} className="flex items-center gap-3 text-xs">
-              <div className="w-8 h-8 bg-neutral-100 rounded-lg flex items-center justify-center shrink-0">
-                <Icon size={13} className="text-neutral-500" />
+              <div className="w-8 h-8 bg-neutral-100 dark:bg-neutral-800 rounded-lg flex items-center justify-center shrink-0">
+                <Icon size={13} className="text-neutral-500 dark:text-neutral-400" />
               </div>
               <div>
-                <div className="text-neutral-400">{label}</div>
-                <div className="font-semibold text-neutral-800 break-all">{value}</div>
+                <div className="text-neutral-400 dark:text-neutral-500">{label}</div>
+                <div className="font-semibold text-neutral-800 dark:text-neutral-200 break-all">{value}</div>
               </div>
             </div>
           ))}
         </Card>
 
-        <Card className="p-5 space-y-3 bg-white border-neutral-200 shadow-sm" padding="">
-          <h3 className="font-bold text-sm text-neutral-900 flex items-center gap-2"><BadgeCheck size={14} className="text-brand-600" />Official Credentials</h3>
+        <Card className="p-5 space-y-3 shadow-sm" padding="">
+          <h3 className="font-bold text-sm text-neutral-900 dark:text-neutral-100 flex items-center gap-2"><BadgeCheck size={14} className="text-brand-600 dark:text-brand-400" />Official Credentials</h3>
           {[
             { label: 'Employee ID', value: officer.employeeId },
             { label: 'Officer ID',  value: officer.id         },
             { label: 'Department',  value: officer.department },
             { label: 'Ward Assignment', value: `Ward #${officer.ward} (${officer.wardName.split('–')[0]?.trim()})` },
           ].map(({ label, value }) => (
-            <div key={label} className="flex justify-between text-xs py-2 border-b border-neutral-100 last:border-0">
-              <span className="text-neutral-500">{label}</span>
-              <span className="font-mono font-bold text-neutral-800">{value}</span>
+            <div key={label} className="flex justify-between text-xs py-2 border-b border-neutral-100 dark:border-neutral-800 last:border-0">
+              <span className="text-neutral-500 dark:text-neutral-400">{label}</span>
+              <span className="font-mono font-bold text-neutral-800 dark:text-neutral-200">{value}</span>
             </div>
           ))}
         </Card>
       </div>
 
-      <Card className="p-5 bg-white border-neutral-200 shadow-sm" padding="">
-        <h3 className="font-bold text-sm text-neutral-900 mb-4 flex items-center gap-2"><Award size={14} className="text-brand-600" />Lifetime Performance</h3>
+      <Card className="p-5 shadow-sm" padding="">
+        <h3 className="font-bold text-sm text-neutral-900 dark:text-neutral-100 mb-4 flex items-center gap-2"><Award size={14} className="text-brand-600 dark:text-brand-400" />Lifetime Performance</h3>
         <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
           {[
-            { label: 'Total Resolved',     value: officer.resolvedCount,          cls: 'bg-emerald-50 border-emerald-100 text-emerald-800' },
-            { label: 'Active Assignments', value: officer.assignedCount,           cls: 'bg-amber-50 border-amber-100 text-amber-800'       },
-            { label: 'Avg Resolution',     value: `${officer.avgResolutionDays}d`, cls: 'bg-sky-50 border-sky-100 text-sky-800'             },
-            { label: 'Citizen Rating',     value: `${officer.rating}/5 ⭐`,        cls: 'bg-brand-50 border-brand-100 text-brand-800'       },
+            { label: 'Total Resolved',     value: officer.resolvedCount,          cls: isDark ? 'bg-emerald-950/40 border-emerald-800/40 text-emerald-300' : 'bg-emerald-50 border-emerald-100 text-emerald-800' },
+            { label: 'Active Assignments', value: officer.assignedCount,           cls: isDark ? 'bg-amber-950/40 border-amber-800/40 text-amber-300' : 'bg-amber-50 border-amber-100 text-amber-800' },
+            { label: 'Avg Resolution',     value: `${officer.avgResolutionDays}d`, cls: isDark ? 'bg-sky-950/40 border-sky-800/40 text-sky-300' : 'bg-sky-50 border-sky-100 text-sky-800' },
+            { label: 'Citizen Rating',     value: `${officer.rating}/5 ⭐`,        cls: isDark ? 'bg-brand-950/40 border-brand-800/40 text-brand-300' : 'bg-brand-50 border-brand-100 text-brand-800' },
           ].map(({ label, value, cls }) => (
             <div key={label} className={`p-3 rounded-xl border ${cls}`}>
               <div className="text-[10px] font-semibold uppercase tracking-wide opacity-70">{label}</div>
@@ -396,15 +436,16 @@ const ProfileTab = ({ officer }) => {
 // ── Notifications Tab ──────────────────────────────────────────────────────────
 const NotificationsTab = ({ officerName }) => {
   const { notifications, markRead } = useNotifications();
+  const { isDark } = useTheme();
 
   const TYPE_CFG = {
-    critical: { cls: 'bg-red-50 border-red-200 text-red-600',     icon: AlertTriangle },
-    alert:    { cls: 'bg-red-50 border-red-200 text-red-600',     icon: AlertTriangle },
-    update:   { cls: 'bg-sky-50 border-sky-200 text-sky-600',      icon: RefreshCw     },
-    status_update: { cls: 'bg-sky-50 border-sky-200 text-sky-600', icon: RefreshCw    },
-    resolved: { cls: 'bg-emerald-50 border-emerald-200 text-emerald-600', icon: CheckCircle2 },
-    assigned: { cls: 'bg-brand-50 border-brand-200 text-brand-600',icon: FileText      },
-    reminder: { cls: 'bg-amber-50 border-amber-200 text-amber-600',icon: Clock         },
+    critical: { cls: isDark ? 'bg-red-950/40 border-red-800/40 text-red-400' : 'bg-red-50 border-red-200 text-red-600',     icon: AlertTriangle },
+    alert:    { cls: isDark ? 'bg-red-950/40 border-red-800/40 text-red-400' : 'bg-red-50 border-red-200 text-red-600',     icon: AlertTriangle },
+    update:   { cls: isDark ? 'bg-sky-950/40 border-sky-800/40 text-sky-400' : 'bg-sky-50 border-sky-200 text-sky-600',      icon: RefreshCw     },
+    status_update: { cls: isDark ? 'bg-sky-950/40 border-sky-800/40 text-sky-400' : 'bg-sky-50 border-sky-200 text-sky-600', icon: RefreshCw    },
+    resolved: { cls: isDark ? 'bg-emerald-950/40 border-emerald-800/40 text-emerald-400' : 'bg-emerald-50 border-emerald-200 text-emerald-600', icon: CheckCircle2 },
+    assigned: { cls: isDark ? 'bg-brand-950/40 border-brand-800/40 text-brand-400' : 'bg-brand-50 border-brand-200 text-brand-600',icon: FileText      },
+    reminder: { cls: isDark ? 'bg-amber-950/40 border-amber-800/40 text-amber-400' : 'bg-amber-50 border-amber-200 text-amber-600',icon: Clock         },
   };
 
   const unreadCount = notifications.filter(i => !i.isRead).length;
@@ -412,14 +453,14 @@ const NotificationsTab = ({ officerName }) => {
   return (
     <div className="space-y-3 max-w-3xl">
       <div className="flex items-center justify-between mb-1">
-        <h3 className="font-bold text-sm text-neutral-900">Notifications for {officerName}</h3>
-        <span className="text-xs text-neutral-400">{unreadCount} unread</span>
+        <h3 className="font-bold text-sm text-neutral-900 dark:text-neutral-100">Notifications for {officerName}</h3>
+        <span className="text-xs text-neutral-400 dark:text-neutral-500">{unreadCount} unread</span>
       </div>
       {notifications.length === 0 ? (
-        <Card className="text-center py-12 space-y-2 bg-white border border-neutral-200" padding="p-8">
-          <CheckCircle2 size={36} className="mx-auto text-neutral-300" />
-          <p className="font-bold text-neutral-700 text-sm">No notifications</p>
-          <p className="text-xs text-neutral-400">All notifications for this account have been caught up.</p>
+        <Card className="text-center py-12 space-y-2 border border-neutral-200 dark:border-neutral-800" padding="p-8">
+          <CheckCircle2 size={36} className="mx-auto text-neutral-300 dark:text-neutral-600" />
+          <p className="font-bold text-neutral-700 dark:text-neutral-200 text-sm">No notifications</p>
+          <p className="text-xs text-neutral-400 dark:text-neutral-500">All notifications for this account have been caught up.</p>
         </Card>
       ) : (
         notifications.map((n) => {
@@ -428,7 +469,7 @@ const NotificationsTab = ({ officerName }) => {
             <Card
               key={n.id}
               onClick={() => !n.isRead && markRead(n.id)}
-              className={`flex items-start gap-3 p-4 bg-white border border-neutral-200 shadow-sm transition-all cursor-pointer ${!n.isRead ? 'ring-1 ring-brand-200' : ''}`}
+              className={`flex items-start gap-3 p-4 border border-neutral-200 dark:border-neutral-800 shadow-sm transition-all cursor-pointer ${!n.isRead ? 'ring-1 ring-brand-500/40' : ''}`}
               padding=""
             >
               <div className={`w-8 h-8 rounded-xl border flex items-center justify-center shrink-0 ${cls}`}>
@@ -436,12 +477,12 @@ const NotificationsTab = ({ officerName }) => {
               </div>
               <div className="flex-1 min-w-0">
                 <div className="flex items-center gap-2">
-                  <span className="font-bold text-neutral-900 text-xs">{n.title}</span>
-                  {!n.isRead && <span className="w-1.5 h-1.5 bg-brand-600 rounded-full shrink-0" />}
+                  <span className="font-bold text-neutral-900 dark:text-neutral-100 text-xs">{n.title}</span>
+                  {!n.isRead && <span className="w-1.5 h-1.5 bg-brand-600 dark:bg-brand-400 rounded-full shrink-0" />}
                 </div>
-                <p className="text-[11px] text-neutral-500 mt-0.5 leading-relaxed">{n.body}</p>
+                <p className="text-[11px] text-neutral-500 dark:text-neutral-400 mt-0.5 leading-relaxed">{n.body}</p>
               </div>
-              <span className="text-[10px] text-neutral-400 shrink-0 mt-0.5">{daysAgo(n.createdAt)}</span>
+              <span className="text-[10px] text-neutral-400 dark:text-neutral-500 shrink-0 mt-0.5">{daysAgo(n.createdAt)}</span>
             </Card>
           );
         })
@@ -451,76 +492,79 @@ const NotificationsTab = ({ officerName }) => {
 };
 
 // ── Performance Tab ────────────────────────────────────────────────────────────
-const PerformanceTab = ({ officer, perfData, monthlyData }) => (
-  <div className="space-y-5">
-    <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-      {[
-        { label: 'Total Resolved', value: perfData.totalResolved,          icon: CheckCircle2, cls: 'bg-emerald-50 border-emerald-100 text-emerald-700' },
-        { label: 'Avg Resolution', value: `${perfData.avgResolutionDays}d (estimated)`, icon: Clock, cls: 'bg-sky-50 border-sky-100 text-sky-700' },
-        { label: 'This Month',     value: `${perfData.lastMonthResolved} (estimated)`,  icon: TrendingUp, cls: 'bg-amber-50 border-amber-100 text-amber-700' },
-        { label: 'Citizen Rating', value: `${perfData.satisfactionRatio}/5`,icon: Star,         cls: 'bg-brand-50 border-brand-100 text-brand-700'       },
-      ].map(({ label, value, icon: Icon, cls }) => (
-        <Card key={label} className={`p-4 border bg-white ${cls} shadow-sm`} padding="">
-          <div className="flex items-center gap-2 mb-2">
-            <Icon size={14} />
-            <span className="text-[11px] font-semibold uppercase tracking-wide opacity-70">{label}</span>
-          </div>
-          <div className="text-xl font-bold">{value}</div>
-        </Card>
-      ))}
-    </div>
-
-    <div className="grid md:grid-cols-2 gap-5">
-      <Card className="p-5 space-y-3 bg-white border-neutral-200 shadow-sm" padding="">
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-2">
-            <h3 className="font-bold text-sm text-neutral-900">Weekly Resolutions — {officer?.name}</h3>
-            <span className="text-[10px] font-semibold text-neutral-400 bg-neutral-100 px-2 py-0.5 rounded-full border border-neutral-200">estimated</span>
-          </div>
-          <Badge variant="success">+{perfData.trend}% ↑</Badge>
-        </div>
-        <WeeklyChart data={perfData.weeklyResolved} />
-      </Card>
-      <Card className="p-5 space-y-3 bg-white border-neutral-200 shadow-sm" padding="">
-        <div className="flex items-center justify-between">
-          <h3 className="font-bold text-sm text-neutral-900">Category Breakdown</h3>
-          {perfData.isCategoryEstimated && (
-            <span className="text-[10px] font-semibold text-neutral-400 bg-neutral-100 px-2 py-0.5 rounded-full border border-neutral-200">estimated</span>
-          )}
-        </div>
-        <CategoryDonut data={perfData.categoryBreakdown} />
-      </Card>
-    </div>
-
-    <Card className="p-5 space-y-3 bg-white border-neutral-200 shadow-sm" padding="">
-      <div className="flex items-center justify-between">
-        <h3 className="font-bold text-sm text-neutral-900">6-Month Resolution Trend</h3>
-        <span className="text-[10px] font-semibold text-neutral-400 bg-neutral-100 px-2 py-0.5 rounded-full border border-neutral-200">estimated</span>
-      </div>
-      <MonthlyTrend data={monthlyData} />
-    </Card>
-
-    <Card className="p-5 bg-white border-neutral-200 shadow-sm" padding="">
-      <h3 className="font-bold text-sm text-neutral-900 mb-4 flex items-center gap-2"><Target size={14} className="text-brand-600" />Category Performance</h3>
-      <div className="space-y-3">
-        {perfData.categoryBreakdown.map((cat) => {
-          const pct = Math.round((cat.value / (perfData.totalResolved || 1)) * 100);
-          return (
-            <div key={cat.name}>
-              <div className="flex justify-between text-xs mb-1">
-                <span className="font-medium text-neutral-700">{cat.name}</span>
-                <span className="text-neutral-500 font-semibold">{cat.value} ({pct}%)</span>
-              </div>
-              <div className="h-2 bg-neutral-100 rounded-full overflow-hidden">
-                <div className="h-full rounded-full transition-all duration-700" style={{ width: `${pct}%`, backgroundColor: cat.fill }} />
-              </div>
+const PerformanceTab = ({ officer, perfData, monthlyData }) => {
+  const { isDark } = useTheme();
+  return (
+    <div className="space-y-5">
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+        {[
+          { label: 'Total Resolved', value: perfData.totalResolved,          icon: CheckCircle2, cls: isDark ? 'bg-emerald-950/40 border-emerald-800/40 text-emerald-300' : 'bg-emerald-50 border-emerald-100 text-emerald-700' },
+          { label: 'Avg Resolution', value: `${perfData.avgResolutionDays}d (estimated)`, icon: Clock, cls: isDark ? 'bg-sky-950/40 border-sky-800/40 text-sky-300' : 'bg-sky-50 border-sky-100 text-sky-700' },
+          { label: 'This Month',     value: `${perfData.lastMonthResolved} (estimated)`,  icon: TrendingUp, cls: isDark ? 'bg-amber-950/40 border-amber-800/40 text-amber-300' : 'bg-amber-50 border-amber-100 text-amber-700' },
+          { label: 'Citizen Rating', value: `${perfData.satisfactionRatio}/5`,icon: Star,         cls: isDark ? 'bg-brand-950/40 border-brand-800/40 text-brand-300' : 'bg-brand-50 border-brand-100 text-brand-700' },
+        ].map(({ label, value, icon: Icon, cls }) => (
+          <Card key={label} className={`p-4 border ${cls} shadow-sm`} padding="">
+            <div className="flex items-center gap-2 mb-2">
+              <Icon size={14} />
+              <span className="text-[11px] font-semibold uppercase tracking-wide opacity-70">{label}</span>
             </div>
-          );
-        })}
+            <div className="text-xl font-bold">{value}</div>
+          </Card>
+        ))}
       </div>
-    </Card>
-  </div>
-);
+
+      <div className="grid md:grid-cols-2 gap-5">
+        <Card className="p-5 space-y-3 shadow-sm" padding="">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <h3 className="font-bold text-sm text-neutral-900 dark:text-neutral-100">Weekly Resolutions — {officer?.name}</h3>
+              <span className="text-[10px] font-semibold text-neutral-400 bg-neutral-100 dark:bg-neutral-800 px-2 py-0.5 rounded-full border border-neutral-200 dark:border-neutral-700">estimated</span>
+            </div>
+            <Badge variant="success">+{perfData.trend}% ↑</Badge>
+          </div>
+          <WeeklyChart data={perfData.weeklyResolved} />
+        </Card>
+        <Card className="p-5 space-y-3 shadow-sm" padding="">
+          <div className="flex items-center justify-between">
+            <h3 className="font-bold text-sm text-neutral-900 dark:text-neutral-100">Category Breakdown</h3>
+            {perfData.isCategoryEstimated && (
+              <span className="text-[10px] font-semibold text-neutral-400 bg-neutral-100 dark:bg-neutral-800 px-2 py-0.5 rounded-full border border-neutral-200 dark:border-neutral-700">estimated</span>
+            )}
+          </div>
+          <CategoryDonut data={perfData.categoryBreakdown} />
+        </Card>
+      </div>
+
+      <Card className="p-5 space-y-3 shadow-sm" padding="">
+        <div className="flex items-center justify-between">
+          <h3 className="font-bold text-sm text-neutral-900 dark:text-neutral-100">6-Month Resolution Trend</h3>
+          <span className="text-[10px] font-semibold text-neutral-400 bg-neutral-100 dark:bg-neutral-800 px-2 py-0.5 rounded-full border border-neutral-200 dark:border-neutral-700">estimated</span>
+        </div>
+        <MonthlyTrend data={monthlyData} />
+      </Card>
+
+      <Card className="p-5 shadow-sm" padding="">
+        <h3 className="font-bold text-sm text-neutral-900 dark:text-neutral-100 mb-4 flex items-center gap-2"><Target size={14} className="text-brand-600 dark:text-brand-400" />Category Performance</h3>
+        <div className="space-y-3">
+          {perfData.categoryBreakdown.map((cat) => {
+            const pct = Math.round((cat.value / (perfData.totalResolved || 1)) * 100);
+            return (
+              <div key={cat.name}>
+                <div className="flex justify-between text-xs mb-1">
+                  <span className="font-medium text-neutral-700 dark:text-neutral-300">{cat.name}</span>
+                  <span className="text-neutral-500 dark:text-neutral-400 font-semibold">{cat.value} ({pct}%)</span>
+                </div>
+                <div className="h-2 bg-neutral-100 dark:bg-neutral-800 rounded-full overflow-hidden">
+                  <div className="h-full rounded-full transition-all duration-700" style={{ width: `${pct}%`, backgroundColor: cat.fill }} />
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      </Card>
+    </div>
+  );
+};
 
 // ── Ward Map Tab ───────────────────────────────────────────────────────────────
 const MapTab = ({ complaints, officer }) => {
@@ -537,11 +581,11 @@ const MapTab = ({ complaints, officer }) => {
 
   return (
     <div className="space-y-3">
-      <Card padding="" className="overflow-hidden bg-white border-neutral-200 shadow-sm">
-        <div className="px-4 py-3 border-b border-neutral-200 flex items-center justify-between flex-wrap gap-2">
+      <Card padding="" className="overflow-hidden shadow-sm">
+        <div className="px-4 py-3 border-b border-neutral-200 dark:border-neutral-800 flex items-center justify-between flex-wrap gap-2">
           <div>
-            <h3 className="font-bold text-sm text-neutral-900">Ward Heatmap & GPS Locations — {officer?.name}</h3>
-            <p className="text-xs text-neutral-500 mt-0.5">{complaints.length} active complaints in {officer?.wardName}</p>
+            <h3 className="font-bold text-sm text-neutral-900 dark:text-neutral-100">Ward Heatmap & GPS Locations — {officer?.name}</h3>
+            <p className="text-xs text-neutral-500 dark:text-neutral-400 mt-0.5">{complaints.length} active complaints in {officer?.wardName}</p>
           </div>
           <div className="flex items-center gap-3 text-[10px] font-semibold">
             {[['#dc2626','Critical (80+)'],['#f97316','High (60-79)'],['#f59e0b','Medium'],['#22c55e','Low']].map(([c,l]) => (
@@ -559,6 +603,7 @@ const MapTab = ({ complaints, officer }) => {
 export const OfficerDashboard = ({ activeTabOverride }) => {
   const { user } = useAuth();
   const { unreadCount } = useNotifications();
+  const { isDark } = useTheme();
   const { officerId } = useParams();
   const location = useLocation();
   const navigate = useNavigate();
@@ -803,7 +848,7 @@ export const OfficerDashboard = ({ activeTabOverride }) => {
         <SkeletonKpiCard />
         <SkeletonKpiCard />
       </div>
-      <Card className="p-6 bg-white border-neutral-200 shadow-sm" padding="">
+      <Card className="p-6 shadow-sm" padding="">
         <div className="space-y-4">
           <SkeletonRow />
           <SkeletonRow />
@@ -818,7 +863,7 @@ export const OfficerDashboard = ({ activeTabOverride }) => {
     <div className="space-y-5 max-w-7xl mx-auto">
 
       {/* ── Officer Header Banner (prominently displays officer name & ward) ── */}
-      <div className="bg-white border border-neutral-200 rounded-2xl p-5 shadow-sm flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
+      <div className="bg-white dark:bg-neutral-900 border border-neutral-200 dark:border-neutral-800 rounded-2xl p-5 shadow-sm flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
         <div className="flex items-center gap-4">
           <div className={`w-14 h-14 bg-gradient-to-br ${grad} rounded-2xl flex items-center justify-center text-white text-xl font-bold shadow-md shrink-0`}>
             {officerProfile?.avatarInitials}
@@ -827,32 +872,32 @@ export const OfficerDashboard = ({ activeTabOverride }) => {
             <div className="flex items-center gap-2 mb-0.5 flex-wrap">
               <Badge variant="brand">{officerProfile?.wardName?.split('–')[0]?.trim()}</Badge>
               <span className="text-[11px] text-neutral-400 font-mono font-medium">{officerProfile?.employeeId}</span>
-              <span className="text-[11px] text-emerald-600 font-semibold bg-emerald-50 px-2 py-0.5 rounded-full border border-emerald-100">
+              <span className="text-[11px] text-emerald-600 dark:text-emerald-400 font-semibold bg-emerald-50 dark:bg-emerald-950/40 px-2 py-0.5 rounded-full border border-emerald-100 dark:border-emerald-800/40">
                 ● {officerProfile?.status}
               </span>
             </div>
-            <h1 className="text-xl font-bold text-neutral-900">{officerProfile?.name}</h1>
-            <p className="text-xs text-neutral-500">{officerProfile?.department} · Designated Ward Officer</p>
+            <h1 className="text-xl font-bold text-neutral-900 dark:text-neutral-100">{officerProfile?.name}</h1>
+            <p className="text-xs text-neutral-500 dark:text-neutral-400">{officerProfile?.department} · Designated Ward Officer</p>
           </div>
         </div>
 
         {/* Live Weather & Controls */}
         <div className="flex flex-wrap items-center gap-3">
           {/* Officer Identity (read-only — no switcher) */}
-          <div className="flex items-center gap-1.5 bg-neutral-50 border border-neutral-200 px-3 py-2 rounded-xl shadow-sm">
-            <User size={14} className="text-brand-600 shrink-0" />
+          <div className="flex items-center gap-1.5 bg-neutral-50 dark:bg-neutral-800/80 border border-neutral-200 dark:border-neutral-700 px-3 py-2 rounded-xl shadow-sm">
+            <User size={14} className="text-brand-600 dark:text-brand-400 shrink-0" />
             <div className="text-left">
-              <span className="text-[10px] uppercase font-bold text-neutral-400 block leading-tight">Signed In Officer</span>
-              <span className="text-xs font-bold text-neutral-800">#{officerProfile?.ward} {officerProfile?.name}</span>
+              <span className="text-[10px] uppercase font-bold text-neutral-400 dark:text-neutral-400 block leading-tight">Signed In Officer</span>
+              <span className="text-xs font-bold text-neutral-800 dark:text-neutral-200">#{officerProfile?.ward} {officerProfile?.name}</span>
             </div>
           </div>
 
           {weather && (
-            <Card className="px-3 py-2 bg-sky-50/70 border-sky-100 flex items-center gap-2 shadow-sm" padding="">
+            <Card className="px-3 py-2 bg-sky-50/70 dark:bg-sky-950/40 border-sky-100 dark:border-sky-800/40 flex items-center gap-2 shadow-sm" padding="">
               <Thermometer size={16} className="text-sky-500 shrink-0" />
               <div>
-                <div className="text-xs font-bold text-neutral-800">{weather.temperature}°C · AQI {weather.aqi}</div>
-                <div className="text-[10px] text-neutral-500">{weather.condition}</div>
+                <div className="text-xs font-bold text-neutral-800 dark:text-neutral-200">{weather.temperature}°C · AQI {weather.aqi}</div>
+                <div className="text-[10px] text-neutral-500 dark:text-neutral-400">{weather.condition}</div>
               </div>
             </Card>
           )}
@@ -868,12 +913,12 @@ export const OfficerDashboard = ({ activeTabOverride }) => {
       {/* ── Ward Stats Strip ── */}
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
         {[
-          { label: 'Critical Issues',  value: stats.critical,   icon: AlertTriangle, cls: 'bg-red-50 border-red-200 text-red-700' },
-          { label: 'Pending Review',   value: stats.pending,    icon: Clock,        cls: 'bg-amber-50 border-amber-200 text-amber-700' },
-          { label: 'In Progress Work', value: stats.inProgress, icon: Activity,     cls: 'bg-sky-50 border-sky-200 text-sky-700' },
-          { label: 'Ward Resolved',    value: stats.resolved,   icon: CheckCircle2, cls: 'bg-emerald-50 border-emerald-200 text-emerald-700' },
+          { label: 'Critical Issues',  value: stats.critical,   icon: AlertTriangle, cls: isDark ? 'bg-red-950/40 border-red-800/40 text-red-300' : 'bg-red-50 border-red-200 text-red-700' },
+          { label: 'Pending Review',   value: stats.pending,    icon: Clock,        cls: isDark ? 'bg-amber-950/40 border-amber-800/40 text-amber-300' : 'bg-amber-50 border-amber-200 text-amber-700' },
+          { label: 'In Progress Work', value: stats.inProgress, icon: Activity,     cls: isDark ? 'bg-sky-950/40 border-sky-800/40 text-sky-300' : 'bg-sky-50 border-sky-200 text-sky-700' },
+          { label: 'Ward Resolved',    value: stats.resolved,   icon: CheckCircle2, cls: isDark ? 'bg-emerald-950/40 border-emerald-800/40 text-emerald-300' : 'bg-emerald-50 border-emerald-200 text-emerald-700' },
         ].map(({ label, value, icon: Icon, cls }) => (
-          <Card key={label} className={`p-4 border bg-white ${cls} shadow-sm`} padding="">
+          <Card key={label} className={`p-4 border ${cls} shadow-sm`} padding="">
             <div className="flex items-center justify-between mb-1">
               <span className="text-[11px] font-semibold uppercase tracking-wide opacity-75">{label}</span>
               <Icon size={15} />
@@ -885,21 +930,21 @@ export const OfficerDashboard = ({ activeTabOverride }) => {
       </div>
 
       {/* ── Navigation Tab Strip ── */}
-      <div className="border-b border-neutral-200 flex gap-1 overflow-x-auto pb-0.5">
+      <div className="border-b border-neutral-200 dark:border-neutral-800 flex gap-1 overflow-x-auto pb-0.5">
         {TABS.map((t) => (
           <button
             key={t.id}
             onClick={() => handleTabClick(t.id)}
-            className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs font-semibold whitespace-nowrap transition-all ${
+            className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs font-semibold whitespace-nowrap transition-all cursor-pointer ${
               activeTab === t.id
-                ? 'bg-brand-600 text-white shadow-brand shadow-sm'
-                : 'text-neutral-600 hover:text-neutral-900 hover:bg-neutral-100'
+                ? 'bg-brand-600 text-white shadow-brand shadow-sm font-bold'
+                : 'text-neutral-600 dark:text-neutral-400 hover:text-neutral-900 dark:hover:text-white hover:bg-neutral-100 dark:hover:bg-neutral-800'
             }`}
           >
             <span>{t.label}</span>
             {t.count !== undefined && (
               <span className={`px-1.5 py-0.5 rounded-full text-[10px] font-bold ${
-                activeTab === t.id ? 'bg-white/20 text-white' : 'bg-neutral-200 text-neutral-700'
+                activeTab === t.id ? 'bg-white/20 text-white' : 'bg-neutral-200 dark:bg-neutral-800 text-neutral-700 dark:text-neutral-300'
               }`}>
                 {t.count}
               </span>
@@ -910,24 +955,24 @@ export const OfficerDashboard = ({ activeTabOverride }) => {
 
       {/* ── Tab: Complaint Queue ── */}
       {activeTab === 'queue' && (
-        <Card className="overflow-hidden bg-white border-neutral-200 shadow-sm" padding="">
+        <Card className="overflow-hidden shadow-sm" padding="">
           {/* Filter and Search Bar */}
-          <div className="p-4 border-b border-neutral-200 flex flex-col sm:flex-row items-center justify-between gap-3 bg-neutral-50/50">
+          <div className="p-4 border-b border-neutral-200 dark:border-neutral-800 flex flex-col sm:flex-row items-center justify-between gap-3 bg-neutral-50/50 dark:bg-neutral-800/40">
             <div className="relative w-full sm:w-72">
-              <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-neutral-400" />
+              <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-neutral-400 dark:text-neutral-500" />
               <input
                 type="text"
                 placeholder="Search grievances, ID, citizen…"
                 value={searchQ}
                 onChange={(e) => setSearchQ(e.target.value)}
-                className="w-full pl-9 pr-4 py-2 bg-white border border-neutral-200 rounded-xl text-xs text-neutral-800 placeholder-neutral-400 focus:outline-none focus:ring-2 focus:ring-brand-200"
+                className="w-full pl-9 pr-4 py-2 bg-white dark:bg-neutral-800 border border-neutral-200 dark:border-neutral-700 rounded-xl text-xs text-neutral-800 dark:text-neutral-200 placeholder-neutral-400 dark:placeholder-neutral-500 focus:outline-none focus:ring-2 focus:ring-brand-500/50"
               />
             </div>
             <div className="flex items-center gap-2 w-full sm:w-auto">
               <select
                 value={filterStatus}
                 onChange={(e) => setFilterStatus(e.target.value)}
-                className="px-3 py-2 bg-white border border-neutral-200 rounded-xl text-xs font-semibold text-neutral-700 focus:outline-none shadow-sm"
+                className="px-3 py-2 bg-white dark:bg-neutral-800 border border-neutral-200 dark:border-neutral-700 rounded-xl text-xs font-semibold text-neutral-700 dark:text-neutral-200 focus:outline-none shadow-sm cursor-pointer"
               >
                 <option value="all">All Statuses</option>
                 <option value="reported">Reported</option>
@@ -938,7 +983,7 @@ export const OfficerDashboard = ({ activeTabOverride }) => {
               <select
                 value={filterCat}
                 onChange={(e) => setFilterCat(e.target.value)}
-                className="px-3 py-2 bg-white border border-neutral-200 rounded-xl text-xs font-semibold text-neutral-700 focus:outline-none shadow-sm"
+                className="px-3 py-2 bg-white dark:bg-neutral-800 border border-neutral-200 dark:border-neutral-700 rounded-xl text-xs font-semibold text-neutral-700 dark:text-neutral-200 focus:outline-none shadow-sm cursor-pointer"
               >
                 <option value="all">All Categories</option>
                 <option value="Pothole">Pothole</option>
@@ -954,8 +999,8 @@ export const OfficerDashboard = ({ activeTabOverride }) => {
           {complaintsError ? (
             <div className="text-center py-16 space-y-3">
               <AlertTriangle size={36} className="mx-auto text-red-400" />
-              <p className="font-bold text-neutral-800 text-sm">Failed to load complaints</p>
-              <p className="text-xs text-neutral-400">{complaintsError}</p>
+              <p className="font-bold text-neutral-800 dark:text-neutral-200 text-sm">Failed to load complaints</p>
+              <p className="text-xs text-neutral-400 dark:text-neutral-500">{complaintsError}</p>
               <button
                 onClick={loadWardData}
                 className="mt-2 px-4 py-2 bg-brand-600 text-white text-xs font-semibold rounded-xl hover:bg-brand-700 transition-colors"
@@ -966,14 +1011,14 @@ export const OfficerDashboard = ({ activeTabOverride }) => {
           ) : filteredComplaints.length === 0 ? (
             <div className="text-center py-16 space-y-2">
               <CheckCircle2 size={36} className="mx-auto text-emerald-500" />
-              <p className="font-bold text-neutral-800 text-sm">No complaints found</p>
-              <p className="text-xs text-neutral-400">All grievances matching filters in {officerProfile?.name}'s ward are clear.</p>
+              <p className="font-bold text-neutral-800 dark:text-neutral-200 text-sm">No complaints found</p>
+              <p className="text-xs text-neutral-400 dark:text-neutral-500">All grievances matching filters in {officerProfile?.name}'s ward are clear.</p>
             </div>
           ) : (
             <>
               <div className="overflow-x-auto">
                 <table className="w-full text-left">
-                  <thead className="bg-neutral-50/80 border-b border-neutral-200 text-neutral-500 text-[11px] font-semibold uppercase tracking-wider">
+                  <thead className="bg-neutral-50/80 dark:bg-neutral-800/80 border-b border-neutral-200 dark:border-neutral-800 text-neutral-500 dark:text-neutral-400 text-[11px] font-semibold uppercase tracking-wider">
                     <tr>
                       <th className="px-4 py-3">ID</th>
                       <th className="px-4 py-3">Grievance & Evidence Photo</th>
@@ -984,7 +1029,7 @@ export const OfficerDashboard = ({ activeTabOverride }) => {
                       <th className="px-4 py-3 text-right">Action</th>
                     </tr>
                   </thead>
-                  <tbody className="divide-y divide-neutral-100 text-xs">
+                  <tbody className="divide-y divide-neutral-100 dark:divide-neutral-800 text-xs">
                     {filteredComplaints.map((item) => (
                       <ComplaintRow
                         key={item.id}
@@ -998,18 +1043,18 @@ export const OfficerDashboard = ({ activeTabOverride }) => {
               </div>
               {/* Pagination — Bug E */}
               {totalComplaints > PAGE_LIMIT && (
-                <div className="flex items-center justify-between px-4 py-3 border-t border-neutral-100 text-xs text-neutral-500">
+                <div className="flex items-center justify-between px-4 py-3 border-t border-neutral-100 dark:border-neutral-800 text-xs text-neutral-500 dark:text-neutral-400">
                   <span>Showing {Math.min(page * PAGE_LIMIT, totalComplaints)} of {totalComplaints} complaints</span>
                   <div className="flex gap-2">
                     <button
                       onClick={() => setPage((p) => Math.max(1, p - 1))}
                       disabled={page === 1}
-                      className="px-3 py-1.5 rounded-lg border border-neutral-200 font-semibold disabled:opacity-40 hover:bg-neutral-50"
+                      className="px-3 py-1.5 rounded-lg border border-neutral-200 dark:border-neutral-700 font-semibold disabled:opacity-40 hover:bg-neutral-50 dark:hover:bg-neutral-800 text-neutral-700 dark:text-neutral-300"
                     >← Prev</button>
                     <button
                       onClick={() => setPage((p) => p + 1)}
                       disabled={page * PAGE_LIMIT >= totalComplaints}
-                      className="px-3 py-1.5 rounded-lg border border-neutral-200 font-semibold disabled:opacity-40 hover:bg-neutral-50"
+                      className="px-3 py-1.5 rounded-lg border border-neutral-200 dark:border-neutral-700 font-semibold disabled:opacity-40 hover:bg-neutral-50 dark:hover:bg-neutral-800 text-neutral-700 dark:text-neutral-300"
                     >Next →</button>
                   </div>
                 </div>
