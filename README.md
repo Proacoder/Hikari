@@ -1,200 +1,634 @@
+<!--
+  KAISER AI — CINEMATIC GITHUB README
+  Product: AI-Powered Civic Grievance & Municipal Resolution Platform
+  Design: Midnight Navy · Electric Violet · Cyan · Mumbai Civic Intelligence
+-->
+
 <div align="center">
 
-# 🏛️ KAISER AI
-### *AI-Powered Civic Grievance & Municipal Resolution Platform for Mumbai*
+<a href="#-kaiser-ai">
+<img src="https://capsule-render.vercel.app/api?type=waving&height=240&color=0:070B19,35:241052,70:4338CA,100:06B6D4&text=KAISER%20AI&fontSize=76&fontColor=FFFFFF&fontAlignY=40&animation=fadeIn&desc=CIVIC%20INTELLIGENCE%20%E2%80%A2%20MUMBAI%2C%20INDIA&descSize=17&descAlignY=61&stroke=8B5CF6&strokeWidth=1" width="100%" alt="KAISER AI Animated Hero"/>
+</a>
 
-[![React 19](https://img.shields.io/badge/React-19.2-61DAFB?style=for-the-badge&logo=react&logoColor=black)](https://react.dev/)
-[![Vite](https://img.shields.io/badge/Vite-8.3-646CFF?style=for-the-badge&logo=vite&logoColor=white)](https://vitejs.dev/)
-[![Tailwind CSS](https://img.shields.io/badge/Tailwind_CSS-v4-06B6D4?style=for-the-badge&logo=tailwindcss&logoColor=white)](https://tailwindcss.com/)
-[![Leaflet](https://img.shields.io/badge/Leaflet-Maps-199900?style=for-the-badge&logo=leaflet&logoColor=white)](https://leafletjs.com/)
-[![License](https://img.shields.io/badge/License-MIT-blue.svg?style=for-the-badge)](#license)
+<br/>
 
-<p align="center">
-  <b>Empowering Citizens. Streamlining Municipal Wards. Accelerating Resolution.</b><br />
-  Built for Mumbai’s 26 Municipal Wards (BMC) with intelligent automated triage, live geospatial mapping, and role-tailored dashboards.
+<img src="https://readme-typing-svg.demolab.com?font=JetBrains+Mono&weight=700&size=20&duration=2200&pause=650&color=67E8F9&center=true&vCenter=true&multiline=false&repeat=true&width=900&height=45&lines=INTELLIGENCE+FOR+EVERY+WARD.;EVERY+REPORT+DESERVES+A+RESPONSE.;FROM+CITIZEN+VOICE+TO+CIVIC+ACTION.;POWERED+BY+AI.+BUILT+FOR+MUMBAI." alt="Animated KAISER AI tagline"/>
+
+<br/>
+
+<p>
+  <img src="https://img.shields.io/badge/PLATFORM-CIVIC_TECH-8B5CF6?style=for-the-badge&labelColor=080D1B" alt="Civic Tech"/>
+  <img src="https://img.shields.io/badge/INTELLIGENCE-AI_POWERED-06B6D4?style=for-the-badge&labelColor=080D1B" alt="AI Powered"/>
+  <img src="https://img.shields.io/badge/CITY-MUMBAI-E11D48?style=for-the-badge&labelColor=080D1B" alt="Mumbai"/>
+  <img src="https://img.shields.io/badge/LICENSE-MIT-22C55E?style=for-the-badge&labelColor=080D1B" alt="MIT License"/>
 </p>
 
-[Explore Features](#-key-features) • [Quick Start](#-quick-start) • [Role Portals](#-role-portals) • [Architecture](#-architecture) • [Demo Credentials](#-default-demo-credentials)
+**A smarter connection between citizens, municipal officers, and the city they serve.**
 
----
+AI-assisted grievance intelligence · Geospatial issue mapping · Ward operations · Evidence-aware resolution
+
+<br/>
+
+[🚀 Explore Platform](#-platform-experience) · [✨ Features](#-next-generation-capabilities) · [🏗️ Architecture](#-intelligence-architecture) · [⚡ Quick Start](#-launch-kaiser-ai) · [🗺️ Roadmap](#-the-evolution)
+
+<br/>
+
+<img src="https://capsule-render.vercel.app/api?type=rect&height=2&color=0:06B6D4,50:8B5CF6,100:EC4899&section=header" width="100%" alt="Gradient divider"/>
 
 </div>
 
-## 📌 Executive Summary
+<a id="-kaiser-ai"></a>
 
-**Kaiser AI** is a next-generation municipal governance platform engineered to bridge the gap between citizens and urban municipal bodies (Brihanmumbai Municipal Corporation - BMC). 
+## ◈ 01 — The Vision
 
-By leveraging **AI classification**, **severity scoring**, and **geospatial routing**, Kaiser AI eliminates manual triage bottlenecks and automatically directs citizen grievances—ranging from severe road potholes to dangerous open drainage and streetlight failures—directly to the responsible ward engineers with time-bound SLA tracking.
+**KAISER AI** is an AI-powered civic grievance and municipal resolution platform designed to help Mumbai move toward more transparent, responsive, and data-driven civic services.
+
+Road potholes. Overflowing drainage. Broken streetlights. Waterlogging. Sanitation issues.
+
+Every unresolved civic issue affects someone's everyday life.
+
+KAISER AI brings reporting, intelligent prioritization, geographic routing, officer workflows, and resolution tracking into one connected digital experience.
+
+<table>
+<tr>
+<td align="center" width="25%">
+
+<img src="https://img.shields.io/badge/01-REPORT-7C3AED?style=for-the-badge" alt="Report"/>
+
+**Citizen Voice**
+
+</td>
+<td align="center" width="25%">
+
+<img src="https://img.shields.io/badge/02-ANALYZE-0891B2?style=for-the-badge" alt="Analyze"/>
+
+**AI Intelligence**
+
+</td>
+<td align="center" width="25%">
+
+<img src="https://img.shields.io/badge/03-ROUTE-D97706?style=for-the-badge" alt="Route"/>
+
+**Ward Operations**
+
+</td>
+<td align="center" width="25%">
+
+<img src="https://img.shields.io/badge/04-RESOLVE-059669?style=for-the-badge" alt="Resolve"/>
+
+**Accountability**
+
+</td>
+</tr>
+</table>
+
+> **Our principle:** Technology should not make civic governance more complicated. It should make reporting easier, decisions more informed, and outcomes more visible.
 
 ---
 
-## 🌟 Key Features
+## ◈ 02 — Platform Experience
 
-### 👤 1. Citizen Portal (`/app`)
-- **Smart Grievance Filing**: AI-assisted complaint registration with auto-categorization and severity prediction (0–100 scale).
-- **Interactive Live Map**: Leaflet-powered GIS map visualizing verified civic issues, colored by severity and category pins across Mumbai.
-- **My Complaints Tracker**: Track resolution milestones in real time (`Submitted` ➔ `Assigned` ➔ `In Progress` ➔ `Resolved`).
-- **Live Environmental Barometer**: Real-time ambient weather, humidity, and Mumbai AQI integration to contextualize seasonal civic hazards like monsoon waterlogging.
+<div align="center">
 
-### 👷 2. Ward Officer Portal (`/officer`)
-- **Triage & Dispatch Desk**: Filter grievances by municipal ward (e.g., K/E Andheri, G/N Bandra, Worli) and priority level.
-- **Workflow State Management**: One-click actions to acknowledge, schedule, update status, and close complaints with resolution notes.
-- **Performance & SLA Monitoring**: Live tracking of average turnaround time, overdue violations, and target resolution quotas.
-- **Visual Analytics**: Interactive Recharts breakdown of complaint categories and weekly resolution throughput.
+<img src="https://readme-typing-svg.demolab.com?font=Fira+Code&weight=600&size=19&duration=2500&pause=900&color=A78BFA&center=true&vCenter=true&width=750&height=40&lines=ONE+CITY.+THREE+CONNECTED+PORTALS.;BUILT+FOR+CITIZENS.+POWERED+BY+INTELLIGENCE." alt="Platform experience animation"/>
 
-### 🏛️ 3. City Administrator Console (`/admin`)
-- **BMC Command Center**: Macro-level view of grievance inflow across all 26 Mumbai wards.
-- **Ward Performance Heatmaps**: Comparative analytics highlighting top-performing wards and zones lagging behind SLAs.
-- **Officer & Resource Roster**: Manage field officers, reallocate workloads, and audit departmental bottlenecks.
-- **One-Click Audit Reports**: Export summary metrics for municipal executive briefings.
+</div>
+
+<table>
+<tr>
+<td width="50%" valign="top">
+
+### <img src="https://img.shields.io/badge/01-CITIZEN-7C3AED?style=flat-square" alt="Citizen portal"/>
+
+#### Your city. Your voice.
+
+- Smart grievance registration
+- AI-assisted complaint classification
+- GPS location and draggable map pin
+- Severity prediction and priority indicators
+- Interactive civic issue map
+- Personal complaint timeline
+- Live notification center
+- Multilingual interface
+- Community upvoting and duplicate discovery
+
+**Experience:** `/app`
+
+</td>
+<td width="50%" valign="top">
+
+### <img src="https://img.shields.io/badge/02-WARD_OPERATIONS-0891B2?style=flat-square" alt="Ward operations"/>
+
+#### Every issue has an owner.
+
+- Ward-specific grievance queues
+- Priority-based complaint filtering
+- Assignment and dispatch workflows
+- Inspection and resolution notes
+- Before-and-after evidence capture
+- SLA monitoring and overdue tracking
+- Resolution throughput analytics
+- Officer workload visibility
+
+**Experience:** `/officer`
+
+</td>
+</tr>
+<tr>
+<td width="50%" valign="top">
+
+### <img src="https://img.shields.io/badge/03-ADMINISTRATION-D97706?style=flat-square" alt="Administrator portal"/>
+
+#### A city-wide perspective.
+
+- City-wide grievance overview
+- Ward performance comparisons
+- Geographic hotspot analytics
+- Officer and resource management
+- Departmental bottleneck analysis
+- Resolution-time reporting
+- Executive audit summaries
+
+**Experience:** `/admin`
+
+</td>
+<td width="50%" valign="top">
+
+### <img src="https://img.shields.io/badge/04-KAISER_SAHAYAK-DB2777?style=flat-square" alt="Kaiser Sahayak"/>
+
+#### Conversational civic assistance.
+
+- English, Hindi, and Marathi support
+- Guidance on complaint registration
+- Assistance with municipal workflows
+- Natural-language civic queries
+- AI-assisted service discovery
+- Context-aware reporting guidance
+
+**Engine:** Gemini API integration
+
+</td>
+</tr>
+</table>
 
 ---
 
-## 🏗️ Architecture & Tech Stack
+## ◈ 03 — Next-Generation Capabilities
+
+### 01. AI Grievance Intelligence
+
+<img src="https://img.shields.io/badge/ENGINE-AI_TRIAGE-8B5CF6?style=for-the-badge" alt="AI triage engine"/>
+
+Transform unstructured citizen reports into actionable information.
+
+- Natural-language complaint classification
+- Severity estimation on a 0–100 scale
+- Suggested complaint categories
+- Potential department and ward recommendations
+- Confidence-aware review workflows
+- Human oversight for uncertain predictions
+
+### 02. Geospatial Intelligence
+
+<img src="https://img.shields.io/badge/ENGINE-GEOSPATIAL_AI-06B6D4?style=for-the-badge" alt="Geospatial engine"/>
+
+Give every complaint geographic context.
+
+- GPS-assisted location selection
+- Leaflet-powered interactive maps
+- OpenStreetMap geographic visualization
+- Ward boundary matching
+- DBSCAN-based spatial clustering
+- Configurable duplicate-detection radius
+- Civic hotspot identification
+
+### 03. Evidence-Aware Resolution
+
+<img src="https://img.shields.io/badge/ENGINE-VERIFICATION-22C55E?style=for-the-badge" alt="Verification engine"/>
+
+Make the resolution process more accountable.
+
+- Before-and-after image comparison
+- Inspection timestamps
+- Configurable GPS proximity verification
+- Field notes and expenditure records
+- SHA-256 evidence integrity hashes
+- Auditable complaint status changes
+
+*Cryptographic hashes help detect modifications to recorded data; they do not independently prove that a photograph or inspection is genuine.*
+
+### 04. Environmental Context
+
+<img src="https://img.shields.io/badge/ENGINE-CITY_SIGNALS-0EA5E9?style=for-the-badge" alt="Environmental signals"/>
+
+Connect civic issues with relevant environmental conditions.
+
+- Weather and humidity information
+- Mumbai air-quality information
+- Monsoon-related issue context
+- Potential geographic risk patterns
+- Time-based civic trend analysis
+
+Live data requires valid, configured external service integrations.
+
+### 05. Community-Powered Reporting
+
+<img src="https://img.shields.io/badge/ENGINE-COLLECTIVE_INTELLIGENCE-EC4899?style=for-the-badge" alt="Collective intelligence"/>
+
+- Community support for existing complaints
+- Duplicate submission discovery
+- Geographic issue clustering
+- Recurring problem identification
+- Configurable anti-spam controls
+
+---
+
+## ◈ 04 — The Animated Intelligence Pipeline
+
+<div align="center">
+
+<img src="https://readme-typing-svg.demolab.com?font=JetBrains+Mono&weight=700&size=17&duration=1800&pause=500&color=67E8F9&center=true&vCenter=true&width=850&height=38&lines=CAPTURE+%E2%86%92+UNDERSTAND+%E2%86%92+PRIORITIZE;LOCATE+%E2%86%92+ASSIGN+%E2%86%92+INSPECT;VERIFY+%E2%86%92+RESOLVE+%E2%86%92+MEASURE" alt="Animated civic workflow"/>
+
+</div>
 
 ```mermaid
-graph TD
-    User([Citizen / Field Officer / Admin]) --> Router[React Router v7]
-    Router --> Layouts[Role Layouts & Nav]
-    
-    subgraph Frontend Application
-        Layouts --> CitizenView[Citizen Portal]
-        Layouts --> OfficerView[Officer Dashboard]
-        Layouts --> AdminView[Admin Console]
-        
-        CitizenView --> CompMap[Leaflet GIS Engine]
-        CitizenView --> AIForm[AI Triage & Severity Form]
-        OfficerView --> RechartsView[Recharts Performance Analytics]
-        AdminView --> MacroHeatmap[Cross-Ward Metrics]
-    end
-    
-    subgraph Data & State Layer
-        CitizenView & OfficerView & AdminView --> AuthContext[Auth Context & Token Store]
-        CitizenView & OfficerView & AdminView --> ApiLayer[API Client / Mock Services]
-    end
-    
-    subgraph External & Live Integrations
-        ApiLayer --> WeatherAPI[Mumbai Live AQI & Weather]
-        ApiLayer --> GeoData[OpenStreetMap / Leaflet Tile Layer]
-    end
+flowchart TD
+    A["👤 Citizen Report"] --> B["📍 GPS & Location"]
+    B --> C["🧠 AI Classification"]
+    C --> D["🚦 Severity Assessment"]
+    D --> E["🧩 Spatial Deduplication"]
+    E --> F["🏛️ Ward Identification"]
+    F --> G["📥 Officer Triage"]
+    G --> H["🛠️ Field Inspection"]
+    H --> I["📸 Resolution Evidence"]
+    I --> J["🔐 Integrity Check"]
+    J --> K["✅ Resolution Recorded"]
+    K --> L["📊 Performance Analytics"]
+
+    classDef capture fill:#172554,stroke:#60A5FA,color:#FFFFFF
+    classDef intelligence fill:#3B0764,stroke:#C084FC,color:#FFFFFF
+    classDef operations fill:#713F12,stroke:#FBBF24,color:#FFFFFF
+    classDef resolution fill:#064E3B,stroke:#34D399,color:#FFFFFF
+
+    class A,B capture
+    class C,D,E,F intelligence
+    class G,H,I operations
+    class J,K,L resolution
 ```
 
-| Layer | Technology | Purpose |
-| :--- | :--- | :--- |
-| **Framework** | **React 19** + **Vite 8** | Ultra-fast client-side SPA with lightning HMR |
-| **Styling** | **Tailwind CSS v4** | Modern design system, custom palettes, glassmorphism |
-| **Icons** | **Lucide React** | Clean, consistent SVG iconography |
-| **Mapping** | **Leaflet** + **React-Leaflet** | Interactive geospatial issue clustering & ward mapping |
-| **Charts** | **Recharts** | Smooth SVG-based data visualizations and KPI trends |
-| **Routing** | **React Router v7** | Client routing with multi-tier nested layouts |
-| **Forms & Validation** | **React Hook Form** + **Zod** | Type-safe form handling and validation |
-| **Alerts & Toasts** | **React Hot Toast** | Non-intrusive feedback notifications |
+| Stage | Responsibility |
+|---|---|
+| **CAPTURE** | Collect a citizen's complaint and location |
+| **UNDERSTAND** | Classify the issue and estimate its severity |
+| **PRIORITIZE** | Identify urgency and potential duplicates |
+| **ROUTE** | Identify the appropriate municipal workflow |
+| **INSPECT** | Record field actions and evidence |
+| **VERIFY** | Maintain an auditable resolution record |
+| **MEASURE** | Analyze service delivery and SLA performance |
 
 ---
 
-## 🚀 Quick Start
+## ◈ 05 — Intelligence Architecture
 
-### Option A: Unified Docker Deployment (Recommended)
-Launch the complete platform with PostgreSQL 16 + PostGIS, Redis, Python FastAPI, YOLOv8 vision engine, and compiled React SPA in one command:
+<div align="center">
+
+<img src="https://readme-typing-svg.demolab.com?font=Fira+Code&weight=600&size=18&duration=2600&pause=700&color=C4B5FD&center=true&vCenter=true&width=800&height=40&lines=FROM+INTERFACE+TO+INTELLIGENCE.;A+CONNECTED+CIVIC+TECHNOLOGY+STACK." alt="Architecture animation"/>
+
+</div>
+
+```mermaid
+flowchart TB
+    subgraph EXPERIENCE["01 · EXPERIENCE LAYER"]
+        C["Citizen Portal"]
+        O["Ward Officer Portal"]
+        A["Administrator Console"]
+    end
+
+    subgraph FRONTEND["02 · FRONTEND APPLICATION"]
+        R["React 19 + Vite"]
+        RT["React Router"]
+        UI["Tailwind CSS + Lucide"]
+        MAP["Leaflet GIS"]
+        CH["Recharts Analytics"]
+    end
+
+    subgraph BACKEND["03 · APPLICATION SERVICES"]
+        AUTH["Authentication & RBAC"]
+        GR["Grievance APIs"]
+        WARD["Ward Routing"]
+        SLA["Workflow & SLA Engine"]
+        AN["Analytics Service"]
+    end
+
+    subgraph AI["04 · INTELLIGENCE LAYER"]
+        CL["AI Classification"]
+        SEV["Severity Scoring"]
+        GEO["DBSCAN Clustering"]
+        BOT["Kaiser Sahayak"]
+        VIS["YOLOv8 Vision"]
+    end
+
+    subgraph DATA["05 · DATA & INTEGRATIONS"]
+        DB[("PostgreSQL + PostGIS")]
+        CACHE[("Redis")]
+        OSM["OpenStreetMap"]
+        EXT["Weather / AQI APIs"]
+    end
+
+    EXPERIENCE --> FRONTEND
+    FRONTEND --> BACKEND
+    BACKEND --> AI
+    BACKEND --> DATA
+    AI --> DATA
+    MAP --> OSM
+    AN --> EXT
+
+    classDef exp fill:#172554,stroke:#60A5FA,color:#FFFFFF
+    classDef web fill:#312E81,stroke:#A5B4FC,color:#FFFFFF
+    classDef api fill:#164E63,stroke:#67E8F9,color:#FFFFFF
+    classDef intel fill:#581C87,stroke:#D8B4FE,color:#FFFFFF
+    classDef storage fill:#064E3B,stroke:#6EE7B7,color:#FFFFFF
+
+    class C,O,A exp
+    class R,RT,UI,MAP,CH web
+    class AUTH,GR,WARD,SLA,AN api
+    class CL,SEV,GEO,BOT,VIS intel
+    class DB,CACHE,OSM,EXT storage
+```
+
+### Technology Matrix
+
+| Layer | Technology | Purpose |
+|---|---|---|
+| UI | React 19, Vite 8 | Interactive web application |
+| Styling | Tailwind CSS v4 | Responsive visual system |
+| Routing | React Router v7 | Multi-portal navigation |
+| Mapping | Leaflet, React-Leaflet | Geographic issue visualization |
+| Analytics | Recharts | Operational charts and trends |
+| Validation | React Hook Form, Zod | Form state and validation |
+| Backend | Python, FastAPI | API and business logic |
+| Database | PostgreSQL, PostGIS | Persistent and spatial data |
+| Caching | Redis | Optional caching and background workflows |
+| Vision | YOLOv8 | Optional image-based analysis |
+| Assistant | Gemini API | Conversational assistance |
+| Maps | OpenStreetMap | Geographic map data |
+| Deployment | Docker Compose | Multi-service deployment |
+
+*The architecture shows the intended system design. Each service must be configured, connected, and tested before being considered production-ready.*
+
+---
+
+## ◈ 06 — Launch KAISER AI
+
+<div align="center">
+
+<img src="https://readme-typing-svg.demolab.com?font=JetBrains+Mono&weight=700&size=17&duration=2200&pause=650&color=34D399&center=true&vCenter=true&width=720&height=36&lines=INITIALIZE+THE+ENVIRONMENT.;START+THE+SERVICES.;BRING+THE+CIVIC+PLATFORM+ONLINE." alt="Startup animation"/>
+
+</div>
+
+### Prerequisites
+
+- Node.js and npm
+- Python compatible with backend dependencies
+- Docker Desktop for containerized deployment
+- PostgreSQL/PostGIS and Redis if required by the selected configuration
+- Valid environment variables and external API credentials
+
+### Option A — Docker Compose
+
+From the repository root:
+
 ```bash
 docker compose up -d --build
 ```
-- Web Application & API: `http://localhost:5000`
-- API Documentation (Swagger): `http://localhost:5000/docs`
-- PostGIS Database: `localhost:5432`
 
----
+Inspect the services:
 
-### Option B: Local Development
+```bash
+docker compose ps
+```
 
-#### 1. Frontend Setup
+Follow application logs:
+
+```bash
+docker compose logs -f
+```
+
+Stop the environment:
+
+```bash
+docker compose down
+```
+
+Expected local endpoints, subject to your Docker configuration:
+
+| Component | Address |
+|---|---|
+| Web application / API gateway | `http://localhost:5000` |
+| FastAPI documentation | `http://localhost:5000/docs` |
+| PostgreSQL / PostGIS | `localhost:5432` |
+
+### Option B — Local development
+
+**1. Start the frontend**
+
 ```bash
 npm install
 npm run dev
 ```
-Spins up the Vite development server at `http://localhost:5173`.
 
-#### 2. Unified Python FastAPI & AI Backend
+Open `http://localhost:5173`.
+
+**2. Create a Python environment**
+
 ```bash
-# Install backend dependencies
-pip install -r backend/requirements.txt
+python -m venv .venv
+```
 
-# Run unified backend (Auth + Grievance + Wards + YOLOv8 + PostGIS/SQLite)
+Windows PowerShell:
+
+```powershell
+.\.venv\Scripts\Activate.ps1
+pip install -r backend/requirements.txt
+```
+
+**3. Start the backend**
+
+```bash
 python backend/app.py
 ```
-Backend runs on `http://localhost:5000`.
 
-#### 3. Run Automated End-to-End Validation
+Open `http://localhost:5000/docs` if the backend serves its API documentation there.
+
+**4. Run the end-to-end test script**
+
 ```bash
 python backend/test_e2e.py
 ```
 
----
-
-## 🔑 Default Demo Credentials
-
-For quick local evaluation without setting up an external backend database, use the pre-configured role presets:
-
-| Role | Preset Email | Password | Assigned Scope | Portal |
-| :--- | :--- | :--- | :--- | :--- |
-| **Citizen (Demo)** | `priya.nair@example.com` | `Citizen@123` | Individual Submissions & Ward 8 | `/login` |
-| **Ward Officer** | `suresh.patil@bmc.gov.in` | `BandraN@2024` | G/N Ward (Bandra North) Field Desk | `/officer-login` |
-| **BMC Administrator** | `r.mehta@bmc.gov.in` | `Admin@2024` | Municipal Commissioner (All 24 Wards) | `/officer-login` |
-
-*(Citizens log in at `/login`. Ward Officers & Municipal Administrators log in via the official staff gateway at `/officer-login`)*
+These commands assume the named files and scripts exist in your current repository. Configure database connections, API keys, and frontend/backend URLs before starting the services.
 
 ---
 
-## 📁 Project Structure
+## ◈ 07 — Role Portals & Demo Credentials
 
-```
+| Role | Login route | Scope |
+|---|---|---|
+| Citizen | `/login` | Personal reporting and complaint tracking |
+| Ward Officer | `/officer-login` | Assigned ward operations |
+| Administrator | `/officer-login` | City-wide administration |
+
+### Demo accounts
+
+The following are the example credentials provided for the project's demo presets. They work only if the accounts have been seeded and the authentication service supports them.
+
+| Role | Email | Password |
+|---|---|---|
+| Citizen | `priya.nair@example.com` | `Citizen@123` |
+| Ward Officer | `suresh.patil@bmc.gov.in` | `BandraN@2024` |
+| Administrator | `r.mehta@bmc.gov.in` | `Admin@2024` |
+
+> **Security:** These are demonstration credentials, not production accounts. Replace them before deployment. Enforce server-side role permissions, secure password hashing, input validation, and proper secret management.
+
+---
+
+## ◈ 08 — Repository Structure
+
+```text
 Hikari/
-├── public/                  # Static assets & favicon
+├── public/
 ├── src/
-│   ├── api/                 # API service clients & mock data endpoints
-│   │   ├── analytics.api.js # City & ward statistics
-│   │   ├── auth.api.js      # Authentication & Google OAuth
-│   │   ├── complaints.api.js# Grievance CRUD & GIS coordinates
-│   │   └── weather.api.js   # AQI and meteorology feeds
+│   ├── api/
+│   │   ├── analytics.api.js
+│   │   ├── auth.api.js
+│   │   ├── complaints.api.js
+│   │   └── weather.api.js
 │   ├── components/
-│   │   ├── common/          # Reusable UI primitives (Button, Card, Badge, Modal, Input)
-│   │   ├── complaints/      # Grievance cards, status pills, category icons
-│   │   ├── layout/          # Public, Citizen, Officer, and Admin shell layouts
-│   │   └── map/             # Leaflet mapping components and markers
+│   │   ├── common/
+│   │   ├── complaints/
+│   │   ├── layout/
+│   │   └── map/
 │   ├── context/
-│   │   └── AuthContext.jsx  # Global session, JWT restore, and role switching
+│   │   └── AuthContext.jsx
 │   ├── pages/
-│   │   ├── LandingPage.jsx  # Public marketing hero, live ticker & emergency hotline
-│   │   ├── AuthPage.jsx     # Multi-role authentication & registration
-│   │   ├── CitizenPages.jsx # Citizen dashboard, report form, my complaints, map
-│   │   ├── OfficerPages.jsx # Ward triage queue & officer KPIs
-│   │   └── AdminPages.jsx   # City-wide macro analytics & ward leaderboards
+│   │   ├── LandingPage.jsx
+│   │   ├── AuthPage.jsx
+│   │   ├── CitizenPages.jsx
+│   │   ├── OfficerPages.jsx
+│   │   └── AdminPages.jsx
 │   ├── utils/
-│   │   ├── formatters.js    # Date, time, currency, and string sanitizers
-│   │   └── mockData/        # Seed datasets for complaints, wards, and officers
-│   ├── App.jsx              # Application route tree
-│   └── main.jsx             # React DOM root entry
+│   │   ├── formatters.js
+│   │   └── mockData/
+│   ├── App.jsx
+│   └── main.jsx
+├── backend/
+│   ├── app.py
+│   ├── requirements.txt
+│   └── test_e2e.py
+├── docker-compose.yml
 ├── package.json
 ├── tailwind.config.js
 └── vite.config.js
 ```
 
----
-
-## 🛣️ Features & Roadmap
-
-- [x] **Multilingual Support (Marathi, Hindi, English)**: Complete UI localization across portals with persistent preference.
-- [x] **Live Notifications Center & Drawer**: Interactive notifications panel with unread badges, mark-as-read, and real-time grievance dispatch alerts.
-- [x] **GPS Auto-Locate & Draggable Pin Map**: Device geolocation, OpenStreetMap reverse-geocoding, nearest municipal ward auto-detection, and interactive Leaflet pin picker.
-- [x] **Spatial Deduplication & Geo-clustering (DBSCAN)**: Geodesic clustering within 25m to detect duplicate grievances and merge them into upvotes.
-- [x] **Citizen "Me Too" Upvoting & Karma Economy**: Prevents ticket flooding, rewards citizens with Karma points redeemable for transit and municipal vouchers.
-- [x] **Field Inspection & Before/After Verification**: Interactive before/after evidence slider, 200m physical GPS geofence telemetry, and material expenditure ledger.
-- [x] **Tamper-Proof Web Crypto SHA-256 Seal**: Cryptographically signed resolution certificates with immutable audit hashes for field closures.
-- [x] **Kaiser Sahayak AI Assistant**: 24/7 conversational municipal assistant powered by Gemini 1.5 Flash with trilingual BMC routing.
-- [ ] **WhatsApp Grievance Bot Integration** for zero-friction reporting on mobile.
+*Adapt this tree to the actual repository. The backend and Docker files shown here are expected locations, not a guarantee that every file exists.*
 
 ---
 
-## 📄 License
+## ◈ 09 — The Evolution
 
-This project is licensed under the [MIT License](LICENSE).
+<div align="center">
+
+<img src="https://readme-typing-svg.demolab.com?font=JetBrains+Mono&weight=700&size=18&duration=2400&pause=700&color=F0ABFC&center=true&vCenter=true&width=780&height=40&lines=THE+NEXT+GENERATION+OF+CIVIC+INTELLIGENCE.;BUILT+TODAY.+EVOLVING+TOMORROW." alt="Roadmap animation"/>
+
+</div>
+
+### Implemented features
+
+- [x] Multilingual interface
+- [x] Interactive grievance map
+- [x] GPS-assisted location selection
+- [x] Complaint status workflows
+- [x] Notification center
+- [x] Spatial deduplication
+- [x] Community upvoting
+- [x] Field evidence workflow
+- [x] SHA-256 evidence integrity fingerprints
+- [x] Conversational municipal assistant
+
+### Future enhancements
+
+- [ ] WhatsApp grievance bot
+- [ ] Automated SLA escalation
+- [ ] Advanced civic hotspot forecasting
+- [ ] Resolution satisfaction analytics
+- [ ] Improved accessibility and assisted reporting
+- [ ] Production observability and alerting
+- [ ] Security assessment and load testing
+- [ ] Expanded model evaluation and multilingual testing
+
+*Keep completed items aligned with functionality that has actually been implemented and tested.*
+
+---
+
+## ◈ 10 — Security, Privacy & Responsible AI
+
+KAISER AI should be designed around public trust.
+
+- **Privacy first:** Minimize collection of personal information and sensitive location data.
+- **Explainable decisions:** Provide understandable reasons for suggested priorities.
+- **Human oversight:** Let municipal staff review uncertain classifications.
+- **Secure authentication:** Enforce permissions on the backend.
+- **Evidence integrity:** Maintain timestamps, audit events, and cryptographic hashes.
+- **Abuse prevention:** Protect reporting and upvoting from spam and manipulation.
+- **Reliable operations:** Monitor service failures and protect external API credentials.
+- **Responsible AI:** Test model accuracy across languages and grievance categories.
+
+AI predictions should assist municipal teams, not independently determine whether a citizen receives essential civic services.
+
+---
+
+## ◈ 11 — Why KAISER AI?
+
+| Traditional civic workflows | KAISER AI approach |
+|---|---|
+| Manual complaint categorization | AI-assisted classification |
+| Fragmented issue records | Geographic complaint context |
+| Limited status visibility | Structured status tracking |
+| Inconsistent field evidence | Evidence-aware resolution |
+| Delayed performance reporting | Ward-level analytics |
+| Difficult audit trails | Timestamped events and integrity hashes |
+
+**The goal is not merely to digitize complaints. It is to build a connected system that makes civic service delivery more transparent, measurable, and responsive.**
+
+---
+
+## ◈ 12 — Contributing
+
+Contributions that improve accessibility, geospatial accuracy, AI reliability, security, and municipal workflow design are welcome.
+
+1. Fork the repository.
+2. Create a feature branch.
+3. Implement and test your changes.
+4. Submit a pull request with a clear description.
+5. Include screenshots or recordings for UI changes.
+
+## ◈ 13 — License
+
+Distributed under the MIT License. See [`LICENSE`](LICENSE) for the complete terms.
+
+---
+
+<div align="center">
+
+<a href="https://capsule-render.vercel.app/api?type=waving&height=200&color=0:06B6D4,50:4338CA,100:070B19&section=footer&text=KAISER%20AI&fontSize=54&fontColor=FFFFFF&animation=fadeIn&fontAlignY=45&desc=THE%20CITY%20DESERVES%20BETTER.&descSize=15&descAlignY=70">
+<img src="https://capsule-render.vercel.app/api?type=waving&height=200&color=0:06B6D4,50:4338CA,100:070B19&section=footer&text=KAISER%20AI&fontSize=54&fontColor=FFFFFF&animation=fadeIn&fontAlignY=45&desc=THE%20CITY%20DESERVES%20BETTER.&descSize=15&descAlignY=70" width="100%" alt="Animated KAISER AI footer"/>
+</a>
+
+<img src="https://readme-typing-svg.demolab.com?font=JetBrains+Mono&weight=600&size=15&duration=2500&pause=700&color=67E8F9&center=true&vCenter=true&width=750&height=35&lines=LISTEN+TO+THE+CITY.;INTELLIGENCE+IN+EVERY+WORKFLOW.;BUILD+A+BETTER+MUMBAI." alt="Animated closing statement"/>
+
+**KAISER AI** · Civic Intelligence for a Better Mumbai
+
+<sub>One connected platform. A more accountable civic future.</sub>
+
+</div>
