@@ -8,7 +8,7 @@ import {
 } from 'lucide-react';
 import { getComplaints, createComplaint, getMapData, getStoredComplaints, saveStoredComplaints } from '../api/complaints.api';
 import { getWeatherAQI, getMumbaiNews } from '../api/weather.api';
-import { detectDefectWithYOLO, checkDuplicateWithDBSCAN } from '../api/ml.api';
+import { detectDefectWithCLIP, checkDuplicateWithDBSCAN } from '../api/ml.api';
 import { MUMBAI_WARDS, MOCK_OFFICERS, CATEGORIES } from '../utils/mockData';
 import { findClosestWard, reverseGeocodeCoordinates, analyzeComplaintDynamic } from '../utils/geoUtils';
 import { useLanguage } from '../context/LanguageContext';
@@ -503,7 +503,7 @@ export const ReportIssuePage = () => {
 
       // Send to Model 1: OpenAI CLIP Visual Inspector & Defect Classifier
       setAiAnalyzing(true);
-      const yolo = await detectDefectWithYOLO(file, file.name.replace(/\.[^/.]+$/, ''));
+      const yolo = await detectDefectWithCLIP(file, file.name.replace(/\.[^/.]+$/, ''));
 
       // If Model 1 or Model 1.5 rejects upload (non-civic photo OR AI-generated synthetic image)
       if (yolo && (yolo.is_rejected || yolo.decision_status === 'rejected_irrelevant' || yolo.decision_status === 'rejected_ai_generated')) {

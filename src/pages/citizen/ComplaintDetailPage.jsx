@@ -75,6 +75,7 @@ export const ComplaintDetailPage = () => {
         }
         setComplaint(comp);
         setUpvotes(comp.upvoteCount || 0);
+        if (comp.hasUpvoted) setHasUpvoted(true);
         setComments(commRes?.data || []);
         if (comp.rating) {
           setSelectedRating(comp.rating);
@@ -109,7 +110,13 @@ export const ComplaintDetailPage = () => {
       setHasUpvoted(true);
       toast.success('Grievance upvoted! Priority escalated.');
     } catch (err) {
-      console.error('Failed to upvote complaint:', err);
+      if (err?.response?.status === 409) {
+        setHasUpvoted(true);
+        toast('You have already affirmed / upvoted this grievance.', { icon: 'ℹ️' });
+      } else {
+        console.error('Failed to upvote complaint:', err);
+        toast.error('Failed to register upvote. Please try again.');
+      }
     }
   };
 

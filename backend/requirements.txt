@@ -15,8 +15,6 @@ psycopg2-binary>=2.9.9
 boto3>=1.34.0
 alembic>=1.13.0
 
-# ── Optional: YOLO Defect Detection (large install ~3 GB, requires torch) ──────
-# Install separately if you want visual AI detection:
-#   pip install ultralytics>=8.1.0
-# Without this, text-hint based classification still works (no YOLO).
-# ultralytics>=8.1.0
+# ── AI Vision & Authenticity (OpenAI CLIP & ViT Detector) ──────────────────────
+torch>=2.0.0
+transformers>=4.36.0

@@ -152,7 +152,7 @@ NVIDIA_API_KEY=
 | :--- | :--- | :--- |
 | `GET /api/weather/{lat}/{lng}` | Open-Meteo Satellite API | Live temperature, precipitation, AQI, and flood alerts with local physics fallback. |
 | `GET /api/geo/reverse?lat=...&lng=...` | OpenStreetMap Nominatim | Translates coordinates to Mumbai street, PIN code, and 24-ward code. |
-| `POST /api/ml/detect-defect` | YOLOv8 + Multi-Hazard Escalator | Visual defect detection + life-safety hazard triage (exposed wires, open manholes). |
+| `POST /api/ml/detect-defect` | OpenAI CLIP Zero-Shot + ViT Authenticity | Visual defect detection + life-safety hazard triage (exposed wires, open manholes). |
 | `POST /api/ml/verify-resolution` | Automated Quality Audit (AQA) | Before-and-after photo verification to prevent fraudulent contractor ticket closures. |
 | `POST /api/ml/assistant/chat` | Groq / Gemini / Local NLP | 24-ward municipal assistant in Marathi, Hindi, and English. |
 | `PATCH /api/complaints/{id}` | Field GPS Geofencing | Verifies officer is within 300m of incident before stamping resolution. |

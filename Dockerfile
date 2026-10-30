@@ -20,7 +20,7 @@ RUN npm run build
 FROM python:3.11-slim AS runner
 WORKDIR /app
 
-# Install system utilities & OpenCV dependencies required by YOLOv8
+# Install system utilities & OpenCV dependencies required by AI vision engines
 RUN apt-get update && apt-get install -y --no-install-recommends \
     curl \
     libgl1 \
