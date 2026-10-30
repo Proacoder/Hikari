@@ -79,6 +79,7 @@ export const VoiceReportRecorder = ({
   const recognitionRef = useRef(null);
   const timerRef = useRef(null);
   const silenceTimeoutRef = useRef(null);
+  const audioPlayerRef = useRef(null);
 
   // Sync with language changes from parent context
   useEffect(() => {
@@ -297,40 +298,111 @@ export const VoiceReportRecorder = ({
     );
   };
 
-  // Text-To-Speech Playback
-  const handleToggleAudioPlayback = () => {
-    const text = transcript.trim();
-    if (!text) {
-      toast.error('No transcript available to play.');
-      return;
+  // Stop any active audio playback
+  const stopAudio = useCallback(() => {
+    if (audioPlayerRef.current) {
+      try {
+        audioPlayerRef.current.pause();
+        audioPlayerRef.current.currentTime = 0;
+      } catch (_) {}
+      audioPlayerRef.current = null;
     }
+    if (typeof window !== 'undefined' && window.speechSynthesis) {
+      try {
+        window.speechSynthesis.cancel();
+      } catch (_) {}
+    }
+    setIsPlayingAudio(false);
+  }, []);
 
+  // Text-To-Speech Playback with robust Marathi native audio support
+  const playViaSpeechSynthesis = (text, targetLang) => {
     if (typeof window === 'undefined' || !window.speechSynthesis) {
       toast.error('Text-to-speech is not supported in this browser.');
-      return;
-    }
-
-    if (isPlayingAudio) {
-      window.speechSynthesis.cancel();
       setIsPlayingAudio(false);
       return;
     }
 
     window.speechSynthesis.cancel();
     const utterance = new SpeechSynthesisUtterance(text);
-    utterance.lang = selectedLang;
+    utterance.lang = targetLang;
     utterance.rate = 0.95;
 
-    // Try finding matching voice
     const voices = window.speechSynthesis.getVoices();
-    const matchedVoice = voices.find((v) => v.lang === selectedLang || v.lang.startsWith(selectedLang.slice(0, 2)));
+    let matchedVoice = voices.find(
+      (v) =>
+        v.lang === targetLang ||
+        v.lang.replace('_', '-').toLowerCase() === targetLang.toLowerCase()
+    );
+    if (!matchedVoice) {
+      matchedVoice = voices.find((v) => v.lang.startsWith(targetLang.slice(0, 2)));
+    }
+    // Fallback to Hindi voice for Devanagari script (Marathi/Hindi) if native voice missing
+    if (!matchedVoice && (targetLang.startsWith('mr') || targetLang.startsWith('hi'))) {
+      matchedVoice = voices.find(
+        (v) => v.lang === 'hi-IN' || v.lang.startsWith('hi') || v.name.includes('Hindi')
+      );
+      if (matchedVoice) utterance.lang = 'hi-IN';
+    }
     if (matchedVoice) utterance.voice = matchedVoice;
 
     utterance.onend = () => setIsPlayingAudio(false);
-    utterance.onerror = () => setIsPlayingAudio(false);
+    utterance.onerror = (e) => {
+      console.warn('SpeechSynthesis error:', e);
+      setIsPlayingAudio(false);
+    };
 
     setIsPlayingAudio(true);
     window.speechSynthesis.speak(utterance);
+  };
+
+  const handleToggleAudioPlayback = () => {
+    const text = (transcript || interimText).trim();
+    if (!text) {
+      toast.error('No transcript available to play.');
+      return;
+    }
+
+    if (isPlayingAudio) {
+      stopAudio();
+      return;
+    }
+
+    stopAudio();
+
+    // Strategy for Marathi (mr-IN):
+    // Standard desktop browsers on Windows/Linux lack pre-installed Marathi TTS engines.
+    // Stream authentic native Marathi pronunciation via Google TTS with seamless fallback.
+    if (selectedLang === 'mr-IN' || selectedLang.startsWith('mr')) {
+      try {
+        const ttsUrl = `https://translate.google.com/translate_tts?ie=UTF-8&tl=mr&client=tw-ob&q=${encodeURIComponent(text.slice(0, 300))}`;
+        const audio = new Audio(ttsUrl);
+        audioPlayerRef.current = audio;
+        setIsPlayingAudio(true);
+
+        audio.onended = () => {
+          setIsPlayingAudio(false);
+          audioPlayerRef.current = null;
+        };
+
+        audio.onerror = () => {
+          audioPlayerRef.current = null;
+          playViaSpeechSynthesis(text, 'hi-IN');
+        };
+
+        audio.play().catch((playErr) => {
+          console.warn('Marathi audio stream fallback to speech synthesis:', playErr);
+          audioPlayerRef.current = null;
+          playViaSpeechSynthesis(text, 'hi-IN');
+        });
+        return;
+      } catch (err) {
+        console.warn('Audio play error, falling back to speech synthesis:', err);
+      }
+    }
+
+    // Default Web Speech API playback for English and Hindi
+    playViaSpeechSynthesis(text, selectedLang);
   };
 
   // Quick preset sample click
@@ -347,10 +419,7 @@ export const VoiceReportRecorder = ({
   const handleClear = () => {
     sound.play('click');
     if (isRecording) stopRecording();
-    if (isPlayingAudio && typeof window !== 'undefined' && window.speechSynthesis) {
-      window.speechSynthesis.cancel();
-      setIsPlayingAudio(false);
-    }
+    stopAudio();
     setTranscript('');
     setInterimText('');
   };
@@ -454,13 +523,13 @@ export const VoiceReportRecorder = ({
       )}
 
       {/* ── Recording Controls & Visualizer ── */}
-      <div className="mt-4 flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-4 p-3.5 bg-white/95 rounded-xl border border-neutral-200/70 shadow-xs">
-        <div className="flex items-center gap-3">
+      <div className="mt-4 flex flex-col md:flex-row md:items-center justify-between gap-3 p-3.5 bg-white/95 rounded-xl border border-neutral-200/70 shadow-xs">
+        <div className="flex items-center gap-3 min-w-0">
           {/* Main Record Trigger Button */}
           <button
             type="button"
             onClick={isRecording ? stopRecording : startRecording}
-            className={`relative flex items-center justify-center w-12 h-12 rounded-2xl font-bold text-white transition-all shadow-md active:scale-95 ${
+            className={`relative flex items-center justify-center w-12 h-12 rounded-2xl font-bold text-white transition-all shadow-md active:scale-95 shrink-0 ${
               isRecording
                 ? 'bg-rose-600 hover:bg-rose-700 shadow-rose-500/30 ring-4 ring-rose-200 animate-pulse'
                 : 'bg-brand-600 hover:bg-brand-700 shadow-brand-500/30'
@@ -471,9 +540,9 @@ export const VoiceReportRecorder = ({
           </button>
 
           {/* Status Label & Timer */}
-          <div>
+          <div className="min-w-0">
             <div className="flex items-center gap-2">
-              <span className="text-xs font-bold text-neutral-800">
+              <span className="text-xs font-bold text-neutral-800 whitespace-nowrap">
                 {isRecording
                   ? `${t('voice.listening', 'Listening')}...`
                   : transcript
@@ -486,17 +555,17 @@ export const VoiceReportRecorder = ({
                 </span>
               )}
             </div>
-            <p className="text-[11px] text-neutral-500 mt-0.5">
+            <p className="text-[11px] text-neutral-500 mt-0.5 whitespace-nowrap truncate">
               {isRecording
-                ? `Speaking in ${activeLangConfig.nativeLabel} · Tap stop when done`
-                : `Active dialect: ${activeLangConfig.nativeLabel} (${activeLangConfig.code})`}
+                ? `Speaking in ${activeLangConfig.label === 'English' ? 'English' : activeLangConfig.nativeLabel} · Tap stop when done`
+                : `Active dialect: ${activeLangConfig.label === 'English' ? 'English' : activeLangConfig.nativeLabel} (${activeLangConfig.code})`}
             </p>
           </div>
         </div>
 
         {/* Audio Waveform Equalizer (Animated when listening) */}
         {isRecording && (
-          <div className="flex items-center gap-1 self-center h-6 px-3 bg-rose-50 border border-rose-100 rounded-lg">
+          <div className="flex items-center gap-1 self-center h-6 px-3 bg-rose-50 border border-rose-100 rounded-lg shrink-0">
             <span className="w-1 bg-rose-500 rounded-full animate-bounce h-4"></span>
             <span className="w-1 bg-rose-600 rounded-full animate-bounce h-6 [animation-delay:0.15s]"></span>
             <span className="w-1 bg-rose-400 rounded-full animate-bounce h-3 [animation-delay:0.3s]"></span>
@@ -508,38 +577,38 @@ export const VoiceReportRecorder = ({
           </div>
         )}
 
-        {/* Quick Actions (if transcript available and not recording) */}
+        {/* Quick Actions (All in one line — flex-nowrap) */}
         {!isRecording && transcript && (
-          <div className="flex items-center gap-1.5 self-end sm:self-auto flex-wrap">
-            {typeof window !== 'undefined' && 'speechSynthesis' in window && (
+          <div className="flex items-center gap-2 shrink-0 flex-nowrap self-end md:self-center ml-auto">
+            {typeof window !== 'undefined' && (
               <button
                 type="button"
                 onClick={handleToggleAudioPlayback}
-                className="inline-flex items-center gap-1 px-2.5 py-1.5 text-xs font-semibold text-neutral-700 bg-neutral-100 hover:bg-neutral-200 rounded-xl transition-colors"
+                className="inline-flex items-center gap-1.5 px-3 py-2 text-xs font-semibold text-neutral-700 bg-neutral-100 hover:bg-neutral-200 rounded-xl transition-colors whitespace-nowrap shrink-0 active:scale-95"
                 title="Listen to recognized speech"
               >
                 {isPlayingAudio ? <VolumeX size={13} className="text-rose-600" /> : <Volume2 size={13} />}
-                {isPlayingAudio ? t('voice.stopAudio', 'Stop Audio') : t('voice.listen', 'Listen')}
+                <span>{isPlayingAudio ? t('voice.stopAudio', 'Stop Audio') : t('voice.listen', 'Listen (TTS)')}</span>
               </button>
             )}
 
             <button
               type="button"
               onClick={handleClear}
-              className="inline-flex items-center gap-1 px-2.5 py-1.5 text-xs font-semibold text-neutral-500 hover:text-red-600 hover:bg-red-50 rounded-xl transition-colors"
+              className="inline-flex items-center gap-1.5 px-3 py-2 text-xs font-semibold text-neutral-500 hover:text-red-600 hover:bg-red-50 rounded-xl transition-colors whitespace-nowrap shrink-0 active:scale-95"
               title="Clear transcription"
             >
               <RotateCcw size={12} />
-              {t('voice.clear', 'Clear')}
+              <span>{t('voice.clear', 'Clear Recording')}</span>
             </button>
 
             <button
               type="button"
               onClick={() => handleApplyToForm()}
-              className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-bold text-white bg-emerald-600 hover:bg-emerald-700 rounded-xl shadow-sm transition-all"
+              className="inline-flex items-center gap-1.5 px-3.5 py-2 text-xs font-bold text-white bg-emerald-600 hover:bg-emerald-700 rounded-xl shadow-sm transition-all whitespace-nowrap shrink-0 active:scale-95"
             >
               <Check size={14} />
-              {t('voice.useAsDesc', 'Apply to Description')}
+              <span>{t('voice.useAsDesc', 'Apply to Description')}</span>
             </button>
           </div>
         )}
