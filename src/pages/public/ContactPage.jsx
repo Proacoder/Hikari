@@ -344,14 +344,14 @@ export const ContactPage = () => {
 
       {/* ── Contact Form & Municipal Helpdesk Details ── */}
       <section className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="grid lg:grid-cols-12 gap-8">
+        <div className="grid lg:grid-cols-12 gap-8 items-stretch">
           {/* Left Column: Interactive Form */}
-          <div className="lg:col-span-6 space-y-6">
+          <div className="lg:col-span-6 flex flex-col">
             <div className={classNames(
-              "rounded-3xl p-6 sm:p-8 space-y-6 border shadow-2xl transition-all",
+              "rounded-3xl p-6 sm:p-8 space-y-6 border shadow-2xl transition-all h-full flex flex-col justify-between",
               isDark ? "bg-neutral-900/80 border-white/10 backdrop-blur-xl" : "bg-white border-neutral-200 shadow-soft-xl"
             )}>
-              <div>
+              <div className="space-y-4">
                 <div className="flex items-center justify-between">
                   <h2 className={classNames("text-xl font-bold font-display", isDark ? "text-white" : "text-neutral-950")}>Direct Municipal Liaison Desk</h2>
                   <span className={classNames(
@@ -361,80 +361,82 @@ export const ContactPage = () => {
                     ONLINE PORTAL
                   </span>
                 </div>
-                <p className={classNames("text-xs mt-1", isDark ? "text-white/60" : "text-neutral-500")}>
+                <p className={classNames("text-xs", isDark ? "text-white/60" : "text-neutral-500")}>
                   Submit an escalation, report society infrastructure issues, or reach Kaiser AI engineers.
                 </p>
-              </div>
 
-              {/* Inquiry Type Tabs */}
-              <div className={classNames(
-                "grid grid-cols-2 sm:grid-cols-4 gap-1.5 p-1 border rounded-2xl",
-                isDark ? "bg-neutral-950/70 border-white/10" : "bg-slate-100 border-neutral-200"
-              )}>
-                {['Escalation', 'ALM / Society', 'Partnership', 'Tech Support'].map((t) => (
-                  <button
-                    key={t}
-                    type="button"
-                    onClick={() => { sound.play('pop'); setInquiryType(t); }}
-                    className={classNames(
-                      "py-1.5 px-2 rounded-xl text-xs font-semibold transition-all cursor-pointer",
-                      inquiryType === t
-                        ? 'bg-emerald-500 text-neutral-950 font-bold shadow-md'
-                        : isDark ? 'text-white/60 hover:text-white' : 'text-neutral-600 hover:text-neutral-900'
-                    )}
-                  >
-                    {t}
-                  </button>
-                ))}
+                {/* Inquiry Type Tabs */}
+                <div className={classNames(
+                  "grid grid-cols-2 sm:grid-cols-4 gap-1.5 p-1 border rounded-2xl",
+                  isDark ? "bg-neutral-950/70 border-white/10" : "bg-slate-100 border-neutral-200"
+                )}>
+                  {['Escalation', 'ALM / Society', 'Partnership', 'Tech Support'].map((t) => (
+                    <button
+                      key={t}
+                      type="button"
+                      onClick={() => { sound.play('pop'); setInquiryType(t); }}
+                      className={classNames(
+                        "py-1.5 px-2 rounded-xl text-xs font-semibold transition-all cursor-pointer text-center",
+                        inquiryType === t
+                          ? 'bg-emerald-500 text-neutral-950 font-bold shadow-md'
+                          : isDark ? 'text-white/60 hover:text-white' : 'text-neutral-600 hover:text-neutral-900'
+                      )}
+                    >
+                      {t}
+                    </button>
+                  ))}
+                </div>
               </div>
 
               {submittedData ? (
                 <div className={classNames(
-                  "p-6 rounded-2xl border text-center space-y-4 animate-scale-in",
+                  "p-6 rounded-2xl border text-center space-y-4 animate-scale-in flex-1 flex flex-col justify-between",
                   isDark ? "bg-emerald-950/40 border-emerald-500/30" : "bg-emerald-50 border-emerald-300"
                 )}>
-                  <div className={classNames(
-                    "w-14 h-14 border rounded-2xl flex items-center justify-center mx-auto shadow-md",
-                    isDark ? "bg-emerald-500/20 text-emerald-300 border-emerald-400/40" : "bg-emerald-100 text-emerald-700 border-emerald-300"
-                  )}>
-                    <CheckCircle2 size={32} />
-                  </div>
-                  <div>
-                    <h3 className={classNames("font-bold text-lg", isDark ? "text-white" : "text-neutral-950")}>Enquiry Registered Successfully</h3>
-                    <p className={classNames("text-xs mt-1", isDark ? "text-white/60" : "text-neutral-600")}>
-                      Your query has been routed to the Assistant Commissioner's grievance liaison desk.
-                    </p>
-                  </div>
+                  <div className="space-y-3 my-auto">
+                    <div className={classNames(
+                      "w-14 h-14 border rounded-2xl flex items-center justify-center mx-auto shadow-md",
+                      isDark ? "bg-emerald-500/20 text-emerald-300 border-emerald-400/40" : "bg-emerald-100 text-emerald-700 border-emerald-300"
+                    )}>
+                      <CheckCircle2 size={32} />
+                    </div>
+                    <div>
+                      <h3 className={classNames("font-bold text-lg", isDark ? "text-white" : "text-neutral-950")}>Enquiry Registered Successfully</h3>
+                      <p className={classNames("text-xs mt-1", isDark ? "text-white/60" : "text-neutral-600")}>
+                        Your query has been routed to the Assistant Commissioner's grievance liaison desk.
+                      </p>
+                    </div>
 
-                  <div className={classNames(
-                    "p-4 rounded-xl border text-left space-y-2 text-xs font-mono",
-                    isDark ? "bg-neutral-950/80 border-white/10" : "bg-white border-neutral-200 shadow-sm"
-                  )}>
-                    <div className={classNames("flex items-center justify-between border-b pb-2", isDark ? "border-white/10" : "border-neutral-200")}>
-                      <span className={isDark ? "text-white/40" : "text-neutral-500"}>Reference Number:</span>
-                      <div className={classNames("flex items-center gap-1.5 font-bold", isDark ? "text-emerald-400" : "text-emerald-700")}>
-                        <span>{submittedData.refNumber}</span>
-                        <button
-                          type="button"
-                          onClick={handleCopyRef}
-                          className="p-1 hover:bg-black/10 dark:hover:bg-white/10 rounded cursor-pointer transition-colors"
-                          title="Copy reference number"
-                        >
-                          {copiedRef ? <Check size={14} className="text-emerald-500" /> : <Copy size={14} />}
-                        </button>
+                    <div className={classNames(
+                      "p-4 rounded-xl border text-left space-y-2 text-xs font-mono",
+                      isDark ? "bg-neutral-950/80 border-white/10" : "bg-white border-neutral-200 shadow-sm"
+                    )}>
+                      <div className={classNames("flex items-center justify-between border-b pb-2", isDark ? "border-white/10" : "border-neutral-200")}>
+                        <span className={isDark ? "text-white/40" : "text-neutral-500"}>Reference Number:</span>
+                        <div className={classNames("flex items-center gap-1.5 font-bold", isDark ? "text-emerald-400" : "text-emerald-700")}>
+                          <span>{submittedData.refNumber}</span>
+                          <button
+                            type="button"
+                            onClick={handleCopyRef}
+                            className="p-1 hover:bg-black/10 dark:hover:bg-white/10 rounded cursor-pointer transition-colors"
+                            title="Copy reference number"
+                          >
+                            {copiedRef ? <Check size={14} className="text-emerald-500" /> : <Copy size={14} />}
+                          </button>
+                        </div>
                       </div>
-                    </div>
-                    <div className="flex items-center justify-between">
-                      <span className={isDark ? "text-white/40" : "text-neutral-500"}>Designated Ward:</span>
-                      <span className={classNames("font-semibold", isDark ? "text-white" : "text-neutral-900")}>{submittedData.ward}</span>
-                    </div>
-                    <div className="flex items-center justify-between">
-                      <span className={isDark ? "text-white/40" : "text-neutral-500"}>Inquiry Type:</span>
-                      <span className={classNames("font-semibold", isDark ? "text-white" : "text-neutral-900")}>{inquiryType}</span>
-                    </div>
-                    <div className="flex items-center justify-between">
-                      <span className={isDark ? "text-white/40" : "text-neutral-500"}>Response SLA:</span>
-                      <span className={classNames("font-semibold", isDark ? "text-emerald-400" : "text-emerald-700")}>&lt; 24 Business Hours</span>
+                      <div className="flex items-center justify-between">
+                        <span className={isDark ? "text-white/40" : "text-neutral-500"}>Designated Ward:</span>
+                        <span className={classNames("font-semibold", isDark ? "text-white" : "text-neutral-900")}>{submittedData.ward}</span>
+                      </div>
+                      <div className="flex items-center justify-between">
+                        <span className={isDark ? "text-white/40" : "text-neutral-500"}>Inquiry Type:</span>
+                        <span className={classNames("font-semibold", isDark ? "text-white" : "text-neutral-900")}>{inquiryType}</span>
+                      </div>
+                      <div className="flex items-center justify-between">
+                        <span className={isDark ? "text-white/40" : "text-neutral-500"}>Response SLA:</span>
+                        <span className={classNames("font-semibold", isDark ? "text-emerald-400" : "text-emerald-700")}>&lt; 24 Business Hours</span>
+                      </div>
                     </div>
                   </div>
 
@@ -450,8 +452,8 @@ export const ContactPage = () => {
                   </button>
                 </div>
               ) : (
-                <form onSubmit={handleSubmit} className="space-y-4">
-                  <div className="grid sm:grid-cols-2 gap-4">
+                <form onSubmit={handleSubmit} className="space-y-4 flex-1 flex flex-col justify-between">
+                  <div className="grid sm:grid-cols-2 gap-3.5">
                     <div className="space-y-1">
                       <label className={classNames("text-xs font-semibold", isDark ? "text-white/80" : "text-neutral-700")}>Your Full Name</label>
                       <input
@@ -461,7 +463,7 @@ export const ContactPage = () => {
                         onChange={(e) => setFormData({ ...formData, name: e.target.value })}
                         required
                         className={classNames(
-                          "w-full rounded-xl border p-2.5 text-xs focus:outline-none focus:border-emerald-500 transition-colors",
+                          "w-full h-10 rounded-xl border px-3 text-xs focus:outline-none focus:border-emerald-500 transition-colors",
                           isDark ? "bg-neutral-950/80 border-white/15 text-white placeholder-white/30" : "bg-slate-50 border-neutral-300 text-neutral-900 placeholder-neutral-400"
                         )}
                       />
@@ -475,14 +477,14 @@ export const ContactPage = () => {
                         onChange={(e) => setFormData({ ...formData, email: e.target.value })}
                         required
                         className={classNames(
-                          "w-full rounded-xl border p-2.5 text-xs focus:outline-none focus:border-emerald-500 transition-colors",
+                          "w-full h-10 rounded-xl border px-3 text-xs focus:outline-none focus:border-emerald-500 transition-colors",
                           isDark ? "bg-neutral-950/80 border-white/15 text-white placeholder-white/30" : "bg-slate-50 border-neutral-300 text-neutral-900 placeholder-neutral-400"
                         )}
                       />
                     </div>
                   </div>
 
-                  <div className="grid sm:grid-cols-2 gap-4">
+                  <div className="grid sm:grid-cols-2 gap-3.5">
                     <div className="space-y-1">
                       <label className={classNames("text-xs font-semibold", isDark ? "text-white/80" : "text-neutral-700")}>Mobile Phone (+91)</label>
                       <input
@@ -492,7 +494,7 @@ export const ContactPage = () => {
                         onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
                         required
                         className={classNames(
-                          "w-full rounded-xl border p-2.5 text-xs focus:outline-none focus:border-emerald-500 transition-colors",
+                          "w-full h-10 rounded-xl border px-3 text-xs focus:outline-none focus:border-emerald-500 transition-colors",
                           isDark ? "bg-neutral-950/80 border-white/15 text-white placeholder-white/30" : "bg-slate-50 border-neutral-300 text-neutral-900 placeholder-neutral-400"
                         )}
                       />
@@ -503,7 +505,7 @@ export const ContactPage = () => {
                         value={formData.urgency}
                         onChange={(e) => setFormData({ ...formData, urgency: e.target.value })}
                         className={classNames(
-                          "w-full rounded-xl border p-2.5 text-xs focus:outline-none focus:border-emerald-500 transition-colors",
+                          "w-full h-10 rounded-xl border px-3 text-xs focus:outline-none focus:border-emerald-500 transition-colors cursor-pointer",
                           isDark ? "bg-neutral-950/80 border-white/15 text-white" : "bg-slate-50 border-neutral-300 text-neutral-900"
                         )}
                       >
@@ -514,14 +516,14 @@ export const ContactPage = () => {
                     </div>
                   </div>
 
-                  <div className="grid sm:grid-cols-2 gap-4">
+                  <div className="grid sm:grid-cols-2 gap-3.5">
                     <div className="space-y-1">
                       <label className={classNames("text-xs font-semibold", isDark ? "text-white/80" : "text-neutral-700")}>Municipal Ward</label>
                       <select
                         value={formData.ward}
                         onChange={(e) => setFormData({ ...formData, ward: e.target.value })}
                         className={classNames(
-                          "w-full rounded-xl border p-2.5 text-xs focus:outline-none focus:border-emerald-500 transition-colors",
+                          "w-full h-10 rounded-xl border px-3 text-xs focus:outline-none focus:border-emerald-500 transition-colors cursor-pointer",
                           isDark ? "bg-neutral-950/80 border-white/15 text-white" : "bg-slate-50 border-neutral-300 text-neutral-900"
                         )}
                       >
@@ -541,20 +543,19 @@ export const ContactPage = () => {
                         value={formData.complaintRef}
                         onChange={(e) => setFormData({ ...formData, complaintRef: e.target.value })}
                         className={classNames(
-                          "w-full rounded-xl border p-2.5 text-xs focus:outline-none focus:border-emerald-500 transition-colors",
+                          "w-full h-10 rounded-xl border px-3 text-xs focus:outline-none focus:border-emerald-500 transition-colors",
                           isDark ? "bg-neutral-950/80 border-white/15 text-white placeholder-white/30" : "bg-slate-50 border-neutral-300 text-neutral-900 placeholder-neutral-400"
                         )}
                       />
                     </div>
                   </div>
 
-                  <div className="space-y-1">
+                  <div className="space-y-1 flex-1 flex flex-col">
                     <label className={classNames("text-xs font-semibold", isDark ? "text-white/80" : "text-neutral-700")}>Detailed Message / Description</label>
                     <textarea
-                      rows={4}
                       placeholder="Explain your inquiry, unresolved hazard timeline, or society requirement..."
                       className={classNames(
-                        "w-full rounded-xl border p-3 text-xs focus:outline-none focus:border-emerald-500 transition-colors",
+                        "w-full flex-1 min-h-[110px] rounded-xl border p-3 text-xs focus:outline-none focus:border-emerald-500 transition-colors resize-none",
                         isDark ? "bg-neutral-950/80 border-white/15 text-white placeholder-white/30" : "bg-slate-50 border-neutral-300 text-neutral-900 placeholder-neutral-400"
                       )}
                       value={formData.message}
@@ -565,7 +566,7 @@ export const ContactPage = () => {
 
                   <button
                     type="submit"
-                    className="glow-btn w-full py-3.5 rounded-xl bg-gradient-to-r from-emerald-500 via-brand-500 to-teal-400 text-neutral-950 font-black text-xs uppercase tracking-wider shadow-[0_0_24px_rgba(52,211,153,0.4)] flex items-center justify-center gap-2 hover:scale-[1.02] active:scale-98 transition-all cursor-pointer"
+                    className="glow-btn w-full h-12 rounded-xl bg-gradient-to-r from-emerald-500 via-brand-500 to-teal-400 text-neutral-950 font-black text-xs uppercase tracking-wider shadow-[0_0_24px_rgba(52,211,153,0.4)] flex items-center justify-center gap-2 hover:scale-[1.01] active:scale-98 transition-all cursor-pointer"
                   >
                     <Send size={15} />
                     <span>Submit to Municipal Liaison</span>
@@ -576,10 +577,10 @@ export const ContactPage = () => {
           </div>
 
           {/* Right Column: Central Headquarters & Contact Protocols */}
-          <div className="lg:col-span-6 space-y-6">
+          <div className="lg:col-span-6 flex flex-col justify-between space-y-6">
             {/* Headquarters Card */}
             <div className={classNames(
-              "rounded-3xl p-6 sm:p-8 space-y-5 border shadow-2xl transition-all",
+              "rounded-3xl p-6 sm:p-8 space-y-5 border shadow-2xl transition-all flex flex-col justify-between",
               isDark ? "bg-neutral-900/80 border-white/10 backdrop-blur-xl" : "bg-white border-neutral-200 shadow-soft-xl"
             )}>
               <div className="flex items-center gap-3">
@@ -633,18 +634,20 @@ export const ContactPage = () => {
             {/* Department Escalation Directory */}
             <div className="grid sm:grid-cols-2 gap-4">
               <div className={classNames(
-                "p-4 space-y-2 rounded-2xl border transition-all",
+                "p-4 rounded-2xl border transition-all flex flex-col justify-between group hover:border-emerald-500/40",
                 isDark ? "bg-neutral-900/70 border-white/10" : "bg-white border-neutral-200 shadow-soft"
               )}>
-                <span className={classNames(
-                  "text-[10px] font-mono font-bold uppercase tracking-wider px-2 py-0.5 rounded border",
-                  isDark ? "text-amber-300 bg-amber-500/20 border-amber-400/30" : "text-amber-800 bg-amber-50 border-amber-200"
-                )}>
-                  ROADS & BRIDGES
-                </span>
-                <h4 className={classNames("font-bold text-sm", isDark ? "text-white" : "text-neutral-900")}>Chief Engineer (Roads)</h4>
-                <p className={classNames("text-xs", isDark ? "text-white/50" : "text-neutral-500")}>Major potholes & road reinstatement</p>
-                <div className={classNames("pt-2 border-t text-xs", isDark ? "border-white/10" : "border-neutral-200")}>
+                <div className="space-y-1.5">
+                  <span className={classNames(
+                    "inline-block text-[10px] font-mono font-bold uppercase tracking-wider px-2 py-0.5 rounded border",
+                    isDark ? "text-amber-300 bg-amber-500/20 border-amber-400/30" : "text-amber-800 bg-amber-50 border-amber-200"
+                  )}>
+                    ROADS & BRIDGES
+                  </span>
+                  <h4 className={classNames("font-bold text-sm", isDark ? "text-white" : "text-neutral-900")}>Chief Engineer (Roads)</h4>
+                  <p className={classNames("text-xs leading-relaxed", isDark ? "text-white/50" : "text-neutral-500")}>Major potholes & road reinstatement</p>
+                </div>
+                <div className={classNames("mt-3 pt-2.5 border-t text-xs", isDark ? "border-white/10" : "border-neutral-200")}>
                   <a href="mailto:che.roads@mcgm.gov.in" className={classNames("font-mono hover:underline block truncate", isDark ? "text-emerald-400" : "text-emerald-700")}>
                     che.roads@mcgm.gov.in
                   </a>
@@ -652,18 +655,20 @@ export const ContactPage = () => {
               </div>
 
               <div className={classNames(
-                "p-4 space-y-2 rounded-2xl border transition-all",
+                "p-4 rounded-2xl border transition-all flex flex-col justify-between group hover:border-emerald-500/40",
                 isDark ? "bg-neutral-900/70 border-white/10" : "bg-white border-neutral-200 shadow-soft"
               )}>
-                <span className={classNames(
-                  "text-[10px] font-mono font-bold uppercase tracking-wider px-2 py-0.5 rounded border",
-                  isDark ? "text-sky-300 bg-sky-500/20 border-sky-400/30" : "text-sky-800 bg-sky-50 border-sky-200"
-                )}>
-                  MONSOON DRAINAGE
-                </span>
-                <h4 className={classNames("font-bold text-sm", isDark ? "text-white" : "text-neutral-900")}>Storm Water Drains (SWD)</h4>
-                <p className={classNames("text-xs", isDark ? "text-white/50" : "text-neutral-500")}>Waterlogging & culvert maintenance</p>
-                <div className={classNames("pt-2 border-t text-xs", isDark ? "border-white/10" : "border-neutral-200")}>
+                <div className="space-y-1.5">
+                  <span className={classNames(
+                    "inline-block text-[10px] font-mono font-bold uppercase tracking-wider px-2 py-0.5 rounded border",
+                    isDark ? "text-sky-300 bg-sky-500/20 border-sky-400/30" : "text-sky-800 bg-sky-50 border-sky-200"
+                  )}>
+                    MONSOON DRAINAGE
+                  </span>
+                  <h4 className={classNames("font-bold text-sm", isDark ? "text-white" : "text-neutral-900")}>Storm Water Drains (SWD)</h4>
+                  <p className={classNames("text-xs leading-relaxed", isDark ? "text-white/50" : "text-neutral-500")}>Waterlogging & culvert maintenance</p>
+                </div>
+                <div className={classNames("mt-3 pt-2.5 border-t text-xs", isDark ? "border-white/10" : "border-neutral-200")}>
                   <a href="mailto:dyche.swd@mcgm.gov.in" className={classNames("font-mono hover:underline block truncate", isDark ? "text-emerald-400" : "text-emerald-700")}>
                     dyche.swd@mcgm.gov.in
                   </a>
@@ -671,18 +676,20 @@ export const ContactPage = () => {
               </div>
 
               <div className={classNames(
-                "p-4 space-y-2 rounded-2xl border transition-all",
+                "p-4 rounded-2xl border transition-all flex flex-col justify-between group hover:border-emerald-500/40",
                 isDark ? "bg-neutral-900/70 border-white/10" : "bg-white border-neutral-200 shadow-soft"
               )}>
-                <span className={classNames(
-                  "text-[10px] font-mono font-bold uppercase tracking-wider px-2 py-0.5 rounded border",
-                  isDark ? "text-emerald-300 bg-emerald-500/20 border-emerald-400/30" : "text-emerald-800 bg-emerald-50 border-emerald-200"
-                )}>
-                  WASTE MANAGEMENT
-                </span>
-                <h4 className={classNames("font-bold text-sm", isDark ? "text-white" : "text-neutral-900")}>Chief Engineer (SWM)</h4>
-                <p className={classNames("text-xs", isDark ? "text-white/50" : "text-neutral-500")}>Garbage dumps & daily collection</p>
-                <div className={classNames("pt-2 border-t text-xs", isDark ? "border-white/10" : "border-neutral-200")}>
+                <div className="space-y-1.5">
+                  <span className={classNames(
+                    "inline-block text-[10px] font-mono font-bold uppercase tracking-wider px-2 py-0.5 rounded border",
+                    isDark ? "text-emerald-300 bg-emerald-500/20 border-emerald-400/30" : "text-emerald-800 bg-emerald-50 border-emerald-200"
+                  )}>
+                    WASTE MANAGEMENT
+                  </span>
+                  <h4 className={classNames("font-bold text-sm", isDark ? "text-white" : "text-neutral-900")}>Chief Engineer (SWM)</h4>
+                  <p className={classNames("text-xs leading-relaxed", isDark ? "text-white/50" : "text-neutral-500")}>Garbage dumps & daily collection</p>
+                </div>
+                <div className={classNames("mt-3 pt-2.5 border-t text-xs", isDark ? "border-white/10" : "border-neutral-200")}>
                   <a href="mailto:swm.ho@mcgm.gov.in" className={classNames("font-mono hover:underline block truncate", isDark ? "text-emerald-400" : "text-emerald-700")}>
                     swm.ho@mcgm.gov.in
                   </a>
@@ -690,18 +697,20 @@ export const ContactPage = () => {
               </div>
 
               <div className={classNames(
-                "p-4 space-y-2 rounded-2xl border transition-all",
+                "p-4 rounded-2xl border transition-all flex flex-col justify-between group hover:border-emerald-500/40",
                 isDark ? "bg-neutral-900/70 border-white/10" : "bg-white border-neutral-200 shadow-soft"
               )}>
-                <span className={classNames(
-                  "text-[10px] font-mono font-bold uppercase tracking-wider px-2 py-0.5 rounded border",
-                  isDark ? "text-purple-300 bg-purple-500/20 border-purple-400/30" : "text-purple-800 bg-purple-50 border-purple-200"
-                )}>
-                  WATER SUPPLY
-                </span>
-                <h4 className={classNames("font-bold text-sm", isDark ? "text-white" : "text-neutral-900")}>Hydraulic Engineer</h4>
-                <p className={classNames("text-xs", isDark ? "text-white/50" : "text-neutral-500")}>Contamination & pipeline bursts</p>
-                <div className={classNames("pt-2 border-t text-xs", isDark ? "border-white/10" : "border-neutral-200")}>
+                <div className="space-y-1.5">
+                  <span className={classNames(
+                    "inline-block text-[10px] font-mono font-bold uppercase tracking-wider px-2 py-0.5 rounded border",
+                    isDark ? "text-purple-300 bg-purple-500/20 border-purple-400/30" : "text-purple-800 bg-purple-50 border-purple-200"
+                  )}>
+                    WATER SUPPLY
+                  </span>
+                  <h4 className={classNames("font-bold text-sm", isDark ? "text-white" : "text-neutral-900")}>Hydraulic Engineer</h4>
+                  <p className={classNames("text-xs leading-relaxed", isDark ? "text-white/50" : "text-neutral-500")}>Contamination & pipeline bursts</p>
+                </div>
+                <div className={classNames("mt-3 pt-2.5 border-t text-xs", isDark ? "border-white/10" : "border-neutral-200")}>
                   <a href="mailto:he@mcgm.gov.in" className={classNames("font-mono hover:underline block truncate", isDark ? "text-emerald-400" : "text-emerald-700")}>
                     he@mcgm.gov.in
                   </a>
