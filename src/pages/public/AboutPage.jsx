@@ -102,25 +102,28 @@ export const AboutPage = () => {
 
   const team = [
     {
-      name: 'Harsh Mane',
-      role: 'Cloud API & Systems Integration Lead',
-      domain: 'Municipal APIs & Multi-Portal Architecture',
-      bio: 'Architected core external API integrations including the NVIDIA NIM civic LLM assistant, real-time Open-Meteo weather telemetry, IMD radar feeds, and AQI monitoring. Engineered the comprehensive Citizen, Ward Officer, and Municipal HQ portal interfaces, and conducted foundational research to source and structure high-precision municipal datasets across all 24 BMC administrative zones.',
-      initials: 'HM'
+      name: 'Ayush Barve',
+      role: 'Chief AI Architect & Principal Systems Lead',
+      domain: 'Vision-Language Transformers, Autonomous NLP & Scalable Backend',
+      bio: 'Pioneered the core intelligence framework and high-performance backend infrastructure powering Kaiser AI. Architected the complete 3-tier deep learning intelligence suite: zero-shot OpenAI CLIP multimodal hazard recognition with sub-second spam rejection, high-throughput Swin/ViT deepfake authenticity verification, and Sentence-BERT + DBSCAN semantic deduplication clustering. Engineered the ultra-low latency, concurrent FastAPI microservices backbone with strict ACID database integrity, automated SLA escalation algorithms, and production-grade municipal resilience.',
+      initials: 'AB',
+      badge: 'Lead AI Architect'
     },
     {
       name: 'Dharmik Desai',
       role: 'Frontend Architect & Geospatial Systems Lead',
       domain: 'Interactive GIS & Multilingual Voice UX',
       bio: 'Spearheaded the modern responsive frontend architecture, interactive 24-ward Leaflet GIS mapping with sub-meter polygon reverse-geocoding, and built the accessible Web Speech voice grievance recording engine supporting natural conversational Marathi, Hindi, and English for inclusive civic participation.',
-      initials: 'DD'
+      initials: 'DD',
+      badge: 'Geospatial & UI Lead'
     },
     {
-      name: 'Ayush Barve',
-      role: 'Machine Learning & Backend Systems Lead',
-      domain: 'Applied Computer Vision, NLP & FastAPI Backend',
-      bio: 'Architected the core FastAPI backend microservices and the 3-tier municipal AI intelligence stack: Model 1 OpenAI CLIP Zero-Shot visual defect classifier with spam rejection, Model 1.5 ViT deep learning synthetic AI image detector, and Model 2 Sentence-BERT & DBSCAN spatial deduplication engine.',
-      initials: 'AB'
+      name: 'Harsh Mane',
+      role: 'Cloud API & Systems Integration Lead',
+      domain: 'Municipal APIs & Multi-Portal Architecture',
+      bio: 'Architected core external API integrations including the NVIDIA NIM civic LLM assistant, real-time Open-Meteo weather telemetry, IMD radar feeds, and AQI monitoring. Engineered the comprehensive Citizen, Ward Officer, and Municipal HQ portal interfaces, and conducted foundational research to source and structure high-precision municipal datasets across all 24 BMC administrative zones.',
+      initials: 'HM',
+      badge: 'Integration Lead'
     }
   ];
 
@@ -567,10 +570,16 @@ export const AboutPage = () => {
               </div>
               <div className="pt-2">
                 <span className={classNames(
-                  "inline-block px-3 py-1 rounded-full text-[10px] font-mono border",
-                  isDark ? "bg-white/5 text-white/60 border-white/10" : "bg-slate-100 text-neutral-600 border-neutral-200"
+                  "inline-block px-3 py-1 rounded-full text-[10px] font-mono border transition-all",
+                  m.initials === 'AB'
+                    ? isDark
+                      ? "bg-emerald-500/15 text-emerald-300 border-emerald-400/40 shadow-[0_0_12px_rgba(52,211,153,0.2)] font-bold"
+                      : "bg-emerald-50 text-emerald-800 border-emerald-300 font-bold shadow-xs"
+                    : isDark
+                      ? "bg-white/5 text-white/60 border-white/10"
+                      : "bg-slate-100 text-neutral-600 border-neutral-200"
                 )}>
-                  Engineering Core
+                  {m.badge || 'Engineering Core'}
                 </span>
               </div>
             </div>

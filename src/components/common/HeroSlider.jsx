@@ -84,7 +84,7 @@ const WaterReflectionEffect = ({ activeSlide }) => {
     <div className="absolute bottom-0 left-0 right-0 h-44 sm:h-56 pointer-events-none z-10 overflow-hidden">
       {/* Shimmer gradient reflecting city lights on water */}
       <div className="absolute inset-0 bg-gradient-to-t from-neutral-950 via-neutral-950/60 to-transparent" />
-      
+
       {/* Animated SVG Water Waves */}
       <div className="absolute bottom-0 left-0 w-[200%] h-24 opacity-30 animate-water-wave">
         <svg viewBox="0 0 1200 120" preserveAspectRatio="none" className="w-full h-full text-emerald-400 fill-current">
@@ -118,10 +118,10 @@ const WaterReflectionEffect = ({ activeSlide }) => {
 };
 
 const STATUS_STYLES = {
-  ASSIGNED:  'text-sky-300 bg-sky-500/20 border-sky-400/40 shadow-[0_0_10px_rgba(56,189,248,0.25)]',
-  RESOLVED:  'text-emerald-300 bg-emerald-500/20 border-emerald-400/40 shadow-[0_0_10px_rgba(52,211,153,0.25)]',
+  ASSIGNED: 'text-sky-300 bg-sky-500/20 border-sky-400/40 shadow-[0_0_10px_rgba(56,189,248,0.25)]',
+  RESOLVED: 'text-emerald-300 bg-emerald-500/20 border-emerald-400/40 shadow-[0_0_10px_rgba(52,211,153,0.25)]',
   ESCALATED: 'text-amber-300 bg-amber-500/20 border-amber-400/40 shadow-[0_0_10px_rgba(251,191,36,0.25)]',
-  DETECTED:  'text-rose-300 bg-rose-500/20 border-rose-400/40 shadow-[0_0_10px_rgba(251,113,133,0.25)]',
+  DETECTED: 'text-rose-300 bg-rose-500/20 border-rose-400/40 shadow-[0_0_10px_rgba(251,113,133,0.25)]',
 };
 
 export const HeroSlider = ({ stats, weather }) => {
@@ -142,7 +142,7 @@ export const HeroSlider = ({ stats, weather }) => {
         ['WD-K/E-0492', 'POTHOLE · 98.4%', 'ASSIGNED'],
         ['WD-G/N-0061', 'GARBAGE DUMP · 94.1%', 'DETECTED'],
         ['WD-P/N-0305', 'OPEN DRAIN · 91.7%', 'ASSIGNED'],
-        ['WD-L-0182',   'STREETLIGHT · 88.0%', 'RESOLVED'],
+        ['WD-L-0182', 'STREETLIGHT · 88.0%', 'RESOLVED'],
       ],
     },
     {
@@ -156,7 +156,7 @@ export const HeroSlider = ({ stats, weather }) => {
       rows: [
         ['WARD K/E', '312 ACTIVE TICKETS', 'ASSIGNED'],
         ['WARD H/W', '188 ACTIVE TICKETS', 'RESOLVED'],
-        ['WARD L',   '241 ACTIVE TICKETS', 'ESCALATED'],
+        ['WARD L', '241 ACTIVE TICKETS', 'ESCALATED'],
         ['WARD G/N', '164 ACTIVE TICKETS', 'ASSIGNED'],
       ],
     },
@@ -169,10 +169,10 @@ export const HeroSlider = ({ stats, weather }) => {
       desc: t('hero.slide3.desc', 'Predictive disaster intelligence blends live IMD rainfall feeds with citizen flood reports to warn vulnerable wards early and mobilize BMC emergency response teams.'),
       cta: { to: '/app/map', label: t('hero.mapBtn', 'View Flood Sensors') },
       rows: [
-        ['SENSOR-SION',   'WATER LEVEL 0.4 m', 'RESOLVED'],
-        ['SENSOR-KURLA',  'WATER LEVEL 0.9 m', 'ESCALATED'],
-        ['SENSOR-DADAR',  'WATER LEVEL 0.2 m', 'RESOLVED'],
-        ['DRAIN-HINDMATA','PUMPS ONLINE (4/4)', 'ASSIGNED'],
+        ['SENSOR-SION', 'WATER LEVEL 0.4 m', 'RESOLVED'],
+        ['SENSOR-KURLA', 'WATER LEVEL 0.9 m', 'ESCALATED'],
+        ['SENSOR-DADAR', 'WATER LEVEL 0.2 m', 'RESOLVED'],
+        ['DRAIN-HINDMATA', 'PUMPS ONLINE (4/4)', 'ASSIGNED'],
       ],
     },
     {
@@ -187,7 +187,7 @@ export const HeroSlider = ({ stats, weather }) => {
         ['CITIZEN #1 · PRIYA N.', '4,820 PTS', 'RESOLVED'],
         ['CITIZEN #2 · AARAV S.', '4,310 PTS', 'RESOLVED'],
         ['CITIZEN #3 · ROHAN K.', '3,975 PTS', 'ASSIGNED'],
-        ['WARD RANK #1',          'BANDRA WEST (H/W)', 'RESOLVED'],
+        ['WARD RANK #1', 'BANDRA WEST (H/W)', 'RESOLVED'],
       ],
     },
     {
@@ -199,10 +199,10 @@ export const HeroSlider = ({ stats, weather }) => {
       desc: t('hero.slide5.desc', 'Every civic work order carries a strict countdown SLA. Escalations are automatic, and every closed ticket requires photographic before-and-after proof before sign-off.'),
       cta: { to: '/how-it-works', label: t('nav.howItWorks', 'How It Works') },
       rows: [
-        ['SLA 24H · ROADS',    'TURNAROUND 18.2H', 'ASSIGNED'],
-        ['SLA 48H · DRAINAGE', 'INSPECTION DONE',  'RESOLVED'],
-        ['SLA 72H · SANITATION','AUTO-ESCALATED',  'ESCALATED'],
-        ['AUDIT LOG',          'VERIFIED CLOSURE', 'RESOLVED'],
+        ['SLA 24H · ROADS', 'TURNAROUND 18.2H', 'ASSIGNED'],
+        ['SLA 48H · DRAINAGE', 'INSPECTION DONE', 'RESOLVED'],
+        ['SLA 72H · SANITATION', 'AUTO-ESCALATED', 'ESCALATED'],
+        ['AUDIT LOG', 'VERIFIED CLOSURE', 'RESOLVED'],
       ],
     },
   ];
@@ -291,13 +291,13 @@ export const HeroSlider = ({ stats, weather }) => {
       {/* ── Main Hero Content Grid ── */}
       <div className="relative z-20 w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 my-auto flex-1 flex flex-col justify-center py-6 sm:py-10">
         <div className="grid lg:grid-cols-12 gap-8 lg:gap-12 items-center">
-          
+
           {/* Left Column: Bold Typography & CTAs (No Empty Space, Never Clipped) */}
           <div className="lg:col-span-7 space-y-6 text-left">
-            
+
             {/* Dynamic Animated Content Container with Language Support */}
             <div key={`${index}-${language}`} className="animate-hero-fade-up space-y-4">
-              
+
               {/* Eyebrow with Pulsing Emerald Accent Line */}
               <div className="flex items-center gap-3">
                 <span className="line-grow block w-10 sm:w-14 h-0.5 bg-gradient-to-r from-emerald-400 via-teal-300 to-sky-400 shadow-[0_0_8px_#34d399]" />
@@ -375,10 +375,10 @@ export const HeroSlider = ({ stats, weather }) => {
             style={{ transform: 'translate3d(calc(var(--mx,0) * 24px), calc(var(--my,0) * 16px), 0)' }}
           >
             <div className="rounded-3xl bg-neutral-900/80 backdrop-blur-2xl border border-white/20 shadow-[0_20px_50px_rgba(0,0,0,0.7)] p-6 font-mono relative overflow-hidden group">
-              
+
               {/* Laser Scanner Line Sweeping across the card */}
               <div className="absolute inset-x-0 h-0.5 bg-gradient-to-r from-transparent via-emerald-400 to-transparent scanner-line pointer-events-none opacity-60" />
-              
+
               {/* Top Card Ambient Glow */}
               <div className="absolute -top-16 -right-16 w-44 h-44 bg-emerald-500/20 rounded-full blur-3xl pointer-events-none" />
 
@@ -430,7 +430,7 @@ export const HeroSlider = ({ stats, weather }) => {
 
       {/* ── Bottom Telemetry & Navigation Bar (Inside Viewport) ── */}
       <div className="relative z-20 w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex items-center justify-between pt-4 border-t border-white/10 font-mono text-[11px] tracking-[.3em] text-white/80">
-        
+
         {/* Left: Counter + Progress Fill + Caption */}
         <div className="flex items-center gap-3 sm:gap-4">
           <span className="font-bold text-white text-xs sm:text-sm">
@@ -488,11 +488,10 @@ export const HeroSlider = ({ stats, weather }) => {
             key={s.eyebrow}
             onClick={() => { sound.play('pop'); go(i); }}
             aria-label={`Slide ${i + 1}`}
-            className={`rounded-full border transition-all duration-500 cursor-pointer ${
-              i === index
+            className={`rounded-full border transition-all duration-500 cursor-pointer ${i === index
                 ? 'w-3.5 h-3.5 bg-emerald-400 border-emerald-300 shadow-[0_0_16px_#4ade80]'
                 : 'w-2.5 h-2.5 border-white/50 hover:bg-white/40'
-            }`}
+              }`}
           />
         ))}
         <span className="w-px h-12 bg-gradient-to-t from-transparent via-white/40 to-transparent" />
