@@ -135,7 +135,7 @@ export const Navbar = () => {
                     )
                   }
                 >
-                  {link.label}
+                  <span className="whitespace-nowrap">{link.label}</span>
                 </NavLink>
               ))}
             </nav>
@@ -345,8 +345,8 @@ export const Navbar = () => {
                       <div className="w-8 h-8 rounded-full bg-gradient-to-tr from-emerald-500 to-teal-400 text-neutral-950 flex items-center justify-center font-bold text-xs shrink-0 shadow-sm ring-2 ring-emerald-500/30">
                         {user.avatarInitials || (user.name ? user.name.slice(0, 2).toUpperCase() : 'U')}
                       </div>
-                      <div className="hidden sm:flex flex-col text-left leading-tight max-w-[120px] lg:max-w-[160px]">
-                        <span className={classNames('text-xs font-bold truncate group-hover:text-emerald-400 transition-colors', isDark ? 'text-white' : 'text-neutral-900')}>
+                      <div className="flex flex-col text-left leading-tight max-w-[120px] lg:max-w-[160px] shrink-0">
+                        <span className={classNames('text-xs font-bold truncate whitespace-nowrap group-hover:text-emerald-400 transition-colors', isDark ? 'text-white' : 'text-neutral-900')}>
                           {user.name || user.email?.split('@')[0] || 'User'}
                         </span>
                         <span className={classNames('text-[10px] uppercase font-semibold tracking-wider truncate', isDark ? 'text-emerald-400/80' : 'text-emerald-600')}>
@@ -546,8 +546,8 @@ export const Navbar = () => {
                   )
                 }
               >
-                {link.label}
-              </NavLink>
+                <span className="whitespace-nowrap">{link.label}</span>
+                </NavLink>
             ))}
 
             <div className={classNames('pt-2 border-t flex flex-col gap-2', isDark ? 'border-white/10' : 'border-neutral-200')}>

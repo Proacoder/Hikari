@@ -4,7 +4,7 @@ import toast from 'react-hot-toast';
 import {
   AlertTriangle, MapPin, Camera, Sparkles, CheckCircle2,
   Navigation, CloudRain, Wind, Thermometer, Eye,
-  Crosshair, Mic, Newspaper, ExternalLink
+  Crosshair, Mic, Newspaper, ExternalLink, RefreshCw, Search
 } from 'lucide-react';
 import { getComplaints, createComplaint, getMapData, getStoredComplaints, saveStoredComplaints } from '../api/complaints.api';
 import { getWeatherAQI, getMumbaiNews } from '../api/weather.api';
@@ -98,15 +98,19 @@ export const CitizenDashboard = () => {
         const userWard = MUMBAI_WARDS.find((w) => w.id === user?.ward);
         const lat = userWard?.lat || 19.076;
         const lng = userWard?.lng || 72.877;
-        const [res, weatherRes, newsRes] = await Promise.all([
+                const [complaintsOutcome, weatherOutcome, newsOutcome] = await Promise.allSettled([
           getComplaints(user?.ward ? { ward: user.ward } : { limit: 6 }),
           getWeatherAQI(lat, lng),
           getMumbaiNews(),
         ]);
-        setComplaints(res.data || []);
-        setWeather(weatherRes?.data || null);
-        if (newsRes?.articles && newsRes.articles.length > 0) {
-          setNews(newsRes.articles);
+        if (complaintsOutcome.status === 'fulfilled' && complaintsOutcome.value?.data) {
+          setComplaints(complaintsOutcome.value.data);
+        }
+        if (weatherOutcome.status === 'fulfilled') {
+          setWeather(weatherOutcome.value?.data || null);
+        }
+        if (newsOutcome.status === 'fulfilled' && newsOutcome.value?.articles?.length > 0) {
+          setNews(newsOutcome.value.articles);
         } else {
           setNews(CURATED_CIVIC_BULLETINS);
         }
@@ -305,9 +309,14 @@ export const CitizenDashboard = () => {
                 <p className="text-xs text-neutral-500">Live verified coverage from NewsAPI (BMC, roads, flooding, transit)</p>
               </div>
             </div>
-            <span className="text-[11px] bg-neutral-100 text-neutral-600 px-2 py-0.5 rounded-full font-medium">
-              Live Feed
-            </span>
+            <div className="flex items-center gap-3">
+              <span className="text-[11px] bg-emerald-50 text-emerald-700 border border-emerald-200 px-2 py-0.5 rounded-full font-bold flex items-center gap-1.5">
+                <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" /> Live Wire
+              </span>
+              <Link to="/app/news" className="text-xs font-bold text-brand-600 hover:text-brand-700 flex items-center gap-1">
+                View All &rarr;
+              </Link>
+            </div>
           </div>
 
           <div className="grid md:grid-cols-3 gap-4">
@@ -1473,6 +1482,223 @@ export const CitizenProfilePage = () => {
           </div>
         </div>
       </Card>
+    </div>
+  );
+};
+
+
+// ── Civic News Portal Page ───────────────────────────────────────────────────
+export const CivicNewsPage = () => {
+  const { t } = useLanguage();
+  const [articles, setArticles] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [refreshing, setRefreshing] = useState(false);
+  const [search, setSearch] = useState('');
+  const [activeCategory, setActiveCategory] = useState('all');
+  const [meta, setMeta] = useState({ provider: 'Google Civic News RSS (Live Real-Time)', total: 0 });
+
+  const categories = [
+    { id: 'all', label: 'All Updates', icon: Newspaper },
+    { id: 'water', label: 'Water Supply & Pipelines', icon: CloudRain },
+    { id: 'roads', label: 'Roads & Potholes', icon: Navigation },
+    { id: 'flood', label: 'Floods & Desilting', icon: AlertTriangle },
+    { id: 'waste', label: 'Sanitation & Cleanliness', icon: Sparkles },
+    { id: 'pollution', label: 'Air Quality & Traffic', icon: Wind },
+  ];
+
+  const fetchNews = useCallback(async (isRefresh = false) => {
+    if (isRefresh) setRefreshing(true);
+    else setLoading(true);
+
+    try {
+      const res = await getMumbaiNews();
+      if (res?.articles && res.articles.length > 0) {
+        setArticles(res.articles);
+        setMeta({
+          provider: res.provider || 'Google Civic News RSS (Live Real-Time)',
+          total: res.totalResults || res.articles.length,
+          isLive: res.isLiveData !== false,
+        });
+      } else {
+        setArticles(CURATED_CIVIC_BULLETINS);
+        setMeta({ provider: 'Civic News Wire (Curated BMC Advisories)', total: CURATED_CIVIC_BULLETINS.length, isLive: false });
+      }
+    } catch (err) {
+      console.warn('Failed to fetch news:', err);
+      setArticles(CURATED_CIVIC_BULLETINS);
+    } finally {
+      setLoading(false);
+      setRefreshing(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    fetchNews();
+  }, [fetchNews]);
+
+  const filteredArticles = useMemo(() => {
+    return articles.filter((art) => {
+      const title = (art.title || '').toLowerCase();
+      const desc = (art.description || '').toLowerCase();
+      const src = (art.source || '').toLowerCase();
+      const q = search.trim().toLowerCase();
+
+      const matchesSearch = !q || title.includes(q) || desc.includes(q) || src.includes(q);
+      if (!matchesSearch) return false;
+
+      if (activeCategory === 'all') return true;
+      if (activeCategory === 'water') return title.includes('water') || desc.includes('water') || title.includes('pipe') || desc.includes('pipe');
+      if (activeCategory === 'roads') return title.includes('road') || desc.includes('road') || title.includes('pothole') || desc.includes('pothole') || title.includes('bridge');
+      if (activeCategory === 'flood') return title.includes('flood') || desc.includes('flood') || title.includes('drain') || desc.includes('drain') || title.includes('rain') || title.includes('monsoon');
+      if (activeCategory === 'waste') return title.includes('waste') || desc.includes('waste') || title.includes('garbage') || desc.includes('garbage') || title.includes('clean');
+      if (activeCategory === 'pollution') return title.includes('air') || desc.includes('air') || title.includes('aqi') || desc.includes('pollution') || title.includes('traffic');
+      return true;
+    });
+  }, [articles, search, activeCategory]);
+
+  return (
+    <div className="space-y-6 max-w-6xl mx-auto pb-10">
+      {/* Header Banner */}
+      <div className="bg-gradient-to-r from-emerald-700 via-teal-700 to-cyan-800 text-white rounded-2xl p-6 sm:p-8 shadow-soft-xl relative overflow-hidden">
+        <div className="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-4">
+          <div>
+            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/15 backdrop-blur-md text-emerald-200 text-xs font-semibold mb-3 border border-white/20">
+              <span className="w-2 h-2 rounded-full bg-emerald-400 animate-ping" />
+              <span>Real-Time Civic News Wire</span>
+            </div>
+            <h1 className="text-2xl sm:text-3xl font-black font-display tracking-tight text-white">
+              Mumbai Civic & Infrastructure News
+            </h1>
+            <p className="text-sm text-emerald-100/90 mt-1.5 max-w-2xl leading-relaxed">
+              Stay informed with real-time verified coverage from BMC headquarters, ward offices, and major municipal press releases across all 24 administrative wards.
+            </p>
+          </div>
+          <div className="flex items-center gap-2 shrink-0">
+            <button
+              onClick={() => fetchNews(true)}
+              disabled={refreshing}
+              className="flex items-center gap-2 px-4 py-2 rounded-xl bg-white/20 hover:bg-white/30 backdrop-blur-md text-white text-xs font-bold transition-all active:scale-95 cursor-pointer disabled:opacity-50"
+            >
+              <RefreshCw size={14} className={refreshing ? 'animate-spin' : ''} />
+              <span>{refreshing ? 'Refreshing...' : 'Refresh Feed'}</span>
+            </button>
+          </div>
+        </div>
+      </div>
+
+      {/* Filter and Search Bar */}
+      <div className="flex flex-col md:flex-row items-stretch md:items-center justify-between gap-4 bg-white p-4 rounded-xl border border-neutral-200 shadow-xs">
+        {/* Category Pills */}
+        <div className="flex items-center gap-2 overflow-x-auto pb-1 md:pb-0 scrollbar-none">
+          {categories.map((cat) => {
+            const Icon = cat.icon;
+            const active = activeCategory === cat.id;
+            return (
+              <button
+                key={cat.id}
+                onClick={() => setActiveCategory(cat.id)}
+                className={classNames(
+                  'flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold whitespace-nowrap transition-all cursor-pointer',
+                  active
+                    ? 'bg-brand-600 text-white shadow-xs'
+                    : 'bg-neutral-100 text-neutral-600 hover:bg-neutral-200 hover:text-neutral-900'
+                )}
+              >
+                <Icon size={13} />
+                <span>{cat.label}</span>
+              </button>
+            );
+          })}
+        </div>
+
+        {/* Search */}
+        <div className="relative min-w-[220px]">
+          <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-neutral-400" />
+          <input
+            type="text"
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            placeholder="Search news..."
+            className="w-full pl-8 pr-3 py-1.5 text-xs bg-neutral-50 border border-neutral-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-brand-500/20 focus:border-brand-500 text-neutral-900"
+          />
+        </div>
+      </div>
+
+      {/* Status Info */}
+      <div className="flex items-center justify-between text-xs text-neutral-500 px-1">
+        <span>Showing {filteredArticles.length} updates</span>
+        <span className="flex items-center gap-1.5">
+          <span className="w-2 h-2 rounded-full bg-emerald-500" />
+          <span>Source: {meta.provider}</span>
+        </span>
+      </div>
+
+      {/* Articles Grid */}
+      {loading ? (
+        <div className="grid md:grid-cols-3 gap-5">
+          {[1, 2, 3, 4, 5, 6].map((i) => (
+            <div key={i} className="bg-white rounded-xl border border-neutral-200 p-4 space-y-3 animate-pulse">
+              <div className="w-full h-36 bg-neutral-100 rounded-lg" />
+              <div className="h-4 bg-neutral-100 rounded w-1/3" />
+              <div className="h-5 bg-neutral-100 rounded w-full" />
+              <div className="h-12 bg-neutral-100 rounded w-full" />
+            </div>
+          ))}
+        </div>
+      ) : filteredArticles.length === 0 ? (
+        <div className="bg-white rounded-xl border border-neutral-200 p-12 text-center space-y-3">
+          <Newspaper size={40} className="mx-auto text-neutral-300" />
+          <h3 className="font-bold text-neutral-800 text-sm">No bulletins match your query</h3>
+          <p className="text-xs text-neutral-500 max-w-sm mx-auto">
+            Try adjusting your search terms or selecting another category to see recent municipal updates.
+          </p>
+          <Button size="sm" variant="secondary" onClick={() => { setSearch(''); setActiveCategory('all'); }}>
+            Reset Filters
+          </Button>
+        </div>
+      ) : (
+        <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-5">
+          {filteredArticles.map((item, idx) => (
+            <a
+              key={idx}
+              href={item.url}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="group flex flex-col bg-white border border-neutral-200 rounded-2xl overflow-hidden shadow-xs hover:shadow-md hover:border-brand-300 transition-all"
+            >
+              <div className="relative w-full h-44 overflow-hidden bg-neutral-100">
+                <img
+                  src={item.imageUrl || 'https://images.unsplash.com/photo-1570125909232-eb263c188f7e?w=600&q=80'}
+                  alt={item.title}
+                  className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                  referrerPolicy="no-referrer"
+                />
+                <div className="absolute top-3 left-3 bg-neutral-900/75 backdrop-blur-md text-white text-[10px] font-bold px-2 py-0.5 rounded-full uppercase tracking-wider">
+                  {item.source || 'Civic Wire'}
+                </div>
+              </div>
+              <div className="p-4 flex-1 flex flex-col">
+                <div className="flex items-center justify-between text-[11px] text-neutral-400 mb-2">
+                  <span className="font-semibold text-brand-600">Mumbai Municipal Affairs</span>
+                  <span>{item.publishedAt ? new Date(item.publishedAt).toLocaleDateString('en-IN', { month: 'short', day: 'numeric', year: 'numeric' }) : 'Recent'}</span>
+                </div>
+                <h3 className="text-sm font-bold text-neutral-900 group-hover:text-brand-600 transition-colors line-clamp-2 leading-snug mb-2">
+                  {item.title}
+                </h3>
+                {item.description && (
+                  <p className="text-xs text-neutral-500 line-clamp-3 leading-relaxed mb-4 flex-1">
+                    {item.description}
+                  </p>
+                )}
+                <div className="mt-auto pt-3 border-t border-neutral-100 flex items-center justify-between text-xs font-semibold text-brand-600">
+                  <span>Read Full Article</span>
+                  <ExternalLink size={13} className="group-hover:translate-x-1 transition-transform" />
+                </div>
+              </div>
+            </a>
+          ))}
+        </div>
+      )}
     </div>
   );
 };

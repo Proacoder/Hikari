@@ -140,6 +140,7 @@ function App() {
                     <Route path="report" element={<ReportIssuePage />} />
                     <Route path="my-complaints" element={<MyComplaintsPage />} />
                     <Route path="map" element={<IssueMapPage />} />
+                    <Route path="news" element={<CivicNewsPage />} />
                     <Route path="leaderboard" element={<CivicLeaderboardPage />} />
                     <Route path="notifications" element={<NotificationsPage />} />
                     <Route path="profile" element={<CitizenProfilePage />} />
