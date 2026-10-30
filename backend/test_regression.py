@@ -19,8 +19,11 @@ sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 
 from fastapi.testclient import TestClient
 from app import app
-from database import get_db, SessionLocal, ComplaintModel, UserModel, NotificationModel, UpvoteModel, engine, IS_SQLITE
+from database import get_db, SessionLocal, ComplaintModel, UserModel, NotificationModel, UpvoteModel, engine, IS_SQLITE, init_db
 from sqlalchemy import text
+
+# Ensure database tables and seed data are initialized
+init_db()
 
 client = TestClient(app)
 

@@ -55,7 +55,7 @@ Hikari-main/
 .env.local
 .env.production
 
-# User uploads (stored in S3 or local; never in git)
+# User uploads (stored locally; never in git)
 backend/uploads/
 
 # Backend cache

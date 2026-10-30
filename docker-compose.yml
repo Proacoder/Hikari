@@ -12,11 +12,6 @@ services:
       - DATABASE_URL=postgresql://kaiser_user:${DB_PASSWORD}@db:5432/kaiser_civic
       - JWT_SECRET=${JWT_SECRET}
       - AI_DETECTOR_MODEL_DIR=/app/backend/models/ai_detector
-      # S3 (set in .env or CI secrets)
-      - AWS_ACCESS_KEY_ID=${AWS_ACCESS_KEY_ID}
-      - AWS_SECRET_ACCESS_KEY=${AWS_SECRET_ACCESS_KEY}
-      - AWS_DEFAULT_REGION=${AWS_DEFAULT_REGION:-ap-south-1}
-      - S3_BUCKET_NAME=${S3_BUCKET_NAME}
       # AI Keys (set in .env or CI secrets)
       - GROQ_API_KEY=${GROQ_API_KEY}
       - GEMINI_API_KEY=${GEMINI_API_KEY}

@@ -66,12 +66,6 @@ if not JWT_SECRET:
     )
 JWT_ALGORITHM = "HS256"
 
-# S3 configuration
-S3_BUCKET = os.getenv("S3_BUCKET_NAME", "")
-S3_REGION = os.getenv("AWS_DEFAULT_REGION", "ap-south-1")
-AWS_ACCESS_KEY = os.getenv("AWS_ACCESS_KEY_ID", "")
-AWS_SECRET_KEY = os.getenv("AWS_SECRET_ACCESS_KEY", "")
-USE_S3 = bool(S3_BUCKET and AWS_ACCESS_KEY and AWS_SECRET_KEY)
 
 # Allowed MIME types for uploads
 ALLOWED_MIME_TYPES = {"image/jpeg", "image/png", "image/webp", "image/gif"}
@@ -439,14 +433,14 @@ def require_admin(
 
 
 # ==============================================================================
-# File Upload Helper (S3 or local filesystem)
+# File Upload Helper (Local filesystem storage)
 # ==============================================================================
 
 async def store_upload(contents: bytes, original_filename: str, prefix: str = "uploads") -> str:
     """
-    Stores uploaded file. Uses S3 if configured, otherwise local filesystem.
-    Returns a public URL or local path.
-    Validates file type by magic bytes; generates random filenames.
+    Stores uploaded file to local filesystem (backend/uploads/).
+    Returns a public URL path (/uploads/filename.ext).
+    Validates file type by magic bytes; generates random UUID filenames.
     """
     if len(contents) > MAX_UPLOAD_BYTES:
         raise HTTPException(status_code=413, detail="File exceeds 10 MB limit.")
@@ -464,36 +458,13 @@ async def store_upload(contents: bytes, original_filename: str, prefix: str = "u
     else:
         raise HTTPException(status_code=415, detail="Unsupported file type. Only JPEG, PNG, WebP, and GIF are allowed.")
 
-    safe_filename = f"{prefix}/{uuid.uuid4().hex}.{ext}"
-
-    if USE_S3:
-        try:
-            import boto3
-            s3 = boto3.client(
-                "s3",
-                region_name=S3_REGION,
-                aws_access_key_id=AWS_ACCESS_KEY,
-                aws_secret_access_key=AWS_SECRET_KEY,
-            )
-            s3.put_object(
-                Bucket=S3_BUCKET,
-                Key=safe_filename,
-                Body=contents,
-                ContentType=f"image/{ext}",
-                ACL="public-read",
-            )
-            return f"https://{S3_BUCKET}.s3.{S3_REGION}.amazonaws.com/{safe_filename}"
-        except Exception as e:
-            logger.error(f"S3 upload failed: {e}")
-            raise HTTPException(status_code=500, detail="File storage failed. Please try again.")
-    else:
-        # Local filesystem fallback
-        upload_dir = os.path.join(os.path.dirname(__file__), "uploads")
-        os.makedirs(upload_dir, exist_ok=True)
-        local_path = os.path.join(upload_dir, os.path.basename(safe_filename))
-        with open(local_path, "wb") as f:
-            f.write(contents)
-        return f"/uploads/{os.path.basename(safe_filename)}"
+    filename = f"{uuid.uuid4().hex}.{ext}"
+    upload_dir = os.path.join(os.path.dirname(__file__), "uploads")
+    os.makedirs(upload_dir, exist_ok=True)
+    local_path = os.path.join(upload_dir, filename)
+    with open(local_path, "wb") as f:
+        f.write(contents)
+    return f"/uploads/{filename}"
 
 
 @app.post("/api/upload")
@@ -2136,7 +2107,7 @@ app.include_router(ml_router, prefix="/api/ml", tags=["Machine Learning"])
 
 
 # ==============================================================================
-# Static File & Uploads Serving (local fallback when S3 not configured)
+# Static File & Uploads Serving (backend/uploads)
 # ==============================================================================
 
 uploads_dir = os.path.join(os.path.dirname(__file__), "uploads")

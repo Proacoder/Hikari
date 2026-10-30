@@ -343,10 +343,10 @@ export const ContactPage = () => {
       </section>
 
       {/* ── Contact Form & Municipal Helpdesk Details ── */}
-      <section className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="grid lg:grid-cols-12 gap-8 items-stretch">
+      <section className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 space-y-8">
+        <div className="grid lg:grid-cols-2 gap-8 items-stretch">
           {/* Left Column: Interactive Form */}
-          <div className="lg:col-span-6 flex flex-col">
+          <div className="flex flex-col">
             <div className={classNames(
               "rounded-3xl p-6 sm:p-8 space-y-6 border shadow-2xl transition-all h-full flex flex-col justify-between",
               isDark ? "bg-neutral-900/80 border-white/10 backdrop-blur-xl" : "bg-white border-neutral-200 shadow-soft-xl"
@@ -577,144 +577,181 @@ export const ContactPage = () => {
           </div>
 
           {/* Right Column: Central Headquarters & Contact Protocols */}
-          <div className="lg:col-span-6 flex flex-col justify-between space-y-6">
+          <div className="flex flex-col">
             {/* Headquarters Card */}
             <div className={classNames(
-              "rounded-3xl p-6 sm:p-8 space-y-5 border shadow-2xl transition-all flex flex-col justify-between",
+              "rounded-3xl p-6 sm:p-8 space-y-6 border shadow-2xl transition-all h-full flex flex-col justify-between",
               isDark ? "bg-neutral-900/80 border-white/10 backdrop-blur-xl" : "bg-white border-neutral-200 shadow-soft-xl"
             )}>
-              <div className="flex items-center gap-3">
-                <div className={classNames(
-                  "w-12 h-12 rounded-2xl border flex items-center justify-center shadow-lg",
-                  isDark ? "bg-emerald-500/20 text-emerald-300 border-emerald-400/30" : "bg-emerald-50 text-emerald-700 border-emerald-200"
-                )}>
-                  <Building2 size={24} />
+              <div className="space-y-5">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-3">
+                    <div className={classNames(
+                      "w-12 h-12 rounded-2xl border flex items-center justify-center shadow-lg",
+                      isDark ? "bg-emerald-500/20 text-emerald-300 border-emerald-400/30" : "bg-emerald-50 text-emerald-700 border-emerald-200"
+                    )}>
+                      <Building2 size={24} />
+                    </div>
+                    <div>
+                      <h3 className={classNames("text-lg font-bold font-display", isDark ? "text-white" : "text-neutral-950")}>BMC Central Headquarters</h3>
+                      <p className={classNames("text-xs", isDark ? "text-white/60" : "text-neutral-500")}>Brihanmumbai Municipal Corporation, Fort</p>
+                    </div>
+                  </div>
+                  <span className={classNames(
+                    "hidden sm:inline-block px-2.5 py-0.5 rounded-full text-[10px] font-mono font-bold border",
+                    isDark ? "bg-emerald-500/20 text-emerald-300 border-emerald-400/30" : "bg-emerald-50 text-emerald-800 border-emerald-200"
+                  )}>
+                    APEX SEAT
+                  </span>
                 </div>
-                <div>
-                  <h3 className={classNames("text-lg font-bold font-display", isDark ? "text-white" : "text-neutral-950")}>BMC Central Headquarters</h3>
-                  <p className={classNames("text-xs", isDark ? "text-white/60" : "text-neutral-500")}>Brihanmumbai Municipal Corporation, Fort</p>
-                </div>
-              </div>
 
-              <div className={classNames("space-y-3 text-xs border-t pt-4", isDark ? "text-white/70 border-white/10" : "text-neutral-600 border-neutral-200")}>
-                <div className="flex items-start gap-2.5">
-                  <MapPin size={16} className={isDark ? "text-emerald-400 shrink-0 mt-0.5" : "text-emerald-600 shrink-0 mt-0.5"} />
-                  <span>
-                    <strong className={isDark ? "text-white" : "text-neutral-900"}>Address:</strong> Municipal Corporation Building, Mahapalika Marg, Opposite CSMT Station, Fort, Mumbai 400001
-                  </span>
-                </div>
-                <div className="flex items-start gap-2.5">
-                  <Clock size={16} className={isDark ? "text-teal-300 shrink-0 mt-0.5" : "text-teal-600 shrink-0 mt-0.5"} />
-                  <span>
-                    <strong className={isDark ? "text-white" : "text-neutral-900"}>Visiting Hours:</strong> Monday to Friday: 10:00 AM – 5:30 PM (Public Hearings: 3:00 PM – 5:00 PM)
-                  </span>
-                </div>
-                <div className="flex items-start gap-2.5">
-                  <Mail size={16} className={isDark ? "text-sky-400 shrink-0 mt-0.5" : "text-sky-600 shrink-0 mt-0.5"} />
-                  <span>
-                    <strong className={isDark ? "text-white" : "text-neutral-900"}>Official Email:</strong> <a href="mailto:mc@mcgm.gov.in" className={isDark ? "text-emerald-400 hover:underline" : "text-emerald-600 hover:underline"}>mc@mcgm.gov.in</a> / <a href="mailto:support@kaiserai.mcgm.gov.in" className={isDark ? "text-emerald-400 hover:underline" : "text-emerald-600 hover:underline"}>support@kaiserai.mcgm.gov.in</a>
-                  </span>
+                <div className={classNames("space-y-3.5 text-xs border-t pt-4", isDark ? "text-white/70 border-white/10" : "text-neutral-600 border-neutral-200")}>
+                  <div className="flex items-start gap-2.5">
+                    <MapPin size={16} className={isDark ? "text-emerald-400 shrink-0 mt-0.5" : "text-emerald-600 shrink-0 mt-0.5"} />
+                    <span>
+                      <strong className={isDark ? "text-white" : "text-neutral-900"}>Address:</strong> Municipal Corporation Building, Mahapalika Marg, Opposite CSMT Station, Fort, Mumbai 400001
+                    </span>
+                  </div>
+                  <div className="flex items-start gap-2.5">
+                    <Clock size={16} className={isDark ? "text-teal-300 shrink-0 mt-0.5" : "text-teal-600 shrink-0 mt-0.5"} />
+                    <span>
+                      <strong className={isDark ? "text-white" : "text-neutral-900"}>Visiting Hours:</strong> Monday to Friday: 10:00 AM – 5:30 PM (Public Hearings: 3:00 PM – 5:00 PM)
+                    </span>
+                  </div>
+                  <div className="flex items-start gap-2.5">
+                    <Phone size={16} className={isDark ? "text-amber-400 shrink-0 mt-0.5" : "text-amber-600 shrink-0 mt-0.5"} />
+                    <span>
+                      <strong className={isDark ? "text-white" : "text-neutral-900"}>Helpline & PBX:</strong>{" "}
+                      <a href="tel:02222620251" className={isDark ? "text-emerald-400 hover:underline" : "text-emerald-600 hover:underline"}>022-2262-0251</a> /{" "}
+                      <a href="tel:1916" className={isDark ? "text-emerald-400 hover:underline" : "text-emerald-600 hover:underline"}>1916 (Toll-Free 24x7)</a>
+                    </span>
+                  </div>
+                  <div className="flex items-start gap-2.5">
+                    <Mail size={16} className={isDark ? "text-sky-400 shrink-0 mt-0.5" : "text-sky-600 shrink-0 mt-0.5"} />
+                    <span>
+                      <strong className={isDark ? "text-white" : "text-neutral-900"}>Official Email:</strong> <a href="mailto:mc@mcgm.gov.in" className={isDark ? "text-emerald-400 hover:underline" : "text-emerald-600 hover:underline"}>mc@mcgm.gov.in</a> / <a href="mailto:support@kaiserai.mcgm.gov.in" className={isDark ? "text-emerald-400 hover:underline" : "text-emerald-600 hover:underline"}>support@kaiserai.mcgm.gov.in</a>
+                    </span>
+                  </div>
                 </div>
               </div>
 
               {/* Citizen Hearing Banner (Lokshahi Din) */}
               <div className={classNames(
-                "p-4 rounded-2xl border space-y-1.5 text-xs",
+                "p-4 rounded-2xl border space-y-2 text-xs mt-4",
                 isDark ? "bg-sky-950/40 border-sky-500/30 text-sky-200" : "bg-sky-50 border-sky-200 text-sky-800"
               )}>
-                <div className={classNames("font-bold flex items-center gap-1.5", isDark ? "text-sky-300" : "text-sky-800")}>
-                  <LifeBuoy size={14} /> Citizen Lokshahi Din (Public Hearings)
+                <div className={classNames("font-bold flex items-center gap-1.5 text-xs sm:text-sm", isDark ? "text-sky-300" : "text-sky-800")}>
+                  <LifeBuoy size={16} /> Citizen Lokshahi Din (Public Hearings)
                 </div>
                 <p className={classNames("text-[11px] leading-relaxed", isDark ? "text-sky-200/80" : "text-sky-700")}>
                   Every 1st Monday of the month from 10:00 AM to 12:00 PM, all 24 Assistant Commissioners personally hear unresolved civic grievances at their respective ward offices.
                 </p>
               </div>
             </div>
+          </div>
+        </div>
 
-            {/* Department Escalation Directory */}
-            <div className="grid sm:grid-cols-2 gap-4">
-              <div className={classNames(
-                "p-4 rounded-2xl border transition-all flex flex-col justify-between group hover:border-emerald-500/40",
-                isDark ? "bg-neutral-900/70 border-white/10" : "bg-white border-neutral-200 shadow-soft"
-              )}>
-                <div className="space-y-1.5">
-                  <span className={classNames(
-                    "inline-block text-[10px] font-mono font-bold uppercase tracking-wider px-2 py-0.5 rounded border",
-                    isDark ? "text-amber-300 bg-amber-500/20 border-amber-400/30" : "text-amber-800 bg-amber-50 border-amber-200"
-                  )}>
-                    ROADS & BRIDGES
-                  </span>
-                  <h4 className={classNames("font-bold text-sm", isDark ? "text-white" : "text-neutral-900")}>Chief Engineer (Roads)</h4>
-                  <p className={classNames("text-xs leading-relaxed", isDark ? "text-white/50" : "text-neutral-500")}>Major potholes & road reinstatement</p>
-                </div>
-                <div className={classNames("mt-3 pt-2.5 border-t text-xs", isDark ? "border-white/10" : "border-neutral-200")}>
-                  <a href="mailto:che.roads@mcgm.gov.in" className={classNames("font-mono hover:underline block truncate", isDark ? "text-emerald-400" : "text-emerald-700")}>
-                    che.roads@mcgm.gov.in
-                  </a>
-                </div>
+        {/* ── Key Department Escalation Directory (4 Cards in a Balanced Row) ── */}
+        <div className="space-y-4 pt-2">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b pb-3 border-neutral-200 dark:border-white/10">
+            <div>
+              <h3 className={classNames("font-display text-base sm:text-lg font-bold", isDark ? "text-white" : "text-neutral-950")}>
+                Direct Department Escalation Desks
+              </h3>
+              <p className={classNames("text-xs", isDark ? "text-white/60" : "text-neutral-500")}>
+                Fast-track contact protocols for Chief Engineers across major civic infrastructure divisions.
+              </p>
+            </div>
+            <span className={classNames(
+              "self-start sm:self-auto text-[10px] font-mono font-bold uppercase tracking-wider px-2.5 py-1 rounded-full border",
+              isDark ? "bg-neutral-800/80 text-white/70 border-white/15" : "bg-slate-100 text-neutral-700 border-neutral-200"
+            )}>
+              4 SPECIALIZED HEADS
+            </span>
+          </div>
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+            <div className={classNames(
+              "p-4 rounded-2xl border transition-all flex flex-col justify-between group hover:border-amber-500/40",
+              isDark ? "bg-neutral-900/70 border-white/10" : "bg-white border-neutral-200 shadow-soft"
+            )}>
+              <div className="space-y-1.5">
+                <span className={classNames(
+                  "inline-block text-[10px] font-mono font-bold uppercase tracking-wider px-2 py-0.5 rounded border",
+                  isDark ? "text-amber-300 bg-amber-500/20 border-amber-400/30" : "text-amber-800 bg-amber-50 border-amber-200"
+                )}>
+                  ROADS & BRIDGES
+                </span>
+                <h4 className={classNames("font-bold text-sm", isDark ? "text-white" : "text-neutral-900")}>Chief Engineer (Roads)</h4>
+                <p className={classNames("text-xs leading-relaxed", isDark ? "text-white/50" : "text-neutral-500")}>Major potholes & road reinstatement</p>
               </div>
-
-              <div className={classNames(
-                "p-4 rounded-2xl border transition-all flex flex-col justify-between group hover:border-emerald-500/40",
-                isDark ? "bg-neutral-900/70 border-white/10" : "bg-white border-neutral-200 shadow-soft"
-              )}>
-                <div className="space-y-1.5">
-                  <span className={classNames(
-                    "inline-block text-[10px] font-mono font-bold uppercase tracking-wider px-2 py-0.5 rounded border",
-                    isDark ? "text-sky-300 bg-sky-500/20 border-sky-400/30" : "text-sky-800 bg-sky-50 border-sky-200"
-                  )}>
-                    MONSOON DRAINAGE
-                  </span>
-                  <h4 className={classNames("font-bold text-sm", isDark ? "text-white" : "text-neutral-900")}>Storm Water Drains (SWD)</h4>
-                  <p className={classNames("text-xs leading-relaxed", isDark ? "text-white/50" : "text-neutral-500")}>Waterlogging & culvert maintenance</p>
-                </div>
-                <div className={classNames("mt-3 pt-2.5 border-t text-xs", isDark ? "border-white/10" : "border-neutral-200")}>
-                  <a href="mailto:dyche.swd@mcgm.gov.in" className={classNames("font-mono hover:underline block truncate", isDark ? "text-emerald-400" : "text-emerald-700")}>
-                    dyche.swd@mcgm.gov.in
-                  </a>
-                </div>
+              <div className={classNames("mt-3 pt-2.5 border-t text-xs", isDark ? "border-white/10" : "border-neutral-200")}>
+                <a href="mailto:che.roads@mcgm.gov.in" className={classNames("font-mono hover:underline block truncate", isDark ? "text-emerald-400" : "text-emerald-700")}>
+                  che.roads@mcgm.gov.in
+                </a>
               </div>
+            </div>
 
-              <div className={classNames(
-                "p-4 rounded-2xl border transition-all flex flex-col justify-between group hover:border-emerald-500/40",
-                isDark ? "bg-neutral-900/70 border-white/10" : "bg-white border-neutral-200 shadow-soft"
-              )}>
-                <div className="space-y-1.5">
-                  <span className={classNames(
-                    "inline-block text-[10px] font-mono font-bold uppercase tracking-wider px-2 py-0.5 rounded border",
-                    isDark ? "text-emerald-300 bg-emerald-500/20 border-emerald-400/30" : "text-emerald-800 bg-emerald-50 border-emerald-200"
-                  )}>
-                    WASTE MANAGEMENT
-                  </span>
-                  <h4 className={classNames("font-bold text-sm", isDark ? "text-white" : "text-neutral-900")}>Chief Engineer (SWM)</h4>
-                  <p className={classNames("text-xs leading-relaxed", isDark ? "text-white/50" : "text-neutral-500")}>Garbage dumps & daily collection</p>
-                </div>
-                <div className={classNames("mt-3 pt-2.5 border-t text-xs", isDark ? "border-white/10" : "border-neutral-200")}>
-                  <a href="mailto:swm.ho@mcgm.gov.in" className={classNames("font-mono hover:underline block truncate", isDark ? "text-emerald-400" : "text-emerald-700")}>
-                    swm.ho@mcgm.gov.in
-                  </a>
-                </div>
+            <div className={classNames(
+              "p-4 rounded-2xl border transition-all flex flex-col justify-between group hover:border-sky-500/40",
+              isDark ? "bg-neutral-900/70 border-white/10" : "bg-white border-neutral-200 shadow-soft"
+            )}>
+              <div className="space-y-1.5">
+                <span className={classNames(
+                  "inline-block text-[10px] font-mono font-bold uppercase tracking-wider px-2 py-0.5 rounded border",
+                  isDark ? "text-sky-300 bg-sky-500/20 border-sky-400/30" : "text-sky-800 bg-sky-50 border-sky-200"
+                )}>
+                  MONSOON DRAINAGE
+                </span>
+                <h4 className={classNames("font-bold text-sm", isDark ? "text-white" : "text-neutral-900")}>Storm Water Drains (SWD)</h4>
+                <p className={classNames("text-xs leading-relaxed", isDark ? "text-white/50" : "text-neutral-500")}>Waterlogging & culvert maintenance</p>
               </div>
+              <div className={classNames("mt-3 pt-2.5 border-t text-xs", isDark ? "border-white/10" : "border-neutral-200")}>
+                <a href="mailto:dyche.swd@mcgm.gov.in" className={classNames("font-mono hover:underline block truncate", isDark ? "text-emerald-400" : "text-emerald-700")}>
+                  dyche.swd@mcgm.gov.in
+                </a>
+              </div>
+            </div>
 
-              <div className={classNames(
-                "p-4 rounded-2xl border transition-all flex flex-col justify-between group hover:border-emerald-500/40",
-                isDark ? "bg-neutral-900/70 border-white/10" : "bg-white border-neutral-200 shadow-soft"
-              )}>
-                <div className="space-y-1.5">
-                  <span className={classNames(
-                    "inline-block text-[10px] font-mono font-bold uppercase tracking-wider px-2 py-0.5 rounded border",
-                    isDark ? "text-purple-300 bg-purple-500/20 border-purple-400/30" : "text-purple-800 bg-purple-50 border-purple-200"
-                  )}>
-                    WATER SUPPLY
-                  </span>
-                  <h4 className={classNames("font-bold text-sm", isDark ? "text-white" : "text-neutral-900")}>Hydraulic Engineer</h4>
-                  <p className={classNames("text-xs leading-relaxed", isDark ? "text-white/50" : "text-neutral-500")}>Contamination & pipeline bursts</p>
-                </div>
-                <div className={classNames("mt-3 pt-2.5 border-t text-xs", isDark ? "border-white/10" : "border-neutral-200")}>
-                  <a href="mailto:he@mcgm.gov.in" className={classNames("font-mono hover:underline block truncate", isDark ? "text-emerald-400" : "text-emerald-700")}>
-                    he@mcgm.gov.in
-                  </a>
-                </div>
+            <div className={classNames(
+              "p-4 rounded-2xl border transition-all flex flex-col justify-between group hover:border-emerald-500/40",
+              isDark ? "bg-neutral-900/70 border-white/10" : "bg-white border-neutral-200 shadow-soft"
+            )}>
+              <div className="space-y-1.5">
+                <span className={classNames(
+                  "inline-block text-[10px] font-mono font-bold uppercase tracking-wider px-2 py-0.5 rounded border",
+                  isDark ? "text-emerald-300 bg-emerald-500/20 border-emerald-400/30" : "text-emerald-800 bg-emerald-50 border-emerald-200"
+                )}>
+                  WASTE MANAGEMENT
+                </span>
+                <h4 className={classNames("font-bold text-sm", isDark ? "text-white" : "text-neutral-900")}>Chief Engineer (SWM)</h4>
+                <p className={classNames("text-xs leading-relaxed", isDark ? "text-white/50" : "text-neutral-500")}>Garbage dumps & daily collection</p>
+              </div>
+              <div className={classNames("mt-3 pt-2.5 border-t text-xs", isDark ? "border-white/10" : "border-neutral-200")}>
+                <a href="mailto:swm.ho@mcgm.gov.in" className={classNames("font-mono hover:underline block truncate", isDark ? "text-emerald-400" : "text-emerald-700")}>
+                  swm.ho@mcgm.gov.in
+                </a>
+              </div>
+            </div>
+
+            <div className={classNames(
+              "p-4 rounded-2xl border transition-all flex flex-col justify-between group hover:border-purple-500/40",
+              isDark ? "bg-neutral-900/70 border-white/10" : "bg-white border-neutral-200 shadow-soft"
+            )}>
+              <div className="space-y-1.5">
+                <span className={classNames(
+                  "inline-block text-[10px] font-mono font-bold uppercase tracking-wider px-2 py-0.5 rounded border",
+                  isDark ? "text-purple-300 bg-purple-500/20 border-purple-400/30" : "text-purple-800 bg-purple-50 border-purple-200"
+                )}>
+                  WATER SUPPLY
+                </span>
+                <h4 className={classNames("font-bold text-sm", isDark ? "text-white" : "text-neutral-900")}>Hydraulic Engineer</h4>
+                <p className={classNames("text-xs leading-relaxed", isDark ? "text-white/50" : "text-neutral-500")}>Contamination & pipeline bursts</p>
+              </div>
+              <div className={classNames("mt-3 pt-2.5 border-t text-xs", isDark ? "border-white/10" : "border-neutral-200")}>
+                <a href="mailto:he@mcgm.gov.in" className={classNames("font-mono hover:underline block truncate", isDark ? "text-emerald-400" : "text-emerald-700")}>
+                  he@mcgm.gov.in
+                </a>
               </div>
             </div>
           </div>
