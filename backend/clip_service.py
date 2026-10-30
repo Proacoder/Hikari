@@ -15,7 +15,9 @@ import io
 import re
 import time
 import math
+import hashlib
 import logging
+from collections import OrderedDict
 from typing import Dict, Any, List, Optional, Tuple
 import numpy as np
 from PIL import Image, ImageOps, ImageStat
@@ -260,7 +262,9 @@ class ClipValidationService:
         self.acceptance_threshold = float(os.getenv("CLIP_ACCEPTANCE_THRESHOLD", "0.38"))
         self.rejection_threshold = float(os.getenv("CLIP_REJECTION_THRESHOLD", "0.32"))
         self.model_name = os.getenv("CLIP_MODEL_NAME", "clip-vit-base-patch32 (OpenAI)")
-        self.model_version = "2.0.0-production"
+        self.model_version = "2.1.0-production-optimized"
+        self._cache = OrderedDict()
+        self._cache_max_size = 250
 
     @classmethod
     def get_instance(cls) -> "ClipValidationService":
@@ -521,6 +525,11 @@ class ClipValidationService:
         Strictly rejects spam, selfies, indoor home photos, screens, memes, pets, and food.
         """
         t0 = time.time()
+        cache_key = (hashlib.sha256(image_bytes).hexdigest(), (text_hint or "").strip().lower())
+        if cache_key in self._cache:
+            cached_res = dict(self._cache[cache_key])
+            cached_res["cached"] = True
+            return cached_res
         try:
             img = Image.open(io.BytesIO(image_bytes))
             img.verify()
@@ -636,7 +645,7 @@ class ClipValidationService:
             f"Routed to {assigned_dept}."
         )
 
-        return {
+        res_obj = {
             "success": True,
             "is_rejected": False,
             "decision_status": "accepted_for_review",
@@ -658,6 +667,10 @@ class ClipValidationService:
             "processing_time_ms": elapsed_ms,
             "quality_telemetry": quality,
         }
+        if len(self._cache) >= self._cache_max_size:
+            self._cache.popitem(last=False)
+        self._cache[cache_key] = res_obj
+        return res_obj
 
 
 def get_clip_service() -> ClipValidationService:

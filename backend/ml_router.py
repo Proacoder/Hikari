@@ -163,6 +163,9 @@ def annotate_image_with_clip_hud(
     Returns base64 JPEG data URL.
     """
     draw_img = image.copy()
+    # Downscale for ultra-fast JPEG encoding and snappy network transmission
+    if max(draw_img.size) > 1280:
+        draw_img.thumbnail((1280, 1280), Image.Resampling.BILINEAR)
     w, h = draw_img.size
     draw = ImageDraw.Draw(draw_img)
 
@@ -374,9 +377,7 @@ async def detect_defect(
         severity = clip_res.get("severity", 70)
         sla_hours = clip_res.get("sla_hours", 24)
         confidence = clip_res.get("confidence_raw", 0.90)
-
-        if not detections and clip_res.get("detections"):
-            detections = clip_res["detections"]
+        detections = clip_res.get("detections") or []
 
         # ── Compound Multi-Hazard Intelligence Engine ────────────────────────
         compound_hazard = None
@@ -437,12 +438,13 @@ async def detect_defect(
 
         # Generate high-tech OpenAI CLIP inspection HUD overlay
         w, h = image.size
-        detections = [{
-            "label": primary_category,
-            "confidence": round(confidence, 3),
-            "box": [int(w * 0.12), int(h * 0.16), int(w * 0.88), int(h * 0.84)],
-            "color": "#06b6d4",
-        }]
+        if not detections:
+            detections = [{
+                "label": primary_category,
+                "confidence": round(confidence, 3),
+                "box": [int(w * 0.12), int(h * 0.16), int(w * 0.88), int(h * 0.84)],
+                "color": "#06b6d4",
+            }]
         annotated_b64 = annotate_image_with_clip_hud(
             image=image,
             category=primary_category,

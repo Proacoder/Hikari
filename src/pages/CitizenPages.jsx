@@ -533,9 +533,13 @@ export const ReportIssuePage = () => {
         imageName: file.name,
       }));
 
-      // Send to Model 1: OpenAI CLIP Visual Inspector & Defect Classifier
+      // Send to Model 1: OpenAI CLIP Visual Inspector & Defect Classifier with context hint
       setAiAnalyzing(true);
-      const clipResult = await detectDefectWithCLIP(file, file.name.replace(/\.[^/.]+$/, ''));
+      const contextHint = [formData.title, formData.description, formData.category, file.name.replace(/\.[^/.]+$/, '')]
+        .filter(Boolean)
+        .join(' ')
+        .trim();
+      const clipResult = await detectDefectWithCLIP(file, contextHint);
 
       // If Model 1 or Model 1.5 rejects upload (non-civic photo OR AI-generated synthetic image)
       if (clipResult && (clipResult.is_rejected || clipResult.decision_status === 'rejected_irrelevant' || clipResult.decision_status === 'rejected_ai_generated')) {
