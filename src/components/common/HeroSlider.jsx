@@ -1,7 +1,7 @@
 // ─── Full-bleed Cinematic Hero: Image Slideshow + Water Reflection + Live Telemetry ───
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { Link } from 'react-router-dom';
-import { ArrowRight, Pause, Play, Activity, Droplets, Waves, Shield, Sparkles, ChevronLeft, ChevronRight } from 'lucide-react';
+import { ArrowRight, Pause, Play, Activity, Waves } from 'lucide-react';
 import { sound } from '../../utils/soundEffects';
 import { useLanguage } from '../../context/LanguageContext';
 
@@ -442,52 +442,6 @@ export const HeroSlider = ({ stats, weather }) => {
             </div>
           </div>
 
-        </div>
-      </div>
-
-      {/* ── Bottom Telemetry & Navigation Bar (Inside Viewport) ── */}
-      <div className="relative z-20 w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex items-center justify-between pt-4 border-t border-white/10 font-mono text-[11px] tracking-[.3em] text-white/80">
-
-        {/* Left: Counter + Progress Fill + Caption */}
-        <div className="flex items-center gap-3 sm:gap-4">
-          <span className="font-bold text-white text-xs sm:text-sm">
-            {String(index + 1).padStart(2, '0')} / {String(slides.length).padStart(2, '0')}
-          </span>
-          <span className="relative hidden sm:block w-28 lg:w-44 h-1 bg-white/20 rounded-full overflow-hidden">
-            <span
-              key={`${index}-${cycle}`}
-              className={`bar-fill absolute inset-0 bg-gradient-to-r from-emerald-400 to-teal-300 ${paused ? 'bar-paused' : ''}`}
-              style={{ '--dur': `${INTERVAL}ms` }}
-            />
-          </span>
-          <span key={index} className="hidden md:inline text-white/70 text-[10px] uppercase" style={{ animation: 'fadeIn .8s ease' }}>
-            {slides[index].caption}
-          </span>
-
-        </div>
-
-        {/* Center: Prev/Next Arrow Controls */}
-        <div className="flex items-center gap-2">
-          <button
-            onClick={() => { sound.play('click'); go(index - 1); }}
-            aria-label="Previous slide"
-            className="p-1.5 rounded-full border border-white/20 hover:border-emerald-400 hover:bg-white/10 text-white transition-all cursor-pointer"
-          >
-            <ChevronLeft size={14} />
-          </button>
-          <button
-            onClick={() => { sound.play('click'); go(index + 1); }}
-            aria-label="Next slide"
-            className="p-1.5 rounded-full border border-white/20 hover:border-emerald-400 hover:bg-white/10 text-white transition-all cursor-pointer"
-          >
-            <ChevronRight size={14} />
-          </button>
-        </div>
-
-        {/* Right: Scroll Cue */}
-        <div className="flex items-center gap-3 font-mono text-[10px] tracking-[.35em] text-white/60">
-          <span className="hidden sm:inline">SCROLL</span>
-          <span className="block w-px h-7 bg-gradient-to-b from-white/80 to-transparent" style={{ animation: 'scrollLine 2s ease-in-out infinite' }} />
         </div>
       </div>
 
