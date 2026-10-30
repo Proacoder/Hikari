@@ -100,7 +100,7 @@ export const Navbar = () => {
         <div className="px-3 sm:px-5">
           <div className={classNames('flex items-center justify-between transition-all duration-300', scrolled ? 'h-14' : 'h-16')}>
             {/* Logo */}
-            <Link to="/" className="flex items-center gap-2.5 shrink-0 group" onClick={() => sound.play('click')}>
+            <Link to="/" className="flex items-center gap-2.5 shrink-0 group mr-4 sm:mr-6 lg:mr-8 xl:mr-10" onClick={() => sound.play('click')}>
               <div className="relative w-10 h-10 rounded-xl bg-white shadow-brand flex items-center justify-center p-0.5 overflow-hidden group-hover:scale-105 group-hover:rotate-2 transition-all duration-300">
                 <img src="/kaiser-mark.png" alt="Kaiser AI" className="w-full h-full object-contain" />
                 <span className="absolute inset-0 bg-gradient-to-tr from-transparent via-white/70 to-transparent translate-x-[-120%] group-hover:translate-x-[120%] transition-transform duration-700" />
@@ -111,7 +111,7 @@ export const Navbar = () => {
             </Link>
 
             {/* Desktop Nav Links */}
-            <nav ref={navRef} onMouseLeave={resetPill} className="hidden md:flex items-center gap-1 relative" aria-label="Main navigation">
+            <nav ref={navRef} onMouseLeave={resetPill} className="hidden md:flex items-center gap-1 lg:gap-1.5 relative shrink-0 whitespace-nowrap" aria-label="Main navigation">
               <span
                 aria-hidden
                 className={classNames(
@@ -128,7 +128,7 @@ export const Navbar = () => {
                   onMouseEnter={(e) => movePill(e.currentTarget)}
                   className={({ isActive }) =>
                     classNames(
-                      'relative z-10 px-4 py-2 rounded-xl text-sm font-semibold transition-colors duration-200',
+                      'relative z-10 px-3 lg:px-4 py-2 rounded-xl text-sm font-semibold transition-colors duration-200 whitespace-nowrap shrink-0 inline-block',
                       isActive
                         ? isDark ? 'text-emerald-400 font-bold' : 'text-emerald-600 font-bold'
                         : isDark ? 'text-white/80 hover:text-white' : 'text-neutral-600 hover:text-neutral-950'
@@ -157,9 +157,9 @@ export const Navbar = () => {
                 title="Spotlight Search (Ctrl+K)"
               >
                 <Search size={14} className={isDark ? 'text-white/70' : 'text-neutral-500'} />
-                <span className="hidden lg:inline font-semibold">Quick Find</span>
+                <span className="hidden xl:inline font-semibold whitespace-nowrap">Quick Find</span>
                 <kbd className={classNames(
-                  'hidden sm:inline-block px-1.5 py-0.5 text-[9px] font-mono font-bold rounded border shadow-xs',
+                  'hidden 2xl:inline-block px-1.5 py-0.5 text-[9px] font-mono font-bold rounded border shadow-xs',
                   isDark ? 'border-white/20 bg-white/15 text-white/80' : 'border-neutral-300 bg-white text-neutral-600'
                 )}>
                   Ctrl K
@@ -306,16 +306,16 @@ export const Navbar = () => {
 
               {/* User / Auth CTA */}
               {user ? (
-                <>
+                <div className="flex items-center gap-1.5 lg:gap-2 shrink-0">
                   <button
                     onClick={toggleDrawer}
                     className={classNames(
-                      'relative p-2 rounded-xl transition-colors',
+                      'relative p-2 rounded-xl transition-colors cursor-pointer shrink-0',
                       isDark ? 'text-white/80 hover:text-white hover:bg-white/10' : 'text-neutral-700 hover:text-neutral-900 hover:bg-neutral-100'
                     )}
                     aria-label="Notifications"
                   >
-                    <Bell size={18} />
+                    <Bell size={17} />
                     {unreadCount > 0 && (
                       <span className="absolute top-1 right-1 w-4 h-4 bg-red-500 text-white rounded-full text-[9px] font-bold flex items-center justify-center animate-pulse">
                         {unreadCount > 9 ? '9+' : unreadCount}
@@ -326,31 +326,54 @@ export const Navbar = () => {
                   <button
                     onClick={() => navigate(dashboardPath)}
                     className={classNames(
-                      'px-3 py-1.5 rounded-xl text-xs font-semibold transition-colors',
+                      'hidden lg:inline-flex items-center px-3 py-1.5 rounded-xl text-xs font-semibold transition-colors cursor-pointer shrink-0 whitespace-nowrap',
                       isDark ? 'text-white hover:bg-white/10' : 'text-neutral-800 hover:bg-neutral-100'
                     )}
                   >
                     {t('nav.dashboard', 'Dashboard')}
                   </button>
-                  <div className={classNames('flex items-center gap-2 pl-2 border-l', isDark ? 'border-white/20' : 'border-neutral-200')}>
-                    <div className="w-8 h-8 rounded-full bg-emerald-500/20 text-emerald-400 border border-emerald-400/40 flex items-center justify-center font-semibold text-xs">
-                      {user.avatarInitials || user.name?.[0]}
-                    </div>
+
+                  <div className={classNames('flex items-center gap-2 pl-2 border-l shrink-0', isDark ? 'border-white/20' : 'border-neutral-200')}>
+                    <button
+                      onClick={() => navigate(dashboardPath)}
+                      className={classNames(
+                        'flex items-center gap-2 px-2 py-1 rounded-xl transition-all cursor-pointer group text-left',
+                        isDark ? 'hover:bg-white/10' : 'hover:bg-neutral-100'
+                      )}
+                      title={`Logged in as ${user.name || user.email} (${user.role || 'Citizen'})`}
+                    >
+                      <div className="w-8 h-8 rounded-full bg-gradient-to-tr from-emerald-500 to-teal-400 text-neutral-950 flex items-center justify-center font-bold text-xs shrink-0 shadow-sm ring-2 ring-emerald-500/30">
+                        {user.avatarInitials || (user.name ? user.name.slice(0, 2).toUpperCase() : 'U')}
+                      </div>
+                      <div className="hidden sm:flex flex-col text-left leading-tight max-w-[120px] lg:max-w-[160px]">
+                        <span className={classNames('text-xs font-bold truncate group-hover:text-emerald-400 transition-colors', isDark ? 'text-white' : 'text-neutral-900')}>
+                          {user.name || user.email?.split('@')[0] || 'User'}
+                        </span>
+                        <span className={classNames('text-[10px] uppercase font-semibold tracking-wider truncate', isDark ? 'text-emerald-400/80' : 'text-emerald-600')}>
+                          {user.role || 'Citizen'}
+                        </span>
+                      </div>
+                    </button>
+
                     <button
                       onClick={handleLogout}
-                      className={classNames('text-xs transition-colors', isDark ? 'text-white/60 hover:text-white' : 'text-neutral-500 hover:text-neutral-900')}
+                      className={classNames(
+                        'text-xs font-semibold px-2 py-1.5 rounded-lg transition-colors cursor-pointer whitespace-nowrap shrink-0',
+                        isDark ? 'text-white/60 hover:text-rose-400 hover:bg-rose-500/10' : 'text-neutral-500 hover:text-rose-600 hover:bg-rose-50'
+                      )}
+                      title={t('nav.signOut', 'Sign Out')}
                     >
                       {t('nav.signOut', 'Sign Out')}
                     </button>
                   </div>
-                </>
+                </div>
               ) : (
-                <>
+                <div className="flex items-center gap-1.5 lg:gap-2 shrink-0">
                   <Link
                     to="/login"
                     onClick={() => sound.play('click')}
                     className={classNames(
-                      'text-xs font-semibold px-3 py-2 rounded-xl transition-colors',
+                      'text-xs font-semibold px-3 py-2 rounded-xl transition-colors whitespace-nowrap',
                       isDark ? 'text-white/90 hover:text-white hover:bg-white/10' : 'text-neutral-700 hover:text-neutral-900 hover:bg-neutral-100'
                     )}
                   >
@@ -359,11 +382,11 @@ export const Navbar = () => {
                   <Link
                     to="/register"
                     onClick={() => sound.play('click')}
-                    className="glow-btn relative overflow-hidden shine px-3.5 py-1.5 rounded-xl bg-gradient-to-r from-emerald-500 via-brand-500 to-teal-400 text-neutral-950 font-black text-xs tracking-wider uppercase shadow-[0_0_20px_rgba(52,211,153,0.35)] hover:scale-105 active:scale-95 transition-all"
+                    className="glow-btn relative overflow-hidden shine px-3.5 py-1.5 rounded-xl bg-gradient-to-r from-emerald-500 via-brand-500 to-teal-400 text-neutral-950 font-black text-xs tracking-wider uppercase shadow-[0_0_20px_rgba(52,211,153,0.35)] hover:scale-105 active:scale-95 transition-all whitespace-nowrap"
                   >
                     {t('nav.signUp', 'Sign Up')}
                   </Link>
-                </>
+                </div>
               )}
             </div>
 
@@ -530,6 +553,19 @@ export const Navbar = () => {
             <div className={classNames('pt-2 border-t flex flex-col gap-2', isDark ? 'border-white/10' : 'border-neutral-200')}>
               {user ? (
                 <>
+                  <div className="flex items-center gap-3 px-2 py-1">
+                    <div className="w-9 h-9 rounded-full bg-gradient-to-tr from-emerald-500 to-teal-400 text-neutral-950 flex items-center justify-center font-bold text-sm shrink-0">
+                      {user.avatarInitials || (user.name ? user.name.slice(0, 2).toUpperCase() : 'U')}
+                    </div>
+                    <div className="flex flex-col text-left">
+                      <span className={classNames('text-sm font-bold', isDark ? 'text-white' : 'text-neutral-900')}>
+                        {user.name || user.email?.split('@')[0] || 'User'}
+                      </span>
+                      <span className={classNames('text-xs font-semibold capitalize', isDark ? 'text-emerald-400' : 'text-emerald-600')}>
+                        {user.role || 'Citizen'}
+                      </span>
+                    </div>
+                  </div>
                   <Button fullWidth size="sm" variant="secondary" onClick={() => { navigate(dashboardPath); setMenuOpen(false); }}>
                     {t('nav.dashboard', 'Go to Dashboard')}
                   </Button>
