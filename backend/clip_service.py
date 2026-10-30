@@ -316,7 +316,6 @@ class ClipValidationService:
         self,
         img: Image.Image,
         text_hint: Optional[str] = None,
-        detected_yolo_objects: Optional[List[str]] = None,
     ) -> Dict[str, float]:
         """
         Multi-modal zero-shot semantic visual classification.
@@ -378,14 +377,11 @@ class ClipValidationService:
         indoor_warm_ratio = float(np.mean(warm_mask))
 
         hint_lower = (text_hint or "").lower().strip()
-        yolo_objs = [o.lower() for o in (detected_yolo_objects or [])]
 
         # ── 3. Evaluate Non-Civic Classes (Spam & Fraud Filter) ────────────────
 
         # A. Selfie / Human Face
         selfie_score = 0.08 + (skin_ratio * 1.6)
-        if any(o in ["person"] for o in yolo_objs):
-            selfie_score += 0.35
         if skin_ratio > 0.15:
             selfie_score = max(selfie_score, 0.78)
         if skin_ratio > 0.28:
@@ -397,8 +393,6 @@ class ClipValidationService:
         indoor_score = 0.06
         if not has_sky and asphalt_ratio < 0.08:
             indoor_score += 0.25 * indoor_warm_ratio + 0.12
-        if any(o in ["chair", "couch", "sofa", "bed", "dining table", "tv", "refrigerator", "microwave", "sink", "clock", "vase"] for o in yolo_objs):
-            indoor_score += 0.45
         if indoor_warm_ratio > 0.40 and asphalt_ratio < 0.05:
             indoor_score = max(indoor_score, 0.82)
         scores["indoor_photo"] = indoor_score
@@ -409,34 +403,24 @@ class ClipValidationService:
             doc_score += 0.35 + (white_ratio * 0.4)
         if (diff_h < 4.0 or diff_v < 4.0) and color_variance < 0.025:
             doc_score += 0.25
-        if any(o in ["book", "cell phone"] for o in yolo_objs) and white_ratio > 0.20:
-            doc_score += 0.30
         scores["screenshot_document"] = doc_score
 
         # D. Computer Screen / Electronic Display
         screen_score = 0.05
-        if any(o in ["laptop", "tv", "monitor", "keyboard", "mouse"] for o in yolo_objs):
-            screen_score += 0.55
         if aspect_ratio > 1.3 and color_variance < 0.020 and not has_sky:
             screen_score += 0.25
         scores["computer_screen"] = screen_score
 
         # E. Domestic Pet / Animal
         pet_score = 0.05
-        if any(o in ["dog", "cat", "bird", "horse", "sheep", "cow", "elephant", "bear", "zebra", "giraffe"] for o in yolo_objs):
-            pet_score += 0.70
         scores["pet_animal"] = pet_score
 
         # F. Food / Meal
         food_score = 0.05
-        if any(o in ["banana", "apple", "sandwich", "orange", "broccoli", "carrot", "hot dog", "pizza", "donut", "cake", "bowl"] for o in yolo_objs):
-            food_score += 0.75
         scores["food_beverage"] = food_score
 
         # G. Vehicle Interior
         veh_score = 0.05
-        if any(o in ["car"] for o in yolo_objs) and not has_sky and asphalt_ratio < 0.10:
-            veh_score += 0.50
         scores["vehicle_interior"] = veh_score
 
         # ── 4. Evaluate Genuine Civic Defect Classes ───────────────────────────
@@ -468,8 +452,6 @@ class ClipValidationService:
         water_score = 0.08
         if water_ratio > 0.15 and color_variance < 0.040:
             water_score += 0.35 + (water_ratio * 0.45)
-        if any(o in ["fire hydrant", "sink"] for o in yolo_objs):
-            water_score += 0.55
         if has_water_word:
             water_score += 0.55
         scores["water_leakage"] = water_score
@@ -479,8 +461,6 @@ class ClipValidationService:
         garbage_score = 0.08
         if color_variance > 0.030 and (asphalt_ratio > 0.05 or has_sky or indoor_warm_ratio < 0.20):
             garbage_score += 0.35 + min(0.35, color_variance * 6.0)
-        if any(o in ["bottle", "cup", "trash", "bench"] for o in yolo_objs):
-            garbage_score += 0.55
         if has_garbage_word:
             garbage_score += 0.55
         scores["garbage_waste"] = garbage_score
@@ -491,8 +471,6 @@ class ClipValidationService:
         light_score = 0.06
         if has_sky or aspect_ratio < 0.85:
             light_score += 0.22
-        if any(o in ["traffic light", "stop sign"] for o in yolo_objs):
-            light_score += 0.55
         if has_light_word:
             light_score += 0.55
         scores["streetlight_electrical"] = light_score
@@ -536,7 +514,6 @@ class ClipValidationService:
         self,
         image_bytes: bytes,
         text_hint: Optional[str] = None,
-        detected_yolo_objects: Optional[List[str]] = None,
     ) -> Dict[str, Any]:
         """
         Validates complaint image using Model 1: Visual Inspector (CLIP Zero-Shot).
@@ -566,7 +543,7 @@ class ClipValidationService:
             }
 
         quality = self._assess_image_quality(img)
-        scores = self._compute_semantic_scores(img, text_hint, detected_yolo_objects)
+        scores = self._compute_semantic_scores(img, text_hint)
 
         # Rank all categories descending
         ranked = sorted(scores.items(), key=lambda x: x[1], reverse=True)

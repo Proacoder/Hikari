@@ -503,44 +503,44 @@ export const ReportIssuePage = () => {
 
       // Send to Model 1: OpenAI CLIP Visual Inspector & Defect Classifier
       setAiAnalyzing(true);
-      const yolo = await detectDefectWithCLIP(file, file.name.replace(/\.[^/.]+$/, ''));
+      const clipResult = await detectDefectWithCLIP(file, file.name.replace(/\.[^/.]+$/, ''));
 
       // If Model 1 or Model 1.5 rejects upload (non-civic photo OR AI-generated synthetic image)
-      if (yolo && (yolo.is_rejected || yolo.decision_status === 'rejected_irrelevant' || yolo.decision_status === 'rejected_ai_generated')) {
+      if (clipResult && (clipResult.is_rejected || clipResult.decision_status === 'rejected_irrelevant' || clipResult.decision_status === 'rejected_ai_generated')) {
         sound.play('error');
         setFormData((prev) => ({ ...prev, imageUrl: '', imageName: '' }));
         setAiPrediction(null);
-        const isAi = yolo.decision_status === 'rejected_ai_generated';
+        const isAi = clipResult.decision_status === 'rejected_ai_generated';
         setImageRejection({
-          category: isAi ? 'AI-Generated Synthetic Image' : (yolo.predicted_label || yolo.predicted_category || 'Non-Civic Upload'),
-          message: yolo.error || yolo.actionable_explanation || 'Non-civic photo detected. Please upload an outdoor municipal defect photo.',
+          category: isAi ? 'AI-Generated Synthetic Image' : (clipResult.predicted_label || clipResult.predicted_category || 'Non-Civic Upload'),
+          message: clipResult.error || clipResult.actionable_explanation || 'Non-civic photo detected. Please upload an outdoor municipal defect photo.',
           isAi: isAi,
-          evidence: yolo.authenticity?.evidence_signals || [],
+          evidence: clipResult.authenticity?.evidence_signals || [],
         });
-        toast.error(yolo.error || 'Invalid photo: Upload rejected.', { icon: isAi ? '🤖' : '🚫', duration: 7000 });
+        toast.error(clipResult.error || 'Invalid photo: Upload rejected.', { icon: isAi ? '🤖' : '🚫', duration: 7000 });
         setAiAnalyzing(false);
         return;
       }
 
-      if (yolo && yolo.success && !yolo.is_rejected) {
+      if (clipResult && clipResult.success && !clipResult.is_rejected) {
         sound.play('success');
         setImageRejection(null);
         setAiPrediction({
-          category: yolo.category,
-          confidence: yolo.confidence,
-          severity: yolo.severity,
-          slaHours: yolo.sla_hours,
-          assignedDept: yolo.assigned_department,
-          detections: yolo.detections,
-          annotatedImage: yolo.annotated_image,
-          authenticity: yolo.authenticity,
+          category: clipResult.category,
+          confidence: clipResult.confidence,
+          severity: clipResult.severity,
+          slaHours: clipResult.sla_hours,
+          assignedDept: clipResult.assigned_department,
+          detections: clipResult.detections,
+          annotatedImage: clipResult.annotated_image,
+          authenticity: clipResult.authenticity,
           source: 'OpenAI CLIP Visual Inspector & ViT AI Image Detector',
         });
         setFormData((prev) => ({
           ...prev,
-          category: yolo.category,
+          category: clipResult.category,
         }));
-        toast.success(`Verified: ${yolo.category} (${yolo.confidence})`, { icon: '🎯' });
+        toast.success(`Verified: ${clipResult.category} (${clipResult.confidence})`, { icon: '🎯' });
         setAiAnalyzing(false);
       } else {
         // Fallback to text heuristic if ML service completely unavailable

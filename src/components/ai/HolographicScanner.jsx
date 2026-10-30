@@ -74,7 +74,7 @@ export const HolographicScanner = ({
       {isScanning && (
         <div className="absolute inset-x-0 h-1 bg-gradient-to-r from-transparent via-cyan-400 to-transparent shadow-[0_0_15px_3px_rgba(6,182,212,0.9)] animate-laser-scan pointer-events-none z-20">
           <div className="absolute right-4 -top-3 text-[10px] font-mono text-cyan-300 font-bold bg-slate-900/80 px-1.5 py-0.5 rounded border border-cyan-500/50">
-            MODEL 1: CLIP INSPECTOR ACTIVE · {telemetryCount}%
+            OPENAI CLIP ZERO-SHOT SCANNER · {telemetryCount}%
           </div>
         </div>
       )}
@@ -83,7 +83,7 @@ export const HolographicScanner = ({
       <div className="absolute top-3 inset-x-3 flex items-center justify-between z-10 pointer-events-none">
         <div className="flex items-center gap-2 bg-slate-900/85 backdrop-blur-md px-3 py-1 rounded-full border border-cyan-500/40 text-cyan-300 text-xs font-mono font-semibold">
           <Cpu size={14} className={isScanning ? 'animate-spin text-cyan-400' : 'text-emerald-400'} />
-          <span>{isScanning ? 'MODEL 1 & 1.5: CLIP & ViT INSPECTION' : 'MODEL 1 & 1.5: VERIFIED CAMERA DEFECT'}</span>
+          <span>{isScanning ? 'OPENAI CLIP ZERO-SHOT & ViT FORENSICS' : 'OPENAI CLIP: VERIFIED CIVIC DEFECT'}</span>
         </div>
         <div className="bg-slate-900/85 backdrop-blur-md px-2.5 py-1 rounded-full border border-slate-700 text-[11px] font-mono text-slate-300">
           PROVENANCE: {defectData?.authenticity?.is_ai_generated ? 'SYNTHETIC AI' : 'GENUINE PHOTO'}

@@ -8,10 +8,11 @@ const ML_SERVICE_URL = import.meta.env.VITE_ML_SERVICE_URL || 'http://localhost:
 
 
 /**
- * Sends image to local OpenAI CLIP + ViT engine for civic defect detection, spam rejection, and bounding box segmentation.
+ * Sends image to local OpenAI CLIP + ViT engine for zero-shot civic defect classification,
+ * spam rejection, and holographic HUD reticle generation.
  * Supports File object or Base64 string.
  */
-export const detectDefectWithYOLO = async (fileOrBase64, hintTitle = '') => {
+export const detectDefectWithCLIP = async (fileOrBase64, hintTitle = '') => {
   try {
     const formData = new FormData();
     if (fileOrBase64 instanceof File || fileOrBase64 instanceof Blob) {
@@ -36,9 +37,6 @@ export const detectDefectWithYOLO = async (fileOrBase64, hintTitle = '') => {
   }
   return null;
 };
-
-// Model 1 OpenAI CLIP Zero-Shot Inspection alias
-export const detectDefectWithCLIP = detectDefectWithYOLO;
 
 /**
  * Executes DBSCAN geodesic clustering on candidate grievance against active neighborhood tickets.
