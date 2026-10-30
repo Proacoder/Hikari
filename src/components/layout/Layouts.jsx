@@ -1,11 +1,11 @@
 // ─── Layout components (Adaptive Theme) ───────────────────────────────────
 import { Outlet, Link, NavLink, useNavigate, useLocation } from 'react-router-dom';
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect } from 'react';
 import {
   Shield, Home, Map, FileText, Bell, User, BarChart3,
   Users, Building2, LogOut, Menu, X,
   AlertTriangle, TrendingUp, ClipboardList, Layers, Globe, ChevronDown, BadgeCheck, Trophy, CloudRain,
-  Search, Volume2, VolumeX, Sun, Moon
+  Search, Volume2, VolumeX
 } from 'lucide-react';
 import { Navbar } from './Navbar';
 import { Footer } from './Footer';
@@ -53,6 +53,13 @@ const AppTopBar = ({ title, setSidebarOpen }) => {
   const [cmdOpen, setCmdOpen] = useState(false);
   const [soundOn, setSoundOn] = useState(sound.isEnabled());
   const navigate = useNavigate();
+
+  // Enforce dark mode across Citizen, Ward Officer, and HQ Admin portals
+  useEffect(() => {
+    if (!isDark) {
+      setTheme('dark');
+    }
+  }, [isDark, setTheme]);
 
   const currentLangObj = supportedLanguages.find((l) => l.code === language) || supportedLanguages[0];
 
@@ -110,55 +117,6 @@ const AppTopBar = ({ title, setSidebarOpen }) => {
               Ctrl K
             </kbd>
           </button>
-
-          {/* Segmented Theme Mode Switcher */}
-          <div
-            className={classNames(
-              'flex items-center p-0.5 rounded-xl border transition-all',
-              isDark ? 'border-neutral-700 bg-neutral-800' : 'border-neutral-200 bg-neutral-100'
-            )}
-            role="group"
-            aria-label="Theme mode switcher"
-          >
-            <button
-              type="button"
-              onClick={() => {
-                if (isDark) {
-                  sound.play('click');
-                  setTheme('light');
-                }
-              }}
-              className={classNames(
-                'flex items-center gap-1 px-2 py-1 rounded-lg text-xs font-semibold transition-all cursor-pointer',
-                !isDark
-                  ? 'bg-white text-emerald-700 shadow-xs font-bold border border-neutral-200/60'
-                  : 'text-neutral-400 hover:text-white'
-              )}
-              title="Switch to Light Mode"
-            >
-              <Sun size={13} className={!isDark ? 'text-amber-500' : 'text-neutral-400'} />
-              <span className="hidden sm:inline text-[11px]">Light</span>
-            </button>
-            <button
-              type="button"
-              onClick={() => {
-                if (!isDark) {
-                  sound.play('click');
-                  setTheme('dark');
-                }
-              }}
-              className={classNames(
-                'flex items-center gap-1 px-2 py-1 rounded-lg text-xs font-semibold transition-all cursor-pointer',
-                isDark
-                  ? 'bg-neutral-900 text-emerald-300 shadow-xs font-bold border border-neutral-700'
-                  : 'text-neutral-500 hover:text-neutral-900'
-              )}
-              title="Switch to Dark Mode"
-            >
-              <Moon size={13} className={isDark ? 'text-cyan-400' : 'text-neutral-400'} />
-              <span className="hidden sm:inline text-[11px]">Dark</span>
-            </button>
-          </div>
 
           {/* Sound Effects Toggle */}
           <button
