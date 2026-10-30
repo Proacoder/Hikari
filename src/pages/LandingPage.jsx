@@ -200,7 +200,7 @@ export const LandingPage = () => {
 
       {/* ── SECTION 3: Weather Intelligence Bar ── */}
       {weatherData && (
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 !mt-6 sm:!mt-8">
           <div
             className={classNames(
               'rounded-3xl p-5 text-xs flex flex-col sm:flex-row sm:items-center justify-between gap-4 shadow-2xl backdrop-blur-xl border transition-colors',
@@ -266,7 +266,9 @@ export const LandingPage = () => {
       )}
 
       {/* ── SECTION 3.5: BMC Water & Flood Command Telemetry (Dedicated High-Tech Water UI) ── */}
-      <WaterTelemetrySection />
+      <div className="!mt-3 sm:!mt-5">
+        <WaterTelemetrySection />
+      </div>
 
       {/* ── SECTION 4: Zero-Touch Triage Architecture & Interactive Simulation ── */}
       <section className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
