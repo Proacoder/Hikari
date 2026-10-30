@@ -1,4 +1,4 @@
-// ─── Layout components (Adaptive Theme) ───────────────────────────────────
+// ─── Layout components (Adaptive Marketing Theme + Sovereign Light Mode Portals) ───
 import { Outlet, Link, NavLink, useNavigate, useLocation } from 'react-router-dom';
 import { useState, useMemo, useEffect } from 'react';
 import {
@@ -20,7 +20,7 @@ import { EmergencyTicker } from '../common/EmergencyTicker';
 import { CommandPalette } from '../common/CommandPalette';
 import { sound } from '../../utils/soundEffects';
 
-// ── Public layout (marketing site) ───────────────────────────────────────────
+// ── Public layout (marketing site — supports adaptive Light & Dark mode) ─────
 export const PublicLayout = () => {
   const { isDark } = useTheme();
   return (
@@ -43,48 +43,39 @@ export const PublicLayout = () => {
   );
 };
 
-// ── Shared app top bar for logged-in layouts ──────────────────────────────────
+// ── Shared app top bar for logged-in portal layouts (Light Mode Only) ────────
 const AppTopBar = ({ title, setSidebarOpen }) => {
   const { user, logout } = useAuth();
   const { language, setLanguage, t, supportedLanguages } = useLanguage();
   const { unreadCount, toggleDrawer } = useNotifications();
-  const { isDark, setTheme } = useTheme();
+  const { setTheme } = useTheme();
   const [langOpen, setLangOpen] = useState(false);
   const [cmdOpen, setCmdOpen] = useState(false);
   const [soundOn, setSoundOn] = useState(sound.isEnabled());
   const navigate = useNavigate();
 
-  // Enforce dark mode across Citizen, Ward Officer, and HQ Admin portals
+  // Enforce Light Mode strictly across Citizen, Ward Officer, and Admin HQ portals
   useEffect(() => {
-    if (!isDark) {
-      setTheme('dark');
-    }
-  }, [isDark, setTheme]);
+    setTheme('light');
+    document.documentElement.classList.remove('dark');
+    document.documentElement.classList.add('light');
+    document.documentElement.setAttribute('data-theme', 'light');
+  }, [setTheme]);
 
   const currentLangObj = supportedLanguages.find((l) => l.code === language) || supportedLanguages[0];
 
   return (
     <>
-      <header
-        className={classNames(
-          'h-14 flex items-center justify-between px-4 lg:px-6 shrink-0 relative z-30 transition-colors duration-200',
-          isDark
-            ? 'bg-neutral-900 border-b border-neutral-800 text-white shadow-soft-sm'
-            : 'bg-white border-b border-neutral-100 text-neutral-800 shadow-soft-sm'
-        )}
-      >
+      <header className="h-14 flex items-center justify-between px-4 lg:px-6 shrink-0 relative z-30 transition-colors duration-200 bg-white border-b border-neutral-200 text-neutral-800 shadow-soft-sm">
         <div className="flex items-center gap-3">
           <button
             onClick={() => setSidebarOpen(true)}
-            className={classNames(
-              'lg:hidden p-2 rounded-xl transition-colors',
-              isDark ? 'text-neutral-400 hover:bg-neutral-800 hover:text-white' : 'text-neutral-500 hover:bg-neutral-100'
-            )}
+            className="lg:hidden p-2 rounded-xl text-neutral-500 hover:bg-neutral-100 transition-colors"
             aria-label="Open sidebar"
           >
             <Menu size={20} />
           </button>
-          <h1 className={classNames('text-sm font-semibold hidden sm:block', isDark ? 'text-white' : 'text-neutral-800')}>
+          <h1 className="text-sm font-semibold hidden sm:block text-neutral-800">
             {title}
           </h1>
         </div>
@@ -96,24 +87,14 @@ const AppTopBar = ({ title, setSidebarOpen }) => {
               sound.play('pop');
               setCmdOpen(true);
             }}
-            className={classNames(
-              'flex items-center gap-2 px-2.5 py-1.5 text-xs rounded-xl transition-all border',
-              isDark
-                ? 'bg-neutral-800 hover:bg-neutral-700/80 text-neutral-300 border-neutral-700'
-                : 'bg-neutral-100 hover:bg-neutral-200/70 text-neutral-500 hover:text-neutral-900 border-neutral-200/60'
-            )}
+            className="flex items-center gap-2 px-2.5 py-1.5 text-xs rounded-xl transition-all border bg-neutral-100 hover:bg-neutral-200/70 text-neutral-500 hover:text-neutral-900 border-neutral-200/60"
             title="Search commands, wards, or complaints (Ctrl+K)"
           >
-            <Search size={14} className={isDark ? 'text-neutral-400' : 'text-neutral-500'} />
-            <span className={classNames('hidden md:inline font-medium', isDark ? 'text-neutral-300' : 'text-neutral-600')}>
+            <Search size={14} className="text-neutral-500" />
+            <span className="hidden md:inline font-medium text-neutral-600">
               Quick Find
             </span>
-            <kbd
-              className={classNames(
-                'hidden sm:inline-block px-1.5 py-0.5 text-[9px] font-mono font-bold rounded border',
-                isDark ? 'bg-neutral-900 text-neutral-400 border-neutral-700' : 'bg-white text-neutral-500 border-neutral-300'
-              )}
-            >
+            <kbd className="hidden sm:inline-block px-1.5 py-0.5 text-[9px] font-mono font-bold rounded border bg-white text-neutral-500 border-neutral-300">
               Ctrl K
             </kbd>
           </button>
@@ -124,25 +105,17 @@ const AppTopBar = ({ title, setSidebarOpen }) => {
               const s = sound.toggle();
               setSoundOn(s);
             }}
-            className={classNames(
-              'p-2 rounded-xl transition-colors',
-              isDark ? 'text-neutral-400 hover:text-white hover:bg-neutral-800' : 'text-neutral-500 hover:text-neutral-900 hover:bg-neutral-100'
-            )}
+            className="p-2 rounded-xl transition-colors text-neutral-500 hover:text-neutral-900 hover:bg-neutral-100"
             title={soundOn ? 'Sound Effects Active' : 'Sound Effects Muted'}
           >
-            {soundOn ? <Volume2 size={16} className="text-emerald-500" /> : <VolumeX size={16} className={isDark ? 'text-neutral-600' : 'text-neutral-400'} />}
+            {soundOn ? <Volume2 size={16} className="text-emerald-500" /> : <VolumeX size={16} className="text-neutral-400" />}
           </button>
 
           {/* Language selector in dashboard topbar */}
           <div className="relative">
             <button
               onClick={() => setLangOpen((p) => !p)}
-              className={classNames(
-                'flex items-center gap-1.5 px-2.5 py-1.5 text-xs rounded-xl transition-colors border',
-                isDark
-                  ? 'bg-neutral-800 border-neutral-700 text-neutral-200 hover:bg-neutral-700'
-                  : 'bg-white border-neutral-200/70 text-neutral-600 hover:text-neutral-900 hover:bg-neutral-50'
-              )}
+              className="flex items-center gap-1.5 px-2.5 py-1.5 text-xs rounded-xl transition-colors border bg-white border-neutral-200/70 text-neutral-600 hover:text-neutral-900 hover:bg-neutral-50"
               aria-label="Select language"
             >
               <Globe size={14} className="text-brand-500" />
@@ -151,12 +124,7 @@ const AppTopBar = ({ title, setSidebarOpen }) => {
               <ChevronDown size={12} className={classNames('transition-transform', langOpen && 'rotate-180')} />
             </button>
             {langOpen && (
-              <div
-                className={classNames(
-                  'absolute right-0 mt-1 w-36 rounded-xl py-1 z-50 border shadow-soft-md',
-                  isDark ? 'bg-neutral-900 border-neutral-800 text-neutral-200' : 'bg-white border-neutral-100 text-neutral-700'
-                )}
-              >
+              <div className="absolute right-0 mt-1 w-36 rounded-xl py-1 z-50 border shadow-soft-md bg-white border-neutral-100 text-neutral-700">
                 {supportedLanguages.map((lang) => (
                   <button
                     key={lang.code}
@@ -167,12 +135,12 @@ const AppTopBar = ({ title, setSidebarOpen }) => {
                     className={classNames(
                       'w-full text-left px-3 py-1.5 text-xs flex items-center justify-between transition-colors',
                       language === lang.code
-                        ? isDark ? 'text-brand-400 bg-brand-950/60 font-bold' : 'text-brand-700 bg-brand-50 font-bold'
-                        : isDark ? 'text-neutral-300 hover:bg-neutral-800' : 'text-neutral-700 hover:bg-neutral-50'
+                        ? 'text-brand-700 bg-brand-50 font-bold'
+                        : 'text-neutral-700 hover:bg-neutral-50'
                     )}
                   >
                     <span>{lang.native}</span>
-                    <span className={classNames('text-[10px] uppercase font-mono', isDark ? 'text-neutral-500' : 'text-neutral-400')}>
+                    <span className="text-[10px] uppercase font-mono text-neutral-400">
                       {lang.code}
                     </span>
                   </button>
@@ -184,10 +152,7 @@ const AppTopBar = ({ title, setSidebarOpen }) => {
           {/* Notifications Drawer Toggle */}
           <button
             onClick={toggleDrawer}
-            className={classNames(
-              'relative p-2 rounded-xl transition-colors',
-              isDark ? 'text-neutral-400 hover:text-white hover:bg-neutral-800' : 'text-neutral-500 hover:text-neutral-900 hover:bg-neutral-100'
-            )}
+            className="relative p-2 rounded-xl transition-colors text-neutral-500 hover:text-neutral-900 hover:bg-neutral-100"
             aria-label="Toggle notifications drawer"
           >
             <Bell size={18} />
@@ -198,8 +163,8 @@ const AppTopBar = ({ title, setSidebarOpen }) => {
             )}
           </button>
 
-          <div className={classNames('flex items-center gap-2 pl-2 border-l', isDark ? 'border-neutral-800' : 'border-neutral-200')}>
-            <div className="w-8 h-8 rounded-full bg-brand-500/20 text-brand-400 flex items-center justify-center font-semibold text-xs border border-brand-500/30">
+          <div className="flex items-center gap-2 pl-2 border-l border-neutral-200">
+            <div className="w-8 h-8 rounded-full bg-brand-500/15 text-brand-700 flex items-center justify-center font-semibold text-xs border border-brand-200">
               {user?.avatarInitials || user?.name?.[0]}
             </div>
             <button
@@ -207,10 +172,7 @@ const AppTopBar = ({ title, setSidebarOpen }) => {
                 await logout();
                 navigate('/');
               }}
-              className={classNames(
-                'hidden sm:flex items-center gap-1 text-xs transition-colors px-2 py-1.5 rounded-lg',
-                isDark ? 'text-neutral-400 hover:text-white hover:bg-neutral-800' : 'text-neutral-500 hover:text-neutral-900 hover:bg-neutral-100'
-              )}
+              className="hidden sm:flex items-center gap-1 text-xs transition-colors px-2 py-1.5 rounded-lg text-neutral-500 hover:text-neutral-900 hover:bg-neutral-100"
               aria-label="Sign out"
             >
               <LogOut size={14} />
@@ -224,9 +186,8 @@ const AppTopBar = ({ title, setSidebarOpen }) => {
   );
 };
 
-// ── Sidebar nav link ──────────────────────────────────────────────────────────
+// ── Sidebar nav link (Light Mode Only) ────────────────────────────────────────
 const SideLink = ({ to, icon: Icon, label, badge, end = false, onClick }) => {
-  const { isDark } = useTheme();
   return (
     <NavLink
       to={to}
@@ -236,12 +197,8 @@ const SideLink = ({ to, icon: Icon, label, badge, end = false, onClick }) => {
         classNames(
           'flex items-center justify-between px-3 py-2.5 rounded-xl text-sm font-medium transition-all group',
           isActive
-            ? isDark
-              ? 'bg-brand-950/70 text-brand-300 font-semibold border border-brand-800/40 shadow-xs'
-              : 'bg-brand-50 text-brand-700 shadow-soft-sm font-semibold'
-            : isDark
-              ? 'text-neutral-400 hover:bg-neutral-800 hover:text-white'
-              : 'text-neutral-600 hover:bg-neutral-50 hover:text-neutral-900'
+            ? 'bg-brand-50 text-brand-700 shadow-soft-sm font-semibold'
+            : 'text-neutral-600 hover:bg-neutral-50 hover:text-neutral-900'
         )
       }
     >
@@ -253,8 +210,8 @@ const SideLink = ({ to, icon: Icon, label, badge, end = false, onClick }) => {
               className={classNames(
                 'shrink-0',
                 isActive
-                  ? isDark ? 'text-brand-400' : 'text-brand-600'
-                  : isDark ? 'text-neutral-500 group-hover:text-neutral-300' : 'text-neutral-400 group-hover:text-neutral-600'
+                  ? 'text-brand-600'
+                  : 'text-neutral-400 group-hover:text-neutral-600'
               )}
             />
             <span>{label}</span>
@@ -270,32 +227,27 @@ const SideLink = ({ to, icon: Icon, label, badge, end = false, onClick }) => {
   );
 };
 
-// ── Sidebar brand mark ───────────────────────────────────────────────────────
+// ── Sidebar brand mark (Light Mode Only) ─────────────────────────────────────
 const SidebarBrand = () => {
-  const { isDark } = useTheme();
   return (
     <Link
       to="/"
-      className={classNames(
-        'flex items-center gap-2.5 px-4 h-14 border-b shrink-0',
-        isDark ? 'border-neutral-800 text-white' : 'border-neutral-100 text-neutral-900'
-      )}
+      className="flex items-center gap-2.5 px-4 h-14 border-b shrink-0 border-neutral-200 text-neutral-900"
     >
       <div className="w-7 h-7 bg-brand-600 rounded-lg flex items-center justify-center shadow-brand">
         <Shield size={15} className="text-white" strokeWidth={2.5} />
       </div>
-      <span className={classNames('font-bold text-base', isDark ? 'text-white' : 'text-neutral-900')}>
+      <span className="font-bold text-base text-neutral-900">
         Kaiser <span className="text-brand-500">AI</span>
       </span>
     </Link>
   );
 };
 
-// ── Citizen Sidebar + Layout ─────────────────────────────────────────────────
+// ── Citizen Sidebar + Layout (Light Mode Only) ───────────────────────────────
 const CitizenSidebar = ({ open, onClose }) => {
   const { t } = useLanguage();
   const { unreadCount } = useNotifications();
-  const { isDark } = useTheme();
 
   const citizenNav = [
     { to: '/app', icon: Home, label: t('nav.home', 'Home'), end: true },
@@ -312,8 +264,7 @@ const CitizenSidebar = ({ open, onClose }) => {
       {open && <div className="fixed inset-0 bg-neutral-900/30 z-30 lg:hidden" onClick={onClose} />}
       <aside
         className={classNames(
-          'fixed inset-y-0 left-0 z-40 w-60 border-r flex flex-col shadow-soft-md transition-transform duration-250 lg:static lg:translate-x-0 lg:shadow-none',
-          isDark ? 'bg-neutral-900 border-neutral-800 text-white' : 'bg-white border-neutral-100 text-neutral-900',
+          'fixed inset-y-0 left-0 z-40 w-60 border-r flex flex-col shadow-soft-md transition-transform duration-250 lg:static lg:translate-x-0 lg:shadow-none bg-white border-neutral-200 text-neutral-900',
           open ? 'translate-x-0' : '-translate-x-full'
         )}
       >
@@ -321,10 +272,7 @@ const CitizenSidebar = ({ open, onClose }) => {
           <SidebarBrand />
           <button
             onClick={onClose}
-            className={classNames(
-              'lg:hidden p-2 mr-2 rounded-xl',
-              isDark ? 'text-neutral-400 hover:bg-neutral-800' : 'text-neutral-400 hover:bg-neutral-100'
-            )}
+            className="lg:hidden p-2 mr-2 rounded-xl text-neutral-400 hover:bg-neutral-100"
           >
             <X size={18} />
           </button>
@@ -332,18 +280,13 @@ const CitizenSidebar = ({ open, onClose }) => {
         <nav className="flex-1 overflow-y-auto p-3 space-y-0.5" aria-label="Citizen navigation">
           {citizenNav.map((l) => <SideLink key={l.to} {...l} onClick={onClose} />)}
         </nav>
-        <div className={classNames('p-3 border-t', isDark ? 'border-neutral-800' : 'border-neutral-100')}>
-          <div
-            className={classNames(
-              'border rounded-xl p-3 text-xs',
-              isDark ? 'bg-neutral-800/80 border-neutral-700 text-brand-300' : 'bg-brand-50 border-brand-100 text-brand-700'
-            )}
-          >
+        <div className="p-3 border-t border-neutral-200">
+          <div className="border rounded-xl p-3 text-xs bg-brand-50 border-brand-100 text-brand-700">
             <p className="font-semibold mb-0.5">{t('nav.bmcHelpline', 'BMC Helpline')}</p>
             <a href="tel:1916" className="text-brand-500 font-bold text-sm">
               1916
             </a>
-            <p className={classNames('mt-0.5', isDark ? 'text-neutral-400' : 'text-brand-500/80')}>
+            <p className="mt-0.5 text-brand-500/80">
               {t('nav.available247', 'Available 24/7')}
             </p>
           </div>
@@ -355,24 +298,22 @@ const CitizenSidebar = ({ open, onClose }) => {
 
 export const CitizenLayout = () => {
   const [sidebarOpen, setSidebarOpen] = useState(false);
-  const { isDark } = useTheme();
+  const { setTheme } = useTheme();
+
+  useEffect(() => {
+    setTheme('light');
+    document.documentElement.classList.remove('dark');
+    document.documentElement.classList.add('light');
+    document.documentElement.setAttribute('data-theme', 'light');
+  }, [setTheme]);
+
   return (
-    <div
-      className={classNames(
-        'flex h-screen overflow-hidden transition-colors duration-300',
-        isDark ? 'bg-neutral-950 text-neutral-100' : 'bg-neutral-50 text-neutral-900'
-      )}
-    >
+    <div className="flex h-screen overflow-hidden bg-neutral-50 text-neutral-900">
       <CitizenSidebar open={sidebarOpen} onClose={() => setSidebarOpen(false)} />
       <NotificationDrawer />
       <div className="flex-1 flex flex-col min-w-0">
         <AppTopBar title="Citizen Portal" sidebarOpen={sidebarOpen} setSidebarOpen={setSidebarOpen} />
-        <main
-          className={classNames(
-            'flex-1 overflow-y-auto p-4 lg:p-6 page-enter',
-            isDark ? 'bg-neutral-950' : 'bg-neutral-50'
-          )}
-        >
+        <main className="flex-1 overflow-y-auto p-4 lg:p-6 page-enter bg-neutral-50 text-neutral-900">
           <Outlet />
         </main>
       </div>
@@ -380,12 +321,11 @@ export const CitizenLayout = () => {
   );
 };
 
-// ── Officer Sidebar + Layout ──────────────────────────────────────────────────
+// ── Officer Sidebar + Layout (Light Mode Only) ────────────────────────────────
 const OfficerSidebar = ({ open, onClose }) => {
   const { user } = useAuth();
   const { t } = useLanguage();
   const { unreadCount } = useNotifications();
-  const { isDark } = useTheme();
   const location = useLocation();
 
   // Extract officer ID from current path: /officer/:officerId/...
@@ -425,8 +365,7 @@ const OfficerSidebar = ({ open, onClose }) => {
       {open && <div className="fixed inset-0 bg-neutral-900/30 z-30 lg:hidden" onClick={onClose} />}
       <aside
         className={classNames(
-          'fixed inset-y-0 left-0 z-40 w-60 border-r flex flex-col shadow-soft-md transition-transform duration-250 lg:static lg:translate-x-0 lg:shadow-none',
-          isDark ? 'bg-neutral-900 border-neutral-800 text-white' : 'bg-white border-neutral-100 text-neutral-900',
+          'fixed inset-y-0 left-0 z-40 w-60 border-r flex flex-col shadow-soft-md transition-transform duration-250 lg:static lg:translate-x-0 lg:shadow-none bg-white border-neutral-200 text-neutral-900',
           open ? 'translate-x-0' : '-translate-x-full'
         )}
       >
@@ -434,10 +373,7 @@ const OfficerSidebar = ({ open, onClose }) => {
           <SidebarBrand />
           <button
             onClick={onClose}
-            className={classNames(
-              'lg:hidden p-2 mr-2 rounded-xl',
-              isDark ? 'text-neutral-400 hover:bg-neutral-800' : 'text-neutral-400 hover:bg-neutral-100'
-            )}
+            className="lg:hidden p-2 mr-2 rounded-xl text-neutral-400 hover:bg-neutral-100"
           >
             <X size={18} />
           </button>
@@ -467,15 +403,10 @@ const OfficerSidebar = ({ open, onClose }) => {
         </nav>
 
         {/* Dept Badge */}
-        <div className={classNames('p-3 border-t', isDark ? 'border-neutral-800' : 'border-neutral-100')}>
-          <div
-            className={classNames(
-              'px-3 py-2 border rounded-xl text-xs',
-              isDark ? 'bg-sky-950/60 border-sky-800/40 text-sky-300' : 'bg-sky-50 border-sky-100 text-sky-700'
-            )}
-          >
+        <div className="p-3 border-t border-neutral-200">
+          <div className="px-3 py-2 border rounded-xl text-xs bg-sky-50 border-sky-100 text-sky-700">
             <p className="font-semibold">{currentOfficer.department}</p>
-            <p className={classNames('text-[10px] mt-0.5', isDark ? 'text-sky-400/80' : 'text-sky-500/80')}>{currentOfficer.status} Officer</p>
+            <p className="text-[10px] mt-0.5 text-sky-500/80">{currentOfficer.status} Officer</p>
           </div>
         </div>
       </aside>
@@ -485,24 +416,22 @@ const OfficerSidebar = ({ open, onClose }) => {
 
 export const OfficerLayout = () => {
   const [sidebarOpen, setSidebarOpen] = useState(false);
-  const { isDark } = useTheme();
+  const { setTheme } = useTheme();
+
+  useEffect(() => {
+    setTheme('light');
+    document.documentElement.classList.remove('dark');
+    document.documentElement.classList.add('light');
+    document.documentElement.setAttribute('data-theme', 'light');
+  }, [setTheme]);
+
   return (
-    <div
-      className={classNames(
-        'flex h-screen overflow-hidden transition-colors duration-300',
-        isDark ? 'bg-neutral-950 text-neutral-100' : 'bg-neutral-50 text-neutral-900'
-      )}
-    >
+    <div className="flex h-screen overflow-hidden bg-neutral-50 text-neutral-900">
       <OfficerSidebar open={sidebarOpen} onClose={() => setSidebarOpen(false)} />
       <NotificationDrawer />
       <div className="flex-1 flex flex-col min-w-0">
         <AppTopBar title="Officer Portal" sidebarOpen={sidebarOpen} setSidebarOpen={setSidebarOpen} />
-        <main
-          className={classNames(
-            'flex-1 overflow-y-auto p-4 lg:p-6 page-enter',
-            isDark ? 'bg-neutral-950' : 'bg-neutral-50'
-          )}
-        >
+        <main className="flex-1 overflow-y-auto p-4 lg:p-6 page-enter bg-neutral-50 text-neutral-900">
           <Outlet />
         </main>
       </div>
@@ -510,10 +439,9 @@ export const OfficerLayout = () => {
   );
 };
 
-// ── Admin Sidebar + Layout ────────────────────────────────────────────────────
+// ── Admin Sidebar + Layout (Light Mode Only) ──────────────────────────────────
 const AdminSidebar = ({ open, onClose }) => {
   const { t } = useLanguage();
-  const { isDark } = useTheme();
 
   const adminNav = [
     { to: '/admin', icon: BarChart3, label: t('nav.dashboard', 'Dashboard'), end: true },
@@ -530,8 +458,7 @@ const AdminSidebar = ({ open, onClose }) => {
       {open && <div className="fixed inset-0 bg-neutral-900/30 z-30 lg:hidden" onClick={onClose} />}
       <aside
         className={classNames(
-          'fixed inset-y-0 left-0 z-40 w-60 border-r flex flex-col shadow-soft-md transition-transform duration-250 lg:static lg:translate-x-0 lg:shadow-none',
-          isDark ? 'bg-neutral-900 border-neutral-800 text-white' : 'bg-white border-neutral-100 text-neutral-900',
+          'fixed inset-y-0 left-0 z-40 w-60 border-r flex flex-col shadow-soft-md transition-transform duration-250 lg:static lg:translate-x-0 lg:shadow-none bg-white border-neutral-200 text-neutral-900',
           open ? 'translate-x-0' : '-translate-x-full'
         )}
       >
@@ -539,33 +466,20 @@ const AdminSidebar = ({ open, onClose }) => {
           <SidebarBrand />
           <button
             onClick={onClose}
-            className={classNames(
-              'lg:hidden p-2 mr-2 rounded-xl',
-              isDark ? 'text-neutral-400 hover:bg-neutral-800' : 'text-neutral-400 hover:bg-neutral-100'
-            )}
+            className="lg:hidden p-2 mr-2 rounded-xl text-neutral-400 hover:bg-neutral-100"
           >
             <X size={18} />
           </button>
         </div>
-        <div
-          className={classNames(
-            'mx-3 mt-3 mb-2 px-3 py-2 border rounded-xl',
-            isDark ? 'bg-amber-950/60 border-amber-800/40' : 'bg-amber-50 border-amber-100'
-          )}
-        >
-          <p className={classNames('text-xs font-semibold', isDark ? 'text-amber-300' : 'text-amber-700')}>BMC Admin Console</p>
-          <p className={classNames('text-xs', isDark ? 'text-amber-400/80' : 'text-amber-500')}>City-wide Operations</p>
+        <div className="mx-3 mt-3 mb-2 px-3 py-2 border rounded-xl bg-amber-50 border-amber-100">
+          <p className="text-xs font-semibold text-amber-700">BMC Admin Console</p>
+          <p className="text-xs text-amber-500">City-wide Operations</p>
         </div>
         <nav className="flex-1 overflow-y-auto p-3 space-y-0.5" aria-label="Admin navigation">
           {adminNav.map((l) => <SideLink key={l.to} {...l} onClick={onClose} />)}
         </nav>
-        <div className={classNames('p-3 border-t', isDark ? 'border-neutral-800' : 'border-neutral-100')}>
-          <div
-            className={classNames(
-              'flex items-center gap-1.5 text-xs rounded-xl px-3 py-2 border',
-              isDark ? 'bg-neutral-800/90 border-neutral-700 text-neutral-300' : 'bg-neutral-50 border-neutral-200 text-neutral-600'
-            )}
-          >
+        <div className="p-3 border-t border-neutral-200">
+          <div className="flex items-center gap-1.5 text-xs rounded-xl px-3 py-2 border bg-neutral-50 border-neutral-200 text-neutral-600">
             <AlertTriangle size={12} className="text-amber-500" />
             <span>127 high-priority open</span>
           </div>
@@ -577,24 +491,22 @@ const AdminSidebar = ({ open, onClose }) => {
 
 export const AdminLayout = () => {
   const [sidebarOpen, setSidebarOpen] = useState(false);
-  const { isDark } = useTheme();
+  const { setTheme } = useTheme();
+
+  useEffect(() => {
+    setTheme('light');
+    document.documentElement.classList.remove('dark');
+    document.documentElement.classList.add('light');
+    document.documentElement.setAttribute('data-theme', 'light');
+  }, [setTheme]);
+
   return (
-    <div
-      className={classNames(
-        'flex h-screen overflow-hidden transition-colors duration-300',
-        isDark ? 'bg-neutral-950 text-neutral-100' : 'bg-neutral-50 text-neutral-900'
-      )}
-    >
+    <div className="flex h-screen overflow-hidden bg-neutral-50 text-neutral-900">
       <AdminSidebar open={sidebarOpen} onClose={() => setSidebarOpen(false)} />
       <NotificationDrawer />
       <div className="flex-1 flex flex-col min-w-0">
         <AppTopBar title="BMC Admin Console" sidebarOpen={sidebarOpen} setSidebarOpen={setSidebarOpen} />
-        <main
-          className={classNames(
-            'flex-1 overflow-y-auto p-4 lg:p-6 page-enter',
-            isDark ? 'bg-neutral-950' : 'bg-neutral-50'
-          )}
-        >
+        <main className="flex-1 overflow-y-auto p-4 lg:p-6 page-enter bg-neutral-50 text-neutral-900">
           <Outlet />
         </main>
       </div>

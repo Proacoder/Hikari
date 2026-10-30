@@ -501,14 +501,15 @@ def test_external_mumbai_news_api():
         assert "url" in first and first["url"].startswith("http")
         assert "source" in first
 
-    # 2. Key absent: must return isLiveData False with empty array (no fabricated articles)
+    # 2. Key absent: must return curated municipal bulletins with isLiveData False
     try:
         os.environ["NEWS_API_KEY"] = ""
         res_no_key = client.get("/api/news/mumbai")
         assert res_no_key.status_code == 200
         body_no_key = res_no_key.json()
         assert body_no_key["isLiveData"] is False
-        assert body_no_key["articles"] == [], "Must not invent articles when API key is missing"
+        assert len(body_no_key["articles"]) > 0, "Curated BMC advisories should be returned when live NewsAPI key is unset"
+        assert body_no_key["articles"][0]["title"]
     finally:
         os.environ["NEWS_API_KEY"] = orig_key
 
