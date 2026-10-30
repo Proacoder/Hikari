@@ -64,8 +64,8 @@ export const Navbar = () => {
 
   const navLinks = [
     { label: t('nav.home', 'Home'),                 to: '/'             },
-    { label: t('nav.howItWorks', 'How It Works'),   to: '/how-it-works' },
     { label: t('nav.about', 'About Us'),            to: '/about'        },
+    { label: t('nav.howItWorks', 'How It Works'),   to: '/how-it-works' },
     { label: t('nav.contact', 'Contact Us'),        to: '/contact'      },
   ];
 

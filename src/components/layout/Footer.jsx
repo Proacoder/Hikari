@@ -13,8 +13,8 @@ const QUICK_LINKS = [
   { label: 'File Citizen Grievance', to: '/app/report', isPrimary: true },
   { label: '24-Ward Live GIS Map', to: '/app/map' },
   { label: 'Ward Leaderboard & Metrics', to: '/app/leaderboard' },
-  { label: 'Zero-Touch Triage System', to: '/how-it-works' },
   { label: 'About Municipal AI Mission', to: '/about' },
+  { label: 'Zero-Touch Triage System', to: '/how-it-works' },
   { label: 'Find My Ward Office', to: '/contact' },
   { label: 'Officer / Staff Portal', to: '/officer/login' },
 ];

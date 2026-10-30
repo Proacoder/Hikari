@@ -118,8 +118,8 @@ function App() {
                   {/* Public Marketing & Auth Routes */}
                   <Route element={<PublicLayout />}>
                     <Route path="/" element={<LandingPage />} />
-                    <Route path="/how-it-works" element={<HowItWorksPage />} />
                     <Route path="/about" element={<AboutPage />} />
+                    <Route path="/how-it-works" element={<HowItWorksPage />} />
                     <Route path="/contact" element={<ContactPage />} />
                     <Route path="/auth" element={<RedirectIfAuth><AuthPage /></RedirectIfAuth>} />
                     <Route path="/login" element={<RedirectIfAuth><AuthPage /></RedirectIfAuth>} />
