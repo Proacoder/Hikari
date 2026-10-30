@@ -36,7 +36,7 @@ export const LandingPage = () => {
   const [isSimulating, setIsSimulating] = useState(false);
 
   // FAQ Accordion state
-  const [openFaq, setOpenFaq] = useState(0);
+  const [openFaq, setOpenFaq] = useState(null);
 
   useEffect(() => {
     async function fetchData() {
