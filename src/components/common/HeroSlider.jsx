@@ -210,8 +210,18 @@ export const HeroSlider = ({ stats, weather }) => {
   const [index, setIndex] = useState(0);
   const [paused, setPaused] = useState(false);
   const [cycle, setCycle] = useState(0);
+  const isManuallyPaused = useRef(false);
   const box = useRef(null);
   const touchX = useRef(null);
+
+  const togglePause = () => {
+    sound.play('click');
+    setPaused((prev) => {
+      const next = !prev;
+      isManuallyPaused.current = next;
+      return next;
+    });
+  };
 
   const go = useCallback((i) => {
     setIndex((i + slides.length) % slides.length);
@@ -244,8 +254,15 @@ export const HeroSlider = ({ stats, weather }) => {
     <section
       ref={box}
       onMouseMove={onMove}
-      onMouseEnter={() => setPaused(true)}
-      onMouseLeave={() => { setPaused(false); setCycle((c) => c + 1); }}
+      onMouseEnter={() => {
+        if (!isManuallyPaused.current) setPaused(true);
+      }}
+      onMouseLeave={() => {
+        if (!isManuallyPaused.current) {
+          setPaused(false);
+          setCycle((c) => c + 1);
+        }
+      }}
       onTouchStart={(e) => (touchX.current = e.touches[0].clientX)}
       onTouchEnd={(e) => {
         const d = e.changedTouches[0].clientX - touchX.current;
@@ -446,13 +463,7 @@ export const HeroSlider = ({ stats, weather }) => {
           <span key={index} className="hidden md:inline text-white/70 text-[10px] uppercase" style={{ animation: 'fadeIn .8s ease' }}>
             {slides[index].caption}
           </span>
-          <button
-            onClick={() => setPaused((p) => !p)}
-            aria-label={paused ? 'Play slideshow' : 'Pause slideshow'}
-            className="w-8 h-8 rounded-full border border-white/30 flex items-center justify-center hover:bg-white/15 text-white transition-colors cursor-pointer"
-          >
-            {paused ? <Play size={12} /> : <Pause size={12} />}
-          </button>
+
         </div>
 
         {/* Center: Prev/Next Arrow Controls */}
@@ -480,21 +491,42 @@ export const HeroSlider = ({ stats, weather }) => {
         </div>
       </div>
 
-      {/* ── Vertical Dot Indicators (Right Edge, Kavach Style) ── */}
-      <div className="absolute right-4 sm:right-6 top-1/2 -translate-y-1/2 z-30 hidden sm:flex flex-col items-center gap-3.5">
-        <span className="w-px h-12 bg-gradient-to-b from-transparent via-white/40 to-transparent" />
+      {/* ── Vertical Dot Indicators (Right Edge, Kavach Style) with Pause/Play Above ── */}
+      <div className="absolute right-4 sm:right-6 top-1/2 -translate-y-1/2 z-30 hidden sm:flex flex-col items-center gap-3">
+        {/* Play/Pause Button positioned directly above the 5 slide indicators */}
+        <button
+          onClick={togglePause}
+          aria-label={paused ? 'Resume auto-scroll' : 'Pause auto-scroll'}
+          title={paused ? 'Resume auto-scroll' : 'Pause auto-scroll'}
+          className={`w-7 h-7 mb-1 rounded-full border flex items-center justify-center transition-all duration-300 cursor-pointer backdrop-blur-md ${
+            paused
+              ? 'border-emerald-400 bg-emerald-500/25 text-emerald-300 shadow-[0_0_14px_rgba(52,211,153,0.6)] scale-110'
+              : 'border-white/30 bg-neutral-900/70 text-white/80 hover:text-white hover:border-emerald-400/80 hover:bg-white/15'
+          }`}
+        >
+          {paused ? (
+            <Play size={11} className="translate-x-0.5 fill-current" />
+          ) : (
+            <Pause size={11} className="fill-current" />
+          )}
+        </button>
+
+        <span className="w-px h-6 bg-gradient-to-b from-transparent via-white/30 to-white/10" />
+
         {slides.map((s, i) => (
           <button
             key={s.eyebrow}
             onClick={() => { sound.play('pop'); go(i); }}
             aria-label={`Slide ${i + 1}`}
-            className={`rounded-full border transition-all duration-500 cursor-pointer ${i === index
+            className={`rounded-full border transition-all duration-500 cursor-pointer ${
+              i === index
                 ? 'w-3.5 h-3.5 bg-emerald-400 border-emerald-300 shadow-[0_0_16px_#4ade80]'
                 : 'w-2.5 h-2.5 border-white/50 hover:bg-white/40'
-              }`}
+            }`}
           />
         ))}
-        <span className="w-px h-12 bg-gradient-to-t from-transparent via-white/40 to-transparent" />
+
+        <span className="w-px h-8 bg-gradient-to-t from-transparent via-white/30 to-transparent" />
       </div>
     </section>
   );
