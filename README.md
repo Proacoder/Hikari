@@ -1,20 +1,22 @@
 <div align="center">
 
 # 🏛️ KAISER AI
-### *AI-Powered Civic Grievance & Municipal Resolution Platform for Mumbai*
+### *Next-Generation Sovereign Civic Intelligence & Municipal Governance Platform for Mumbai*
 
 [![React 19](https://img.shields.io/badge/React-19.2-61DAFB?style=for-the-badge&logo=react&logoColor=black)](https://react.dev/)
 [![Vite](https://img.shields.io/badge/Vite-8.3-646CFF?style=for-the-badge&logo=vite&logoColor=white)](https://vitejs.dev/)
 [![Tailwind CSS](https://img.shields.io/badge/Tailwind_CSS-v4-06B6D4?style=for-the-badge&logo=tailwindcss&logoColor=white)](https://tailwindcss.com/)
-[![Leaflet](https://img.shields.io/badge/Leaflet-Maps-199900?style=for-the-badge&logo=leaflet&logoColor=white)](https://leafletjs.com/)
+[![FastAPI](https://img.shields.io/badge/FastAPI-0.115-009688?style=for-the-badge&logo=fastapi&logoColor=white)](https://fastapi.tiangolo.com/)
+[![PyTorch](https://img.shields.io/badge/PyTorch-2.0+-EE4C2C?style=for-the-badge&logo=pytorch&logoColor=white)](https://pytorch.org/)
+[![OpenAI CLIP](https://img.shields.io/badge/OpenAI-CLIP-412991?style=for-the-badge&logo=openai&logoColor=white)](https://huggingface.co/openai/clip-vit-base-patch32)
+[![Leaflet](https://img.shields.io/badge/Leaflet-GIS_Maps-199900?style=for-the-badge&logo=leaflet&logoColor=white)](https://leafletjs.com/)
 [![License](https://img.shields.io/badge/License-MIT-blue.svg?style=for-the-badge)](#license)
 
 <p align="center">
-  <b>Empowering Citizens. Streamlining Municipal Wards. Accelerating Resolution.</b><br />
-  Built for Mumbai’s 26 Municipal Wards (BMC) with intelligent automated triage, live geospatial mapping, and role-tailored dashboards.
+  <b>Sovereign AI-driven civic issue reporting, automated multi-modal triage, and real-time municipal telemetry across all 24 BMC administrative zones in Greater Mumbai.</b>
 </p>
 
-[Explore Features](#-key-features) • [Quick Start](#-quick-start) • [Role Portals](#-role-portals) • [Architecture](#-architecture) • [Demo Credentials](#-default-demo-credentials)
+[Key Features](#-key-features) • [AI & ML Intelligence Suite](#-ai--ml-intelligence-suite) • [Architecture](#-architecture--tech-stack) • [Quick Start](#-quick-start) • [Role Portals & Credentials](#-default-demo-credentials) • [Engineering Team](#-engineering-core--contributors)
 
 ---
 
@@ -22,31 +24,75 @@
 
 ## 📌 Executive Summary
 
-**Kaiser AI** is a next-generation municipal governance platform engineered to bridge the gap between citizens and urban municipal bodies (Brihanmumbai Municipal Corporation - BMC). 
+**Kaiser AI** is an advanced municipal command and governance platform engineered to eliminate triage bottlenecks between citizens and the Brihanmumbai Municipal Corporation (BMC).
 
-By leveraging **AI classification**, **severity scoring**, and **geospatial routing**, Kaiser AI eliminates manual triage bottlenecks and automatically directs citizen grievances—ranging from severe road potholes to dangerous open drainage and streetlight failures—directly to the responsible ward engineers with time-bound SLA tracking.
+Traditional municipal complaint channels rely on manual sorting, paper registers, and congested helplines that delay action by days. Kaiser AI introduces a **3-tier multimodal artificial intelligence stack**:
+1. **Zero-Shot Multimodal Visual Defect Classifier** powered by **OpenAI CLIP** to identify municipal hazards and reject non-civic spam.
+2. **Deep Learning Synthetic Image Detector** (Vision Transformer / ViT) to intercept AI-generated or spoofed image uploads.
+3. **Spatial Deduplication & Semantic NLP Engine** (Sentence-BERT + DBSCAN) to aggregate nearby reports into citizen upvotes.
+4. **Sub-Meter 24-Ward Polygon Reverse-Geocoding** to automatically route tickets directly to the responsible Assistant Commissioner and Junior Ward Engineers.
 
 ---
 
 ## 🌟 Key Features
 
 ### 👤 1. Citizen Portal (`/app`)
-- **Smart Grievance Filing**: AI-assisted complaint registration with auto-categorization and severity prediction (0–100 scale).
-- **Interactive Live Map**: Leaflet-powered GIS map visualizing verified civic issues, colored by severity and category pins across Mumbai.
-- **My Complaints Tracker**: Track resolution milestones in real time (`Submitted` ➔ `Assigned` ➔ `In Progress` ➔ `Resolved`).
-- **Live Environmental Barometer**: Real-time ambient weather, humidity, and Mumbai AQI integration to contextualize seasonal civic hazards like monsoon waterlogging.
+- **Zero-Touch Multimodal Reporting**: Upload photos with real-time AI category detection and 1–100 severity risk scoring.
+- **Trilingual Voice Grievance Engine**: In-browser speech recognition supporting conversational Marathi, Hindi, and English.
+- **Interactive 24-Ward GIS Map**: Cluster-based Leaflet map visualizing grievances, flood hotspots, and real-time status pins.
+- **"Me Too" Citizen Upvoting & Karma Economy**: Prevents duplicate tickets while rewarding active civic champions with municipal Karma points.
+- **Tamper-Proof Resolution Verification**: Interactive before/after photo slider and cryptographically verifiable SHA-256 completion certificate.
 
 ### 👷 2. Ward Officer Portal (`/officer`)
-- **Triage & Dispatch Desk**: Filter grievances by municipal ward (e.g., K/E Andheri, G/N Bandra, Worli) and priority level.
-- **Workflow State Management**: One-click actions to acknowledge, schedule, update status, and close complaints with resolution notes.
-- **Performance & SLA Monitoring**: Live tracking of average turnaround time, overdue violations, and target resolution quotas.
-- **Visual Analytics**: Interactive Recharts breakdown of complaint categories and weekly resolution throughput.
+- **Real-Time Triage & Dispatch Queue**: Filter by administrative zone (A Ward Colaba to T Ward Mulund) and emergency priority.
+- **Field Inspection Protocols**: 200m physical GPS geofence validation, material expenditure ledger, and after-repair photo uploads.
+- **Performance & SLA Monitoring**: Turnaround tracking, automated escalation alerts, and resolution quota metrics.
+- **Enforced Operational Dark Console**: High-contrast, distraction-free command environment designed for field responsiveness.
 
-### 🏛️ 3. City Administrator Console (`/admin`)
-- **BMC Command Center**: Macro-level view of grievance inflow across all 26 Mumbai wards.
-- **Ward Performance Heatmaps**: Comparative analytics highlighting top-performing wards and zones lagging behind SLAs.
-- **Officer & Resource Roster**: Manage field officers, reallocate workloads, and audit departmental bottlenecks.
-- **One-Click Audit Reports**: Export summary metrics for municipal executive briefings.
+### 🏛️ 3. Municipal Headquarters Command Center (`/admin`)
+- **City-Wide Macro Telemetry**: Real-time aggregated ticket inflow, resolution velocity, and ward rankings across all 24 BMC zones.
+- **IMD Doppler Radar & Flood Telemetry**: Live dewatering sump status (Mithi River, Sion, Hindmata) and Arabian Sea tidal watches.
+- **Officer Roster & Workload Rebalancer**: Dynamic cross-ward task reallocation and departmental bottleneck auditing.
+- **Official Executive Briefings**: One-click PDF audit generation and municipal compliance reporting.
+
+---
+
+## 🧠 AI & ML Intelligence Suite
+
+Kaiser AI replaces legacy brittle computer vision models with modern multimodal foundation models:
+
+```mermaid
+flowchart TD
+    A[Citizen Grievance Upload] --> B{Synthetic Image Check}
+    B -- "Synthetic / AI Generated (>50%)" --> X[Reject: Fraudulent Image Flagged]
+    B -- "Authentic Photo" --> C[OpenAI CLIP Multimodal Classifier]
+    
+    C --> D{Spam / Non-Civic Filter}
+    D -- "Indoor / Selfie / Meme (>25%)" --> Y[Reject: Non-Municipal Defect]
+    D -- "Verified Municipal Hazard" --> E[Category & Severity Matrix]
+    
+    E --> F[Potholes / Waterlogging / Garbage / Lights / Pipeline]
+    F --> G[Sentence-BERT & DBSCAN Clustering]
+    G -- "Within 25m & Semantic Match" --> H[Merge into Existing Ticket + Upvote]
+    G -- "Unique Grievance" --> I[24-Ward Polygon Boundary Geocoding]
+    I --> J[Direct Dispatch to Ward Junior Engineer]
+```
+
+### 1. OpenAI CLIP Zero-Shot Multimodal Classifier (`clip_service.py`)
+- **Architecture**: OpenAI CLIP `ViT-B/32` transformer.
+- **Capability**: Matches image embeddings against engineered prompt ensembles for municipal hazards (`potholes`, `waterlogging`, `overflowing garbage`, `broken streetlights`, `pipeline burst`).
+- **Spam Filtering**: Dynamically detects and rejects selfies, indoor furniture, food, documents, and internet memes with sub-second inference.
+
+### 2. ViT Deep Learning Synthetic AI Detector (`authenticity_service.py`)
+- **Architecture**: Vision Transformer (`umm-maybe/AI-image-detector`).
+- **Capability**: Detects synthetic artifacts from generative models (Midjourney, Stable Diffusion, DALL-E) to guarantee evidence authenticity before civic dispatch.
+
+### 3. Spatial Deduplication & Semantic NLP (`duplicate_service.py`)
+- **Architecture**: `Sentence-BERT` semantic embeddings combined with `DBSCAN` (Haversine 25-meter radius).
+- **Capability**: Groups simultaneous complaints of the same road pothole or overflowing sump into a single master ticket, incrementing citizen upvote counts automatically.
+
+### 4. Conversational Civic AI Assistant (`CivicAiAssistant.jsx`)
+- **Integration**: NVIDIA NIM API (`meta/llama-3.1-70b-instruct`) with trilingual prompt orchestration for municipal regulations, Lokshahi Din timings, and disaster guidance.
 
 ---
 
@@ -54,144 +100,121 @@ By leveraging **AI classification**, **severity scoring**, and **geospatial rout
 
 ```mermaid
 graph TD
-    User([Citizen / Field Officer / Admin]) --> Router[React Router v7]
+    User([Citizen / Officer / Admin]) --> Router[React Router v7]
     Router --> Layouts[Role Layouts & Nav]
     
     subgraph Frontend Application
         Layouts --> CitizenView[Citizen Portal]
-        Layouts --> OfficerView[Officer Dashboard]
-        Layouts --> AdminView[Admin Console]
+        Layouts --> OfficerView[Ward Officer Desk]
+        Layouts --> AdminView[BMC HQ Console]
         
-        CitizenView --> CompMap[Leaflet GIS Engine]
-        CitizenView --> AIForm[AI Triage & Severity Form]
-        OfficerView --> RechartsView[Recharts Performance Analytics]
-        AdminView --> MacroHeatmap[Cross-Ward Metrics]
+        CitizenView --> LeafletGIS[Leaflet 24-Ward GIS Engine]
+        CitizenView --> VoiceEngine[Trilingual Web Speech UX]
+        OfficerView --> RechartsKPI[Recharts SLA Analytics]
+        AdminView --> FloodTelemetry[Live Water & Doppler Radar]
     end
     
-    subgraph Data & State Layer
-        CitizenView & OfficerView & AdminView --> AuthContext[Auth Context & Token Store]
-        CitizenView & OfficerView & AdminView --> ApiLayer[API Client / Mock Services]
+    subgraph FastAPI Backend Microservices
+        CitizenView & OfficerView & AdminView --> AuthAPI[JWT Auth & RBAC]
+        CitizenView & OfficerView & AdminView --> GrievanceAPI[Grievance CRUD & Upvotes]
+        GrievanceAPI --> MLRouter[FastAPI ML Router]
+        
+        MLRouter --> CLIPEngine[OpenAI CLIP Classifier]
+        MLRouter --> ViTDetector[ViT AI Deepfake Detector]
+        MLRouter --> SBERTEngine[Sentence-BERT & DBSCAN]
     end
     
-    subgraph External & Live Integrations
-        ApiLayer --> WeatherAPI[Mumbai Live AQI & Weather]
-        ApiLayer --> GeoData[OpenStreetMap / Leaflet Tile Layer]
+    subgraph External Telemetry
+        FastAPI --> OpenMeteo[Open-Meteo Weather & AQI API]
+        FastAPI --> NVIDIANIM[NVIDIA NIM LLaMA-3.1 LLM]
+        FastAPI --> OpenStreetMap[OpenStreetMap Polygon Geocoding]
     end
 ```
 
-| Layer | Technology | Purpose |
+| Domain | Technology | Description |
 | :--- | :--- | :--- |
-| **Framework** | **React 19** + **Vite 8** | Ultra-fast client-side SPA with lightning HMR |
-| **Styling** | **Tailwind CSS v4** | Modern design system, custom palettes, glassmorphism |
-| **Icons** | **Lucide React** | Clean, consistent SVG iconography |
-| **Mapping** | **Leaflet** + **React-Leaflet** | Interactive geospatial issue clustering & ward mapping |
-| **Charts** | **Recharts** | Smooth SVG-based data visualizations and KPI trends |
-| **Routing** | **React Router v7** | Client routing with multi-tier nested layouts |
-| **Forms & Validation** | **React Hook Form** + **Zod** | Type-safe form handling and validation |
-| **Alerts & Toasts** | **React Hot Toast** | Non-intrusive feedback notifications |
+| **Frontend Framework** | **React 19** + **Vite 8** | Client-side SPA with sub-second Hot Module Replacement |
+| **Styling & Design** | **Tailwind CSS v4** | Adaptive theme tokens, glassmorphism, responsive grid architecture |
+| **State & Navigation** | **React Router v7** | Role-gated portal shells with persistent route restoration |
+| **Geospatial & Mapping** | **Leaflet** + **React-Leaflet** | Sub-meter polygon reverse geocoding across 24 BMC wards |
+| **Visual Analytics** | **Recharts** | Reactive SVG charts, ward leaderboards, and SLA throughput curves |
+| **Backend Framework** | **FastAPI (Python 3.11+)** | Asynchronous REST microservices with Pydantic v2 schemas |
+| **Database Engine** | **SQLite WAL** / **PostgreSQL** | High-concurrency Write-Ahead Logging with ACID integrity |
+| **Vision Foundation** | **OpenAI CLIP ViT-B/32** | Zero-shot visual defect classification & spam rejection |
+| **Image Authenticity** | **Hugging Face ViT** | Deepfake and generative AI image detection |
+| **NLP & Clustering** | **Sentence-BERT + DBSCAN** | Semantic embedding similarity with 25m spatial radius grouping |
+| **Voice & Speech** | **Web Speech Recognition API** | Trilingual voice dictation (Marathi, Hindi, English) |
 
 ---
 
 ## 🚀 Quick Start
 
-### Option A: Unified Docker Deployment (Recommended)
-Launch the complete platform with PostgreSQL 16 + PostGIS, Redis, Python FastAPI, YOLOv8 vision engine, and compiled React SPA in one command:
+### 1. Prerequisites
+- **Node.js**: v18.0.0 or higher
+- **Python**: v3.11 or higher
+- **Git**
+
+### 2. Frontend Setup
 ```bash
-docker compose up -d --build
-```
-- Web Application & API: `http://localhost:5000`
-- API Documentation (Swagger): `http://localhost:5000/docs`
-- PostGIS Database: `localhost:5432`
+# Navigate to the repository root
+cd "Hikari version 2/Hikari-main version 2"
 
----
-
-### Option B: Local Development
-
-#### 1. Frontend Setup
-```bash
+# Install frontend dependencies
 npm install
+
+# Start Vite dev server
 npm run dev
 ```
-Spins up the Vite development server at `http://localhost:5173`.
+> The frontend will launch at `http://localhost:5173`.
 
-#### 2. Unified Python FastAPI & AI Backend
+### 3. Backend Setup
 ```bash
-# Install backend dependencies
-pip install -r backend/requirements.txt
+# Navigate to backend directory
+cd backend
 
-# Run unified backend (Auth + Grievance + Wards + YOLOv8 + PostGIS/SQLite)
-python backend/app.py
+# Install Python requirements
+pip install -r requirements.txt
+
+# Start FastAPI server
+python app.py
 ```
-Backend runs on `http://localhost:5000`.
+> The backend will launch at `http://localhost:5000` with interactive API docs at `http://localhost:5000/docs`.
 
-#### 3. Run Automated End-to-End Validation
+### 4. Running Verification Test Suite
 ```bash
-python backend/test_e2e.py
+cd backend
+python test_regression.py
 ```
+> Runs the complete 18-suite regression suite validating zero-shot CLIP, AI image authentication, RBAC certificates, and concurrent upvote integrity.
 
 ---
 
 ## 🔑 Default Demo Credentials
 
-For quick local evaluation without setting up an external backend database, use the pre-configured role presets:
+Pre-configured role credentials for instant evaluation across all municipal access levels:
 
-| Role | Preset Email | Password | Assigned Scope | Portal |
+| Role | Email | Password | Assigned Scope | Portal Gateway |
 | :--- | :--- | :--- | :--- | :--- |
-| **Citizen (Demo)** | `priya.nair@example.com` | `Citizen@123` | Individual Submissions & Ward 8 | `/login` |
-| **Ward Officer** | `suresh.patil@bmc.gov.in` | `BandraN@2024` | G/N Ward (Bandra North) Field Desk | `/officer-login` |
-| **BMC Administrator** | `r.mehta@bmc.gov.in` | `Admin@2024` | Municipal Commissioner (All 24 Wards) | `/officer-login` |
-
-*(Citizens log in at `/login`. Ward Officers & Municipal Administrators log in via the official staff gateway at `/officer-login`)*
+| **Citizen** | `priya.nair@example.com` | `Citizen@123` | Colaba & Bandra Citizen Account | `/login` |
+| **Ward Officer** | `suresh.patil@bmc.gov.in` | `BandraN@2024` | Ward G/North (Bandra / Dharavi) | `/officer/login` |
+| **HQ Administrator** | `r.mehta@bmc.gov.in` | `Admin@2024` | Municipal Commissioner (All 24 Wards) | `/officer/login` |
 
 ---
 
-## 📁 Project Structure
+## 👥 Engineering Core & Contributors
 
-```
-Hikari/
-├── public/                  # Static assets & favicon
-├── src/
-│   ├── api/                 # API service clients & mock data endpoints
-│   │   ├── analytics.api.js # City & ward statistics
-│   │   ├── auth.api.js      # Authentication & Google OAuth
-│   │   ├── complaints.api.js# Grievance CRUD & GIS coordinates
-│   │   └── weather.api.js   # AQI and meteorology feeds
-│   ├── components/
-│   │   ├── common/          # Reusable UI primitives (Button, Card, Badge, Modal, Input)
-│   │   ├── complaints/      # Grievance cards, status pills, category icons
-│   │   ├── layout/          # Public, Citizen, Officer, and Admin shell layouts
-│   │   └── map/             # Leaflet mapping components and markers
-│   ├── context/
-│   │   └── AuthContext.jsx  # Global session, JWT restore, and role switching
-│   ├── pages/
-│   │   ├── LandingPage.jsx  # Public marketing hero, live ticker & emergency hotline
-│   │   ├── AuthPage.jsx     # Multi-role authentication & registration
-│   │   ├── CitizenPages.jsx # Citizen dashboard, report form, my complaints, map
-│   │   ├── OfficerPages.jsx # Ward triage queue & officer KPIs
-│   │   └── AdminPages.jsx   # City-wide macro analytics & ward leaderboards
-│   ├── utils/
-│   │   ├── formatters.js    # Date, time, currency, and string sanitizers
-│   │   └── mockData/        # Seed datasets for complaints, wards, and officers
-│   ├── App.jsx              # Application route tree
-│   └── main.jsx             # React DOM root entry
-├── package.json
-├── tailwind.config.js
-└── vite.config.js
-```
+<div align="center">
 
----
+### The Minds Behind Kaiser AI
+*A collaborative effort uniting computer vision research, full-stack systems engineering, and municipal governance insights.*
 
-## 🛣️ Features & Roadmap
+</div>
 
-- [x] **Multilingual Support (Marathi, Hindi, English)**: Complete UI localization across portals with persistent preference.
-- [x] **Live Notifications Center & Drawer**: Interactive notifications panel with unread badges, mark-as-read, and real-time grievance dispatch alerts.
-- [x] **GPS Auto-Locate & Draggable Pin Map**: Device geolocation, OpenStreetMap reverse-geocoding, nearest municipal ward auto-detection, and interactive Leaflet pin picker.
-- [x] **Spatial Deduplication & Geo-clustering (DBSCAN)**: Geodesic clustering within 25m to detect duplicate grievances and merge them into upvotes.
-- [x] **Citizen "Me Too" Upvoting & Karma Economy**: Prevents ticket flooding, rewards citizens with Karma points redeemable for transit and municipal vouchers.
-- [x] **Field Inspection & Before/After Verification**: Interactive before/after evidence slider, 200m physical GPS geofence telemetry, and material expenditure ledger.
-- [x] **Tamper-Proof Web Crypto SHA-256 Seal**: Cryptographically signed resolution certificates with immutable audit hashes for field closures.
-- [x] **Kaiser Sahayak AI Assistant**: 24/7 conversational municipal assistant powered by Gemini 1.5 Flash with trilingual BMC routing.
-- [ ] **WhatsApp Grievance Bot Integration** for zero-friction reporting on mobile.
+| Contributor | Role & Domain | Key Architectural Contributions |
+| :--- | :--- | :--- |
+| **Ayush Barve** | **Chief AI Architect & Principal Systems Lead**<br />*Vision-Language Transformers, Autonomous NLP & Scalable Backend* | • **Pioneered the Core AI Intelligence Stack**: Architected and tuned the 3-tier deep learning suite featuring zero-shot OpenAI CLIP multimodal hazard recognition with sub-second spam rejection, high-throughput ViT deepfake authenticity verification, and Sentence-BERT + DBSCAN spatial deduplication.<br />• **High-Performance Backend Engineering**: Designed the asynchronous FastAPI microservices architecture, SQLite WAL high-concurrency transaction handling with race-condition rollbacks, automated SLA breach escalation algorithms, and production-grade municipal resilience. |
+| **Dharmik Desai** | **Frontend Architect & Geospatial Systems Lead**<br />*Interactive GIS & Multilingual Voice UX* | • **Geospatial 24-Ward Mapping**: Engineered the interactive Leaflet GIS mapping engine with sub-meter polygon point-in-polygon reverse-geocoding across all 24 BMC zones.<br />• **Accessible Voice UX**: Built the in-browser Web Speech voice grievance recording engine supporting natural conversational Marathi, Hindi, and English.<br />• **Responsive UI Architecture**: Developed modern responsive component architecture, interactive Before/After evidence sliders, and tactile municipal dashboard telemetry. |
+| **Harsh Mane** | **Cloud API & Systems Integration Lead**<br />*Municipal APIs & Multi-Portal Architecture* | • **External Telemetry & Cloud APIs**: Architected integrations for the NVIDIA NIM civic LLM assistant, real-time Open-Meteo weather and AQI monitoring, and IMD Doppler radar feeds.<br />• **Multi-Portal UX Engineering**: Engineered the comprehensive Citizen, Ward Officer, and Municipal HQ portal interfaces with enforced dark command aesthetics.<br />• **Municipal Dataset Research**: Conducted foundational research to source, structure, and validate high-precision municipal datasets, officer rosters, and SLA benchmark schemas across all 24 BMC zones. |
 
 ---
 
