@@ -90,11 +90,11 @@ export const Navbar = () => {
           'max-w-7xl mx-auto rounded-2xl border transition-all duration-300',
           isDark
             ? scrolled
-              ? 'bg-neutral-950/90 backdrop-blur-xl border-white/20 text-white shadow-[0_12px_36px_rgba(0,0,0,0.65)]'
-              : 'bg-neutral-950/65 backdrop-blur-md border-white/15 text-white shadow-soft-sm'
+              ? 'bg-neutral-950/92 backdrop-blur-xl border-white/20 text-white shadow-[0_16px_40px_rgba(0,0,0,0.7)]'
+              : 'bg-neutral-950/75 backdrop-blur-md border-white/15 text-white shadow-[0_8px_32px_rgba(0,0,0,0.45)]'
             : scrolled
-              ? 'bg-white/95 backdrop-blur-xl border-neutral-200/90 text-neutral-900 shadow-[0_12px_36px_rgba(0,0,0,0.08)]'
-              : 'bg-white/85 backdrop-blur-md border-neutral-200/70 text-neutral-900 shadow-soft-sm'
+              ? 'bg-white/95 backdrop-blur-xl border-neutral-200/90 text-neutral-900 shadow-[0_16px_40px_rgba(0,0,0,0.08)]'
+              : 'bg-white/90 backdrop-blur-md border-neutral-200/80 text-neutral-900 shadow-[0_8px_32px_rgba(0,0,0,0.06)]'
         )}
       >
         <div className="px-3 sm:px-5">
@@ -115,8 +115,8 @@ export const Navbar = () => {
               <span
                 aria-hidden
                 className={classNames(
-                  'absolute top-0 bottom-0 rounded-xl shadow-xs transition-all duration-300 ease-out',
-                  isDark ? 'bg-white/10' : 'bg-neutral-200/70'
+                  'absolute top-0 bottom-0 rounded-xl transition-all duration-300 ease-out',
+                  isDark ? 'bg-white/10 shadow-xs border border-white/10' : 'bg-neutral-100/90 shadow-xs border border-neutral-200/60'
                 )}
                 style={{ left: pill.left, width: pill.width, opacity: pill.show ? 1 : 0 }}
               />
@@ -131,7 +131,7 @@ export const Navbar = () => {
                       'relative z-10 px-4 py-2 rounded-xl text-sm font-semibold transition-colors duration-200',
                       isActive
                         ? isDark ? 'text-emerald-400 font-bold' : 'text-emerald-600 font-bold'
-                        : isDark ? 'text-white/80 hover:text-white' : 'text-neutral-600 hover:text-neutral-900'
+                        : isDark ? 'text-white/80 hover:text-white' : 'text-neutral-600 hover:text-neutral-950'
                     )
                   }
                 >
@@ -151,8 +151,8 @@ export const Navbar = () => {
                 className={classNames(
                   'flex items-center gap-2 px-2.5 py-1.5 text-xs rounded-xl transition-all shadow-xs cursor-pointer active:scale-95',
                   isDark
-                    ? 'border border-white/15 bg-white/10 hover:bg-white/20 text-white/80 hover:text-white'
-                    : 'border border-neutral-200 bg-neutral-100 hover:bg-neutral-200/80 text-neutral-700'
+                    ? 'border border-white/15 bg-white/10 hover:bg-white/15 text-white/90 hover:text-white'
+                    : 'border border-neutral-200/80 bg-neutral-100/80 hover:bg-neutral-200/70 text-neutral-700'
                 )}
                 title="Spotlight Search (Ctrl+K)"
               >
@@ -181,11 +181,13 @@ export const Navbar = () => {
                 {soundOn ? <Volume2 size={16} className={isDark ? 'text-emerald-400' : 'text-emerald-600'} /> : <VolumeX size={16} className={isDark ? 'text-white/40' : 'text-neutral-400'} />}
               </button>
 
-              {/* ── Segmented Theme Mode Switcher (Light / Dark) ── */}
+              {/* ── Sovereign Theme Mode Switcher (Light / Dark) ── */}
               <div
                 className={classNames(
-                  'flex items-center p-0.5 rounded-xl border transition-all',
-                  isDark ? 'border-white/15 bg-white/10' : 'border-neutral-200 bg-neutral-100'
+                  'relative flex items-center p-1 rounded-full border transition-all duration-300 backdrop-blur-xl',
+                  isDark
+                    ? 'border-white/15 bg-neutral-900/90 shadow-[inset_0_1px_3px_rgba(0,0,0,0.5)]'
+                    : 'border-neutral-200/90 bg-neutral-100/95 shadow-[inset_0_1px_3px_rgba(0,0,0,0.06)]'
                 )}
                 role="group"
                 aria-label="Theme mode switcher"
@@ -199,15 +201,23 @@ export const Navbar = () => {
                     }
                   }}
                   className={classNames(
-                    'flex items-center gap-1 px-2.5 py-1 rounded-lg text-xs font-semibold transition-all cursor-pointer',
+                    'relative z-10 flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold transition-all duration-300 cursor-pointer select-none active:scale-95',
                     !isDark
-                      ? 'bg-white text-emerald-700 shadow-xs font-bold border border-neutral-200/60'
-                      : 'text-neutral-400 hover:text-white'
+                      ? 'bg-white text-neutral-900 font-bold shadow-[0_2px_8px_rgba(0,0,0,0.12),0_1px_2px_rgba(0,0,0,0.06)] border border-neutral-200/80 scale-[1.02]'
+                      : 'text-neutral-400 hover:text-neutral-200 hover:bg-white/5'
                   )}
                   title="Switch to Light Mode"
                 >
-                  <Sun size={13} className={!isDark ? 'text-amber-500' : 'text-neutral-400'} />
-                  <span className="hidden sm:inline text-[11px]">Light</span>
+                  <Sun
+                    size={14}
+                    className={classNames(
+                      'transition-all duration-300',
+                      !isDark
+                        ? 'text-amber-500 drop-shadow-[0_0_8px_rgba(245,158,11,0.55)] rotate-0 scale-110'
+                        : 'text-neutral-400 hover:text-amber-300 rotate-45'
+                    )}
+                  />
+                  <span className="hidden sm:inline text-[11px] font-semibold tracking-wide">Light</span>
                 </button>
                 <button
                   type="button"
@@ -218,15 +228,23 @@ export const Navbar = () => {
                     }
                   }}
                   className={classNames(
-                    'flex items-center gap-1 px-2.5 py-1 rounded-lg text-xs font-semibold transition-all cursor-pointer',
+                    'relative z-10 flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold transition-all duration-300 cursor-pointer select-none active:scale-95',
                     isDark
-                      ? 'bg-neutral-800 text-emerald-300 shadow-xs font-bold border border-white/20'
-                      : 'text-neutral-500 hover:text-neutral-900'
+                      ? 'bg-gradient-to-b from-neutral-800 to-neutral-850 text-white font-bold shadow-[0_2px_8px_rgba(0,0,0,0.5),0_1px_2px_rgba(255,255,255,0.08)] border border-white/20 scale-[1.02]'
+                      : 'text-neutral-500 hover:text-neutral-900 hover:bg-black/5'
                   )}
                   title="Switch to Dark Mode"
                 >
-                  <Moon size={13} className={isDark ? 'text-cyan-400' : 'text-neutral-400'} />
-                  <span className="hidden sm:inline text-[11px]">Dark</span>
+                  <Moon
+                    size={14}
+                    className={classNames(
+                      'transition-all duration-300',
+                      isDark
+                        ? 'text-sky-300 drop-shadow-[0_0_8px_rgba(56,189,248,0.6)] -rotate-12 scale-110'
+                        : 'text-neutral-400 hover:text-sky-500 rotate-0'
+                    )}
+                  />
+                  <span className="hidden sm:inline text-[11px] font-semibold tracking-wide">Dark</span>
                 </button>
               </div>
 
