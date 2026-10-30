@@ -8,6 +8,7 @@ import {
 } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { useTheme } from '../context/ThemeContext';
+import { useLanguage } from '../context/LanguageContext';
 import { DEMO_CITIZENS, MUMBAI_WARDS } from '../utils/mockData';
 import { sound } from '../utils/soundEffects';
 import { ForgotPasswordModal } from '../components/auth/ForgotPasswordModal';
@@ -56,6 +57,7 @@ const getPasswordStrength = (pwd) => {
 
 export const AuthPage = () => {
   const [searchParams] = useSearchParams();
+  const { t } = useLanguage();
   const location = useLocation();
   const navigate = useNavigate();
   const { login, register } = useAuth();

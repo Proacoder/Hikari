@@ -7,6 +7,7 @@ import {
 } from 'lucide-react';
 import { sound } from '../../utils/soundEffects';
 import { useTheme } from '../../context/ThemeContext';
+import { useLanguage } from '../../context/LanguageContext';
 
 const WATER_STATIONS = [
   {
@@ -97,6 +98,7 @@ const WATER_STATIONS = [
 
 export const WaterTelemetrySection = () => {
   const { isDark } = useTheme();
+  const { t } = useLanguage();
   const [selectedStation, setSelectedStation] = useState(WATER_STATIONS[0]);
   const [lastSync, setLastSync] = useState('14:24:10 IST');
 
@@ -115,17 +117,17 @@ export const WaterTelemetrySection = () => {
           <div className="flex items-center gap-2.5">
             <span className="w-2.5 h-2.5 rounded-full bg-teal-500 dark:bg-teal-400 shadow-[0_0_12px_#14b8a6] dark:shadow-[0_0_12px_#2dd4bf] animate-ping" />
             <span className="font-mono text-xs font-bold tracking-[.3em] uppercase text-teal-700 dark:text-teal-300">
-              LIVE BMC HYDROLOGICAL RADAR & WATER TELEMETRY
+              {t('water.badge', 'LIVE BMC HYDROLOGICAL RADAR & WATER TELEMETRY')}
             </span>
           </div>
           <h2 className="font-display text-3xl sm:text-5xl font-extrabold text-neutral-900 dark:text-white tracking-tight">
-            Mumbai Water & Flood{' '}
+            {t('water.title1', 'Mumbai Water & Flood')}{' '}
             <span className="bg-gradient-to-r from-teal-600 via-emerald-600 to-sky-600 dark:from-teal-300 dark:via-emerald-400 dark:to-sky-400 bg-clip-text text-transparent">
-              Command Telemetry
+              {t('water.title2', 'Command Telemetry')}
             </span>
           </h2>
           <p className="text-sm sm:text-base text-neutral-600 dark:text-white/70 max-w-2xl leading-relaxed">
-            Real-time ultrasonic water depth sensors across 24 wards, automated dewatering sump stations, and live Arabian Sea tidal advisories.
+            {t('water.desc', 'Real-time ultrasonic water depth sensors across 24 wards, automated dewatering sump stations, and live Arabian Sea tidal advisories.')}
           </p>
         </div>
 
@@ -133,7 +135,7 @@ export const WaterTelemetrySection = () => {
         <div className="flex flex-wrap items-center gap-3">
           <div className="px-4 py-2 rounded-2xl bg-white dark:bg-neutral-900/80 border border-teal-200 dark:border-teal-500/30 text-xs font-mono text-teal-800 dark:text-teal-300 flex items-center gap-2 shadow-sm dark:shadow-lg backdrop-blur-xl">
             <Waves size={15} className="animate-pulse text-teal-600 dark:text-teal-400" />
-            <span className="font-semibold">64/64 PUMPS ACTIVE</span>
+            <span className="font-semibold">{t('water.pumpsActive', '64/64 PUMPS ACTIVE')}</span>
           </div>
           <button
             onClick={handleRefresh}
@@ -141,7 +143,7 @@ export const WaterTelemetrySection = () => {
             title="Refresh hydrological telemetry"
           >
             <RefreshCw size={13} className="text-emerald-600 dark:text-emerald-400" />
-            <span className="font-medium">SYNC: {lastSync}</span>
+            <span className="font-medium">{t('water.sync', 'SYNC:')} {lastSync}</span>
           </button>
         </div>
       </div>
@@ -154,9 +156,9 @@ export const WaterTelemetrySection = () => {
           <div className="flex items-center justify-between">
             <h3 className="font-mono text-xs font-bold tracking-[.25em] text-neutral-600 dark:text-white/70 uppercase flex items-center gap-2">
               <Gauge size={14} className="text-teal-600 dark:text-teal-400" />
-              ULTRASONIC FLOOD SENSORS ({WATER_STATIONS.length} MONITORED HOTSPOTS)
+              {t('water.sensorsHotspots', `ULTRASONIC FLOOD SENSORS (${WATER_STATIONS.length} MONITORED HOTSPOTS)`)}
             </h3>
-            <span className="text-xs font-mono text-emerald-700 dark:text-emerald-400/90 font-semibold">ALL STATIONS REPORTING</span>
+            <span className="text-xs font-mono text-emerald-700 dark:text-emerald-400/90 font-semibold">{t('water.allReporting', 'ALL STATIONS REPORTING')}</span>
           </div>
 
           <div className="grid sm:grid-cols-2 gap-4">
@@ -197,11 +199,11 @@ export const WaterTelemetrySection = () => {
                         {station.id} · {station.ward}
                       </span>
                       <h4 className="text-base font-bold text-neutral-900 dark:text-white group-hover:text-teal-600 dark:group-hover:text-teal-300 transition-colors pt-0.5">
-                        {station.name}
+                        {t(`water.station.${station.id}.name`, station.name)}
                       </h4>
                     </div>
                     <span className={`px-2 py-0.5 rounded-full text-[10px] font-mono font-bold border tracking-wider shrink-0 ${station.statusColor}`}>
-                      {station.status}
+                      {t(`water.status.${station.status}`, station.status)}
                     </span>
                   </div>
 
@@ -210,9 +212,9 @@ export const WaterTelemetrySection = () => {
                     <span className="font-mono text-3xl font-extrabold text-neutral-900 dark:text-white tracking-tight">
                       {station.waterLevel.toFixed(2)}
                     </span>
-                    <span className="text-xs font-mono text-neutral-600 dark:text-white/60 font-semibold">meters depth</span>
+                    <span className="text-xs font-mono text-neutral-600 dark:text-white/60 font-semibold">{t('water.metersDepth', 'meters depth')}</span>
                     <span className="text-xs font-mono text-neutral-500 dark:text-white/40 ml-auto">
-                      Cap: {fillPct}% ({station.maxSafe}m max)
+                      {t('water.cap', 'Cap:')} {fillPct}% ({station.maxSafe}{t('water.mMax', 'm max')})
                     </span>
                   </div>
 
@@ -250,8 +252,8 @@ export const WaterTelemetrySection = () => {
                 <AlertTriangle size={20} className="animate-bounce" />
               </div>
               <div>
-                <h5 className="text-sm font-bold text-neutral-900 dark:text-white">Spotted Unreported Waterlogging or Open Manhole?</h5>
-                <p className="text-xs text-neutral-600 dark:text-white/60">Report with photo for instant 12-hour high-priority monsoon dispatch.</p>
+                <h5 className="text-sm font-bold text-neutral-900 dark:text-white">{t('water.spottedAlert', 'Spotted Unreported Waterlogging or Open Manhole?')}</h5>
+                <p className="text-xs text-neutral-600 dark:text-white/60">{t('water.spottedDesc', 'Report with photo for instant 12-hour high-priority monsoon dispatch.')}</p>
               </div>
             </div>
             <a
@@ -259,7 +261,7 @@ export const WaterTelemetrySection = () => {
               onClick={() => sound.play('click')}
               className="px-5 py-2.5 rounded-full bg-gradient-to-r from-teal-500 to-emerald-500 hover:from-teal-600 hover:to-emerald-600 dark:from-teal-400 dark:to-emerald-400 text-white dark:text-neutral-950 font-black text-xs tracking-wider uppercase flex items-center gap-2 hover:scale-105 active:scale-95 transition-all shadow-md shrink-0 cursor-pointer"
             >
-              <span>Report Water Hazard</span>
+              <span>{t('water.reportBtn', 'Report Water Hazard')}</span>
               <ArrowUpRight size={14} />
             </a>
           </div>
@@ -276,7 +278,7 @@ export const WaterTelemetrySection = () => {
             <div className="flex items-center justify-between pb-3 border-b border-neutral-200 dark:border-white/10 text-xs font-mono">
               <span className="font-bold text-neutral-900 dark:text-white flex items-center gap-2">
                 <Radio size={14} className="text-emerald-600 dark:text-emerald-400 animate-pulse" />
-                SANTACRUZ DOPPLER RADAR
+                {t('water.radarTitle', 'SANTACRUZ DOPPLER RADAR')}
               </span>
               <span className="text-[10px] text-emerald-800 bg-emerald-100 border border-emerald-300 dark:text-emerald-400 dark:bg-emerald-500/15 dark:border-emerald-400/30 px-2 py-0.5 rounded-full font-bold">
                 SCANNING
@@ -312,22 +314,22 @@ export const WaterTelemetrySection = () => {
 
               {/* Center Radar Node */}
               <div className="w-2.5 h-2.5 rounded-full bg-teal-300 shadow-[0_0_10px_#2dd4bf] relative z-10" />
-              <span className="absolute bottom-2 text-[9px] font-mono text-teal-400/80 font-bold">RANGE 50 KM</span>
+              <span className="absolute bottom-2 text-[9px] font-mono text-teal-400/80 font-bold">{t('water.radarRange', 'RANGE 50 KM')}</span>
             </div>
 
             {/* Radar Telemetry Specs */}
             <div className="space-y-2 pt-2 border-t border-neutral-200 dark:border-white/10 text-[11px] font-mono">
               <div className="flex justify-between text-neutral-600 dark:text-white/70">
-                <span>Rainfall Intensity:</span>
-                <span className="text-teal-700 dark:text-teal-300 font-bold">38.4 mm/hr (Heavy)</span>
+                <span>{t('water.rainfallIntensity', 'Rainfall Intensity:')}</span>
+                <span className="text-teal-700 dark:text-teal-300 font-bold">{t('water.heavyRain', '38.4 mm/hr (Heavy)')}</span>
               </div>
               <div className="flex justify-between text-neutral-600 dark:text-white/70">
-                <span>Wind Speed / Direction:</span>
+                <span>{t('water.windSpeed', 'Wind Speed / Direction:')}</span>
                 <span className="text-neutral-900 dark:text-white font-semibold">24 km/h · WSW</span>
               </div>
               <div className="flex justify-between text-neutral-600 dark:text-white/70">
-                <span>IMD Storm Advisory:</span>
-                <span className="text-amber-700 dark:text-amber-300 font-bold">YELLOW WATCH</span>
+                <span>{t('water.stormAdvisory', 'IMD Storm Advisory:')}</span>
+                <span className="text-amber-700 dark:text-amber-300 font-bold">{t('water.yellowWatch', 'YELLOW WATCH')}</span>
               </div>
             </div>
           </div>
@@ -337,20 +339,20 @@ export const WaterTelemetrySection = () => {
             <div className="flex items-center justify-between pb-3 border-b border-neutral-200 dark:border-white/10 text-xs font-mono">
               <span className="font-bold text-neutral-900 dark:text-white flex items-center gap-2">
                 <Compass size={14} className="text-sky-600 dark:text-sky-400" />
-                ARABIAN SEA TIDAL CLOCK
+                {t('water.tidalClock', 'ARABIAN SEA TIDAL CLOCK')}
               </span>
               <span className="text-[10px] text-sky-800 bg-sky-100 border border-sky-300 dark:text-sky-400 dark:bg-sky-500/15 dark:border-sky-400/30 px-2 py-0.5 rounded-full font-bold">
-                LIVE IMD LINK
+                {t('water.liveImdLink', 'LIVE IMD LINK')}
               </span>
             </div>
 
             {/* Big Tide Indicator */}
             <div className="my-4 text-center space-y-1">
-              <span className="text-xs font-mono text-neutral-500 dark:text-white/50 uppercase tracking-widest block font-medium">Next Predicted Peak</span>
+              <span className="text-xs font-mono text-neutral-500 dark:text-white/50 uppercase tracking-widest block font-medium">{t('water.nextPeak', 'Next Predicted Peak')}</span>
               <div className="font-mono text-4xl font-black text-sky-700 dark:text-sky-300 tracking-tight flex items-baseline justify-center gap-1.5">
-                4.22 <span className="text-base text-neutral-600 dark:text-white/70 font-semibold">meters</span>
+                4.22 <span className="text-base text-neutral-600 dark:text-white/70 font-semibold">{t('water.meters', 'meters')}</span>
               </div>
-              <p className="text-xs font-mono text-amber-700 dark:text-amber-300 font-bold">HIGH TIDE at 14:15 hrs IST</p>
+              <p className="text-xs font-mono text-amber-700 dark:text-amber-300 font-bold">{t('water.highTideAt', 'HIGH TIDE at 14:15 hrs IST')}</p>
             </div>
 
             {/* Interactive Tide Sine Wave Curve */}
@@ -361,7 +363,7 @@ export const WaterTelemetrySection = () => {
               {/* Current time marker on wave */}
               <div className="absolute top-2 left-[58%] -translate-x-1/2 flex flex-col items-center">
                 <span className="w-2.5 h-2.5 rounded-full bg-sky-500 dark:bg-sky-300 shadow-[0_0_10px_#0284c7] dark:shadow-[0_0_10px_#38bdf8] animate-ping" />
-                <span className="text-[8px] font-mono text-sky-700 dark:text-sky-300 font-bold mt-0.5">NOW</span>
+                <span className="text-[8px] font-mono text-sky-700 dark:text-sky-300 font-bold mt-0.5">{t('water.now', 'NOW')}</span>
               </div>
             </div>
 
@@ -369,14 +371,14 @@ export const WaterTelemetrySection = () => {
             <div className="mt-4 pt-3 border-t border-neutral-200 dark:border-white/10 space-y-2 text-[11px]">
               <div className="p-2.5 rounded-xl bg-amber-50 dark:bg-amber-500/10 border border-amber-200 dark:border-amber-500/20 text-amber-900 dark:text-amber-200">
                 <p className="font-semibold text-[11px] leading-tight">
-                  Marine Drive, Bandra Bandstand & Worli Sea Face: Heavy wave action expected. Citizens advised to remain behind safety barriers.
+                  {t('water.promenadeWarning', 'Marine Drive, Bandra Bandstand & Worli Sea Face: Heavy wave action expected. Citizens advised to remain behind safety barriers.')}
                 </p>
               </div>
               <div className="flex items-center justify-between font-mono text-[10px] text-neutral-500 dark:text-white/50 pt-1">
-                <span>BMC Disaster Central:</span>
+                <span>{t('water.disasterCentral', 'BMC Disaster Central:')}</span>
                 <a href="tel:1916" className="text-emerald-700 dark:text-emerald-400 font-bold hover:underline flex items-center gap-1">
                   <Phone size={10} />
-                  1916 (Toll-Free)
+                  {t('water.tollFree', '1916 (Toll-Free)')}
                 </a>
               </div>
             </div>

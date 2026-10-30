@@ -11,6 +11,7 @@ import { MUMBAI_WARDS } from '../../utils/mockData';
 import { getStoredComplaints, getComplaintById } from '../../api/complaints.api';
 import { sound } from '../../utils/soundEffects';
 import { useTheme } from '../../context/ThemeContext';
+import { useLanguage } from '../../context/LanguageContext';
 import { classNames } from '../../utils/formatters';
 
 const EMERGENCY_NUMBERS = [
@@ -23,6 +24,7 @@ const EMERGENCY_NUMBERS = [
 
 export const ContactPage = () => {
   const { isDark } = useTheme();
+  const { t } = useLanguage();
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedZone, setSelectedZone] = useState('All');
   const [inquiryType, setInquiryType] = useState('Escalation');
@@ -47,7 +49,12 @@ export const ContactPage = () => {
     message: ''
   });
 
-  const zones = ['All', 'Island City', 'Western Suburbs', 'Eastern Suburbs'];
+  const zones = [
+    { key: 'All', label: t('contact.allZones', 'All Zones') },
+    { key: 'Island City', label: t('contact.islandCity', 'Island City') },
+    { key: 'Western Suburbs', label: t('contact.westernSuburbs', 'Western Suburbs') },
+    { key: 'Eastern Suburbs', label: t('contact.easternSuburbs', 'Eastern Suburbs') },
+  ];
 
   const filteredWards = MUMBAI_WARDS.filter((w) => {
     const matchesSearch =

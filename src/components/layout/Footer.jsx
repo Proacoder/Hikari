@@ -7,6 +7,7 @@ import {
   Building2, Siren, Headphones, Cpu, AlertTriangle
 } from 'lucide-react';
 import { useTheme } from '../../context/ThemeContext';
+import { useLanguage } from '../../context/LanguageContext';
 import { sound } from '../../utils/soundEffects';
 
 const QUICK_LINKS = [
@@ -51,6 +52,7 @@ const EMERGENCY_NUMBERS = [
 
 export const Footer = () => {
   const { isDark } = useTheme();
+  const { t } = useLanguage();
 
   return (
     <footer
@@ -76,11 +78,11 @@ export const Footer = () => {
             </span>
             <span className="font-mono text-xs font-bold uppercase tracking-wider text-rose-600 dark:text-rose-400 flex items-center gap-1.5">
               <Siren size={14} />
-              Mumbai Emergency Quick Access
+              {t('footer.emergencyQuickAccess', 'Mumbai Emergency Quick Access')}
             </span>
             <span className="hidden sm:inline text-xs opacity-40">|</span>
             <span className="hidden sm:inline text-xs text-neutral-500 dark:text-neutral-400">
-              Direct municipal emergency response hotlines
+              {t('footer.hotlinesDesc', 'Direct municipal emergency response hotlines')}
             </span>
           </div>
 

@@ -227,17 +227,17 @@ export const LandingPage = () => {
                 )}
               >
                 <span className={classNames('font-bold tracking-wide', isDark ? 'text-white' : 'text-neutral-900')}>
-                  BMC IMD Telemetry:
+                  {t('weather.telemetryTitle', 'BMC IMD Telemetry:')}
                 </span>
                 <span className={classNames('font-semibold', isDark ? 'text-emerald-300' : 'text-emerald-700')}>
-                  Air Quality Index {weatherData.aqi} ({weatherData.aqiCategory})
+                  {t('weather.aqi', 'Air Quality Index')} {weatherData.aqi} ({weatherData.aqiCategory})
                 </span>
                 <span className={isDark ? 'text-neutral-500 hidden sm:inline' : 'text-neutral-300 hidden sm:inline'}>·</span>
                 <span className={classNames('font-mono', isDark ? 'text-neutral-200' : 'text-neutral-800')}>
                   {weatherData.temperature}°C {weatherData.condition}
                 </span>
                 <span className={isDark ? 'text-neutral-500 hidden sm:inline' : 'text-neutral-300 hidden sm:inline'}>·</span>
-                <span className={isDark ? 'text-neutral-400' : 'text-neutral-500'}>Santacruz Doppler Radar Active</span>
+                <span className={isDark ? 'text-neutral-400' : 'text-neutral-500'}>{t('weather.radarActive', 'Santacruz Doppler Radar Active')}</span>
               </div>
             </div>
             <div className="flex items-center gap-2.5 shrink-0">
@@ -249,7 +249,7 @@ export const LandingPage = () => {
                     : 'bg-emerald-50 text-emerald-800 border-emerald-300'
                 )}
               >
-                SANTACRUZ RADAR LIVE
+                {t('weather.radarLive', 'SANTACRUZ RADAR LIVE')}
               </span>
               <Link
                 to="/app/map"
@@ -258,7 +258,7 @@ export const LandingPage = () => {
                   isDark ? 'text-emerald-400 hover:text-emerald-300' : 'text-emerald-700 hover:text-emerald-800'
                 )}
               >
-                Open Map <ChevronRight size={14} />
+                {t('weather.openMap', 'Open Map')} <ChevronRight size={14} />
               </Link>
             </div>
           </div>
@@ -310,7 +310,7 @@ export const LandingPage = () => {
                 <div>
                   <h3 className={classNames("text-sm sm:text-base font-bold flex items-center gap-2", isDark ? "text-white" : "text-neutral-900")}>
                     {t('triage.step1Title', '1. Multimodal Edge Capture & Telemetry')}
-                    <span className="text-[10px] font-mono font-bold text-emerald-400 bg-emerald-500/10 border border-emerald-500/30 px-2 py-0.5 rounded-full">INSTANT</span>
+                    <span className="text-[10px] font-mono font-bold text-emerald-400 bg-emerald-500/10 border border-emerald-500/30 px-2 py-0.5 rounded-full">{t('triage.instant', 'INSTANT')}</span>
                   </h3>
                   <p className={classNames("text-xs sm:text-sm mt-1.5 leading-relaxed", isDark ? "text-neutral-400" : "text-neutral-600")}>
                     {t('triage.step1Desc', 'Citizens submit photos, voice notes in Marathi, Hindi, or English. Precise GPS coordinates and timestamp are bound instantaneously.')}
@@ -330,7 +330,7 @@ export const LandingPage = () => {
                 <div>
                   <h3 className={classNames("text-sm sm:text-base font-bold flex items-center gap-2", isDark ? "text-white" : "text-neutral-900")}>
                     {t('triage.step2Title', '2. OpenAI CLIP Zero-Shot Defect & Severity Scoring')}
-                    <span className="text-[10px] font-mono font-bold text-sky-400 bg-sky-500/10 border border-sky-500/30 px-2 py-0.5 rounded-full">98.4% CONF</span>
+                    <span className="text-[10px] font-mono font-bold text-sky-400 bg-sky-500/10 border border-sky-500/30 px-2 py-0.5 rounded-full">{t('triage.conf', '98.4% CONF')}</span>
                   </h3>
                   <p className={classNames("text-xs sm:text-sm mt-1.5 leading-relaxed", isDark ? "text-neutral-400" : "text-neutral-600")}>
                     {t('triage.step2Desc', 'Our neural network inspects road fissures, open manholes, and illegal dump sites, generating a calibrated 0–100 urgency score.')}
@@ -350,7 +350,7 @@ export const LandingPage = () => {
                 <div>
                   <h3 className={classNames("text-sm sm:text-base font-bold flex items-center gap-2", isDark ? "text-white" : "text-neutral-900")}>
                     {t('triage.step3Title', '3. Ward Engineer Dispatch & Automated SLA Tracking')}
-                    <span className="text-[10px] font-mono font-bold text-amber-400 bg-amber-500/10 border border-amber-500/30 px-2 py-0.5 rounded-full">SLA 24H</span>
+                    <span className="text-[10px] font-mono font-bold text-amber-400 bg-amber-500/10 border border-amber-500/30 px-2 py-0.5 rounded-full">{t('triage.sla24h', 'SLA 24H')}</span>
                   </h3>
                   <p className={classNames("text-xs sm:text-sm mt-1.5 leading-relaxed", isDark ? "text-neutral-400" : "text-neutral-600")}>
                     {t('triage.step3Desc', 'Direct routing to the designated BMC ward desk with live SLA countdowns, auto-escalation triggers, and public resolution audits.')}
@@ -412,12 +412,12 @@ export const LandingPage = () => {
                     <Activity className="animate-pulse" size={17} />
                   </div>
                   <div>
-                    <span className={classNames("text-xs font-bold", isDark ? "text-white" : "text-neutral-950")}>AI Triage & CV Engine</span>
+                    <span className={classNames("text-xs font-bold", isDark ? "text-white" : "text-neutral-950")}>{t('triage.engineTitle', 'AI Triage & CV Engine')}</span>
                     <div className={classNames("text-[10px] font-mono", isDark ? "text-neutral-400" : "text-neutral-500")}>OpenAI CLIP + ViT Engine v3.2</div>
                   </div>
                 </div>
                 <span className="text-[10px] font-mono font-bold bg-emerald-500/15 text-emerald-400 border border-emerald-400/40 px-2.5 py-1 rounded-full shadow-[0_0_10px_rgba(52,211,153,0.2)]">
-                  LIVE MODEL ONLINE
+                  {t('triage.modelOnline', 'LIVE MODEL ONLINE')}
                 </span>
               </div>
 
@@ -435,10 +435,10 @@ export const LandingPage = () => {
                   {/* Detected Bounding Box HUD */}
                   <div className="absolute top-10 left-12 right-14 bottom-10 border-2 border-emerald-400/90 rounded-lg pointer-events-none shadow-[0_0_12px_rgba(52,211,153,0.3)]">
                     <span className="absolute -top-3 left-2 bg-emerald-400 text-neutral-950 font-mono text-[9px] font-black px-1.5 py-0.5 rounded shadow">
-                      POTHOLE · 98.4%
+                      {t('triage.potholeDetected', 'POTHOLE · 98.4%')}
                     </span>
                     <span className="absolute -bottom-3 right-2 bg-rose-600 text-white font-mono text-[9px] font-bold px-1.5 py-0.5 rounded shadow">
-                      SEVERITY 85/100
+                      {t('triage.severityScore', 'SEVERITY 85/100')}
                     </span>
                   </div>
 
@@ -455,25 +455,25 @@ export const LandingPage = () => {
                   isDark ? "bg-neutral-950/90 border-neutral-800" : "bg-slate-50 border-neutral-200"
                 )}>
                   <div className={classNames("flex items-center justify-between font-mono text-[11px]", isDark ? "text-neutral-400" : "text-neutral-500")}>
-                    <span>DISPATCH TARGET</span>
-                    <span className="text-emerald-500 font-bold">AUTO-ASSIGNED</span>
+                    <span>{t('triage.dispatchTarget', 'DISPATCH TARGET')}</span>
+                    <span className="text-emerald-500 font-bold">{t('triage.autoAssigned', 'AUTO-ASSIGNED')}</span>
                   </div>
                   <div className={classNames("flex items-center gap-2 font-bold", isDark ? "text-white" : "text-neutral-900")}>
                     <Shield size={15} className="text-emerald-500" />
-                    <span>K/E Ward Assistant Engineer (Roads)</span>
+                    <span>{t('triage.engineerRoads', 'K/E Ward Assistant Engineer (Roads)')}</span>
                   </div>
                   <div className={classNames("flex items-center justify-between text-[11px] pt-2 border-t", isDark ? "text-neutral-400 border-neutral-800" : "text-neutral-500 border-neutral-200")}>
-                    <span>SLA Turnaround: <strong className={isDark ? "text-white" : "text-neutral-900"}>24 Hours</strong></span>
-                    <span>Ward #8 · Andheri East</span>
+                    <span>{t('triage.slaTurnaround', 'SLA Turnaround:')} <strong className={isDark ? "text-white" : "text-neutral-900"}>{t('triage.24Hours', '24 Hours')}</strong></span>
+                    <span>{t('triage.wardAndheri', 'Ward #8 · Andheri East')}</span>
                   </div>
                 </div>
               </div>
 
               {/* Bottom Quick Test Action */}
               <div className={classNames("mt-4 pt-3.5 border-t flex items-center justify-between text-xs", isDark ? "border-neutral-800" : "border-neutral-200")}>
-                <span className={isDark ? "text-neutral-400" : "text-neutral-600"}>Multilingual Voice & Photo Triage</span>
+                <span className={isDark ? "text-neutral-400" : "text-neutral-600"}>{t('triage.voicePhotoTriage', 'Multilingual Voice & Photo Triage')}</span>
                 <Link to="/app/report" className="text-emerald-500 hover:text-emerald-600 font-bold flex items-center gap-1 hover:underline">
-                  Launch Interactive Report <ChevronRight size={14} />
+                  {t('triage.launchReport', 'Launch Interactive Report')} <ChevronRight size={14} />
                 </Link>
               </div>
             </div>
@@ -537,7 +537,7 @@ export const LandingPage = () => {
                 <div className={classNames("flex items-center justify-between text-xs font-mono", isDark ? "text-neutral-400" : "text-neutral-500")}>
                   <span className="flex items-center gap-2">
                     <Mic size={15} className="text-emerald-500" />
-                    SIMULATED AUDIO INTAKE
+                    {t('simulator.audioIntake', 'SIMULATED AUDIO INTAKE')}
                   </span>
                   <span className="text-emerald-500 font-bold">{currentScenario.langLabel}</span>
                 </div>
@@ -573,12 +573,12 @@ export const LandingPage = () => {
                   {isSimulating ? (
                     <>
                       <RefreshCw size={15} className="animate-spin" />
-                      Analyzing Audio & Extracting Intent...
+                      {t('simulator.analyzing', 'Analyzing Audio & Extracting Intent...')}
                     </>
                   ) : (
                     <>
                       <Play size={15} />
-                      Simulate Speech-to-Dispatch Triage
+                      {t('simulator.simulateBtn', 'Simulate Speech-to-Dispatch Triage')}
                     </>
                   )}
                 </button>
@@ -589,38 +589,38 @@ export const LandingPage = () => {
             <div className="lg:col-span-6 space-y-4">
               <div className={classNames("rounded-2xl p-6 border space-y-4 shadow-xl", isDark ? "bg-neutral-950 border-emerald-500/30" : "bg-slate-50 border-emerald-500/40")}>
                 <div className={classNames("flex items-center justify-between pb-3 border-b text-xs font-mono", isDark ? "border-neutral-800" : "border-neutral-200")}>
-                  <span className={isDark ? "text-neutral-400" : "text-neutral-500"}>AI EXTRACTION RESULT</span>
+                  <span className={isDark ? "text-neutral-400" : "text-neutral-500"}>{t('simulator.result', 'AI EXTRACTION RESULT')}</span>
                   <span className="text-emerald-500 font-bold flex items-center gap-1.5">
-                    <Zap size={14} /> CONFIDENCE: {currentScenario.confidence}
+                    <Zap size={14} /> {t('simulator.confidence', 'CONFIDENCE:')} {currentScenario.confidence}
                   </span>
                 </div>
 
                 <div className="grid grid-cols-2 gap-3 text-xs">
                   <div className={classNames("p-3 rounded-xl border", isDark ? "bg-neutral-900/90 border-neutral-800" : "bg-white border-neutral-200 shadow-xs")}>
-                    <span className="text-neutral-500 text-[10px] font-mono uppercase block">DETECTED CATEGORY</span>
+                    <span className="text-neutral-500 text-[10px] font-mono uppercase block">{t('simulator.detectedCategory', 'DETECTED CATEGORY')}</span>
                     <span className={classNames("font-bold text-sm mt-0.5 block", isDark ? "text-white" : "text-neutral-900")}>{currentScenario.category}</span>
                   </div>
                   <div className={classNames("p-3 rounded-xl border", isDark ? "bg-neutral-900/90 border-neutral-800" : "bg-white border-neutral-200 shadow-xs")}>
-                    <span className="text-neutral-500 text-[10px] font-mono uppercase block">CALIBRATED SEVERITY</span>
+                    <span className="text-neutral-500 text-[10px] font-mono uppercase block">{t('simulator.calibratedSeverity', 'CALIBRATED SEVERITY')}</span>
                     <span className="font-bold text-rose-500 text-sm mt-0.5 block">{currentScenario.severity}/100 ({currentScenario.urgency})</span>
                   </div>
                   <div className={classNames("p-3 rounded-xl border", isDark ? "bg-neutral-900/90 border-neutral-800" : "bg-white border-neutral-200 shadow-xs")}>
-                    <span className="text-neutral-500 text-[10px] font-mono uppercase block">ROUTED MUNICIPAL WARD</span>
+                    <span className="text-neutral-500 text-[10px] font-mono uppercase block">{t('simulator.routedWard', 'ROUTED MUNICIPAL WARD')}</span>
                     <span className="font-bold text-sky-500 text-xs mt-0.5 block">{currentScenario.ward}</span>
                   </div>
                   <div className={classNames("p-3 rounded-xl border", isDark ? "bg-neutral-900/90 border-neutral-800" : "bg-white border-neutral-200 shadow-xs")}>
-                    <span className="text-neutral-500 text-[10px] font-mono uppercase block">SLA GUARANTEE</span>
-                    <span className="font-bold text-emerald-500 text-xs mt-0.5 block">{currentScenario.sla} Turnaround</span>
+                    <span className="text-neutral-500 text-[10px] font-mono uppercase block">{t('simulator.slaGuarantee', 'SLA GUARANTEE')}</span>
+                    <span className="font-bold text-emerald-500 text-xs mt-0.5 block">{currentScenario.sla} {t('simulator.turnaround', 'Turnaround')}</span>
                   </div>
                 </div>
 
                 <div className="pt-2 flex items-center justify-between text-xs">
-                  <span className={isDark ? "text-neutral-400" : "text-neutral-600"}>Ready to report a real Mumbai issue?</span>
+                  <span className={isDark ? "text-neutral-400" : "text-neutral-600"}>{t('simulator.readyToReport', 'Ready to report a real Mumbai issue?')}</span>
                   <Link
                     to="/app/report"
                     className="text-emerald-500 hover:text-emerald-600 font-bold flex items-center gap-1 hover:underline"
                   >
-                    Open Live Report Form <ArrowRight size={14} />
+                    {t('simulator.openReport', 'Open Live Report Form')} <ArrowRight size={14} />
                   </Link>
                 </div>
               </div>
@@ -652,7 +652,7 @@ export const LandingPage = () => {
             )}
           >
             <MapPin size={15} />
-            <span>Open 24 Wards GIS Map</span>
+            <span>{t('wardRadar.openMap', 'Open 24 Wards GIS Map')}</span>
             <ChevronRight size={14} />
           </Link>
         </div>
@@ -698,8 +698,8 @@ export const LandingPage = () => {
                   />
                 </div>
                 <div className={classNames("flex items-center justify-between text-[11px] font-mono", isDark ? "text-neutral-400" : "text-neutral-500")}>
-                  <span>Avg SLA: <strong className={isDark ? "text-white" : "text-neutral-900"}>{w.avgHours}h</strong></span>
-                  <span>{w.activeOfficers} Field Engineers</span>
+                  <span>{t('wardRadar.avgSla', 'Avg SLA:')} <strong className={isDark ? "text-white" : "text-neutral-900"}>{w.avgHours}h</strong></span>
+                  <span>{w.activeOfficers} {t('wardRadar.fieldEngineers', 'Field Engineers')}</span>
                 </div>
               </div>
             </div>
@@ -715,20 +715,20 @@ export const LandingPage = () => {
             <div>
               <div className="flex items-center gap-2 text-emerald-500 font-mono text-xs font-bold uppercase">
                 <Shield size={16} />
-                <span>ALL 24 BMC WARDS COVERED</span>
+                <span>{t('wardRadar.allCovered', 'ALL 24 BMC WARDS COVERED')}</span>
               </div>
               <h3 className={classNames("font-bold text-base mt-2", isDark ? "text-white" : "text-neutral-950")}>
-                Citywide Automated Dispatch Engine
+                {t('wardRadar.citywideEngine', 'Citywide Automated Dispatch Engine')}
               </h3>
               <p className={classNames("text-xs mt-1 leading-relaxed", isDark ? "text-neutral-400" : "text-neutral-600")}>
-                From Colaba (A Ward) to Dahisar (R/N Ward), every municipal zone is live on Kaiser AI with 24/7 automated engineer dispatch.
+                {t('wardRadar.citywideDesc', 'From Colaba (A Ward) to Dahisar (R/N Ward), every municipal zone is live on Kaiser AI with 24/7 automated engineer dispatch.')}
               </p>
             </div>
             <Link
               to="/app/map"
               className="w-full py-2.5 rounded-xl bg-emerald-500 text-neutral-950 font-bold text-xs uppercase tracking-wider flex items-center justify-center gap-2 hover:bg-emerald-400 transition-colors shadow-[0_0_15px_rgba(52,211,153,0.3)] cursor-pointer"
             >
-              <span>Explore Ward GIS Telemetry</span>
+              <span>{t('wardRadar.exploreGis', 'Explore Ward GIS Telemetry')}</span>
               <ArrowRight size={14} />
             </Link>
           </div>
@@ -742,7 +742,7 @@ export const LandingPage = () => {
             <div className="flex items-center gap-2 mb-1">
               <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse shadow-[0_0_8px_#4ade80]" />
               <span className="text-xs font-mono font-bold uppercase tracking-wider text-emerald-500">
-                MUNICIPAL TELEMETRY STREAM
+                {t('feed.badge', 'MUNICIPAL TELEMETRY STREAM')}
               </span>
             </div>
             <h2 className={classNames("text-2xl sm:text-3xl font-extrabold tracking-tight", isDark ? "text-white" : "text-neutral-950")}>
@@ -809,7 +809,7 @@ export const LandingPage = () => {
                   : 'bg-white text-neutral-700 border border-neutral-200 hover:bg-neutral-100 shadow-xs'
             )}
           >
-            All Categories
+            {t('feed.allCategories', 'All Categories')}
           </button>
           {CATEGORIES.map((cat) => (
             <button
@@ -836,7 +836,7 @@ export const LandingPage = () => {
         {loading ? (
           <div className="py-16 text-center text-neutral-400 flex flex-col items-center gap-3">
             <RefreshCw className="animate-spin text-emerald-500" size={28} />
-            <p className="text-xs font-medium">Synchronizing ward grievances...</p>
+            <p className="text-xs font-medium">{t('feed.syncing', 'Synchronizing ward grievances...')}</p>
           </div>
         ) : filteredComplaints.length === 0 ? (
           <div className={classNames(
@@ -844,9 +844,9 @@ export const LandingPage = () => {
             isDark ? "bg-neutral-900 border-neutral-800 text-neutral-400" : "bg-white border-neutral-200 text-neutral-600 shadow-soft"
           )}>
             <CheckCircle2 size={36} className="mx-auto text-emerald-500" />
-            <h3 className={classNames("font-bold text-base", isDark ? "text-white" : "text-neutral-900")}>No active issues found</h3>
+            <h3 className={classNames("font-bold text-base", isDark ? "text-white" : "text-neutral-900")}>{t('feed.noIssues', 'No active issues found')}</h3>
             <p className={classNames("text-xs max-w-sm mx-auto", isDark ? "text-neutral-400" : "text-neutral-500")}>
-              No civic tickets matched your filter criteria. Try choosing a different ward or category.
+              {t('feed.noIssuesDesc', 'No civic tickets matched your filter criteria. Try choosing a different ward or category.')}
             </p>
           </div>
         ) : (
@@ -910,30 +910,30 @@ export const LandingPage = () => {
           <div className="lg:col-span-7 space-y-5">
             <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-emerald-500/10 border border-emerald-500/30 text-emerald-500 font-mono text-xs font-bold uppercase tracking-wider">
               <Award size={15} />
-              <span>CITIZEN INCENTIVES & GAMIFICATION</span>
+              <span>{t('rewards.badge', 'CITIZEN INCENTIVES & GAMIFICATION')}</span>
             </div>
             <h2 className={classNames("font-display text-2xl sm:text-3xl lg:text-4xl font-extrabold tracking-tight", isDark ? "text-white" : "text-neutral-950")}>
-              Rewarding Citizens Who Make Mumbai Better
+              {t('rewards.title', 'Rewarding Citizens Who Make Mumbai Better')}
             </h2>
             <p className={classNames("text-xs sm:text-sm leading-relaxed", isDark ? "text-neutral-400" : "text-neutral-600")}>
-              Every verified civic report earns you civic reward credits. Top contributors gain municipal badges, climb ward leaderboards, and receive verified digital certificates signed by municipal commissioners.
+              {t('rewards.desc', 'Every verified civic report earns you civic reward credits. Top contributors gain municipal badges, climb ward leaderboards, and receive verified digital certificates signed by municipal commissioners.')}
             </p>
 
             <div className="grid sm:grid-cols-3 gap-3.5 pt-2">
               <div className={classNames("p-4 rounded-xl border text-center space-y-1", isDark ? "bg-neutral-950 border-neutral-800" : "bg-slate-50 border-neutral-200 shadow-xs")}>
                 <span className="text-emerald-500 font-mono font-bold text-lg">+50 PTS</span>
-                <span className={classNames("text-xs font-medium block", isDark ? "text-neutral-300" : "text-neutral-800")}>Verified Report</span>
-                <span className={classNames("text-[10px] block", isDark ? "text-neutral-500" : "text-neutral-400")}>Photo & location validated</span>
+                <span className={classNames("text-xs font-medium block", isDark ? "text-neutral-300" : "text-neutral-800")}>{t('rewards.verifiedReport', 'Verified Report')}</span>
+                <span className={classNames("text-[10px] block", isDark ? "text-neutral-500" : "text-neutral-400")}>{t('rewards.photoLocationValidated', 'Photo & location validated')}</span>
               </div>
               <div className={classNames("p-4 rounded-xl border text-center space-y-1", isDark ? "bg-neutral-950 border-neutral-800" : "bg-slate-50 border-neutral-200 shadow-xs")}>
                 <span className="text-sky-500 font-mono font-bold text-lg">+100 PTS</span>
-                <span className={classNames("text-xs font-medium block", isDark ? "text-neutral-300" : "text-neutral-800")}>Critical Hazard</span>
-                <span className={classNames("text-[10px] block", isDark ? "text-neutral-500" : "text-neutral-400")}>Open manhole / Live wire</span>
+                <span className={classNames("text-xs font-medium block", isDark ? "text-neutral-300" : "text-neutral-800")}>{t('rewards.criticalHazard', 'Critical Hazard')}</span>
+                <span className={classNames("text-[10px] block", isDark ? "text-neutral-500" : "text-neutral-400")}>{t('rewards.hazardDesc', 'Open manhole / Live wire')}</span>
               </div>
               <div className={classNames("p-4 rounded-xl border text-center space-y-1", isDark ? "bg-neutral-950 border-neutral-800" : "bg-slate-50 border-neutral-200 shadow-xs")}>
                 <span className="text-amber-500 font-mono font-bold text-lg">TOP 10</span>
-                <span className={classNames("text-xs font-medium block", isDark ? "text-neutral-300" : "text-neutral-800")}>Ward Certificate</span>
-                <span className={classNames("text-[10px] block", isDark ? "text-neutral-500" : "text-neutral-400")}>Official BMC recognition</span>
+                <span className={classNames("text-xs font-medium block", isDark ? "text-neutral-300" : "text-neutral-800")}>{t('rewards.wardCert', 'Ward Certificate')}</span>
+                <span className={classNames("text-[10px] block", isDark ? "text-neutral-500" : "text-neutral-400")}>{t('rewards.bmcRecognition', 'Official BMC recognition')}</span>
               </div>
             </div>
           </div>
@@ -947,23 +947,23 @@ export const LandingPage = () => {
               <div className="flex items-center justify-between pb-3 border-b border-amber-500/20">
                 <div className="flex items-center gap-2">
                   <Award className="text-amber-500" size={20} />
-                  <span className="font-serif tracking-widest text-xs font-bold text-amber-600 dark:text-amber-300 uppercase">MUNICIPAL CIVIC MERIT</span>
+                  <span className="font-serif tracking-widest text-xs font-bold text-amber-600 dark:text-amber-300 uppercase">{t('rewards.meritTitle', 'MUNICIPAL CIVIC MERIT')}</span>
                 </div>
                 <span className="font-mono text-[10px] text-amber-600 dark:text-amber-400/80">BMC-2026-A482</span>
               </div>
 
               <div className="text-center py-2 space-y-1.5">
-                <span className={classNames("text-[11px] uppercase tracking-widest block font-mono", isDark ? "text-neutral-400" : "text-neutral-500")}>PRESENTED TO</span>
+                <span className={classNames("text-[11px] uppercase tracking-widest block font-mono", isDark ? "text-neutral-400" : "text-neutral-500")}>{t('rewards.presentedTo', 'PRESENTED TO')}</span>
                 <h4 className={classNames("font-serif text-lg sm:text-xl font-bold", isDark ? "text-amber-100" : "text-neutral-900")}>Priya Nair (Ward 8 G/N)</h4>
                 <p className={classNames("text-[11px] max-w-xs mx-auto", isDark ? "text-neutral-400" : "text-neutral-600")}>
-                  For outstanding civic vigilance and contributing to the timely resolution of 34 verified community hazards.
+                  {t('rewards.certBio', 'For outstanding civic vigilance and contributing to the timely resolution of 34 verified community hazards.')}
                 </p>
               </div>
 
               <div className={classNames("pt-3 border-t border-amber-500/20 flex items-center justify-between text-[10px] font-mono", isDark ? "text-neutral-400" : "text-neutral-500")}>
-                <span>SEAL OF BMC COMMISSIONER</span>
+                <span>{t('rewards.seal', 'SEAL OF BMC COMMISSIONER')}</span>
                 <span className="text-emerald-500 font-bold flex items-center gap-1">
-                  <Check size={12} /> VERIFIED HASH
+                  <Check size={12} /> {t('rewards.verifiedHash', 'VERIFIED HASH')}
                 </span>
               </div>
             </div>
@@ -1033,7 +1033,7 @@ export const LandingPage = () => {
           <div className="space-y-3 text-center lg:text-left">
             <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-red-500/20 border border-red-500/30 text-red-400 font-mono text-[10px] font-bold uppercase tracking-wider">
               <span className="w-2 h-2 rounded-full bg-red-500 animate-ping inline-block" />
-              24/7 BMC RAPID RESPONSE PROTOCOL
+              {t('emergency.protocol', '24/7 BMC RAPID RESPONSE PROTOCOL')}
             </div>
             <h3 className="text-2xl sm:text-3xl font-black tracking-tight">
               {t('hero.emergencyTitle', 'Mumbai Municipal Disaster & Emergency Cell')}
@@ -1055,7 +1055,7 @@ export const LandingPage = () => {
               href="tel:108"
               className="bg-neutral-800 hover:bg-neutral-700 text-neutral-200 border border-neutral-700 px-5 py-3.5 rounded-xl font-bold text-sm transition-all cursor-pointer active:scale-95"
             >
-              Medical / Ambulance 108
+              {t('emergency.medical108', 'Medical / Ambulance 108')}
             </a>
           </div>
         </div>

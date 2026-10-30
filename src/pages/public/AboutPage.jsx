@@ -8,18 +8,20 @@ import {
 } from 'lucide-react';
 import { sound } from '../../utils/soundEffects';
 import { useTheme } from '../../context/ThemeContext';
+import { useLanguage } from '../../context/LanguageContext';
 import { classNames } from '../../utils/formatters';
 
 export const AboutPage = () => {
   const { isDark } = useTheme();
+  const { t } = useLanguage();
   const [activePillar, setActivePillar] = useState(0);
   const [openFaq, setOpenFaq] = useState(null);
 
   const stats = [
-    { label: 'Administrative Wards', value: '24', subtext: 'Colaba to Dahisar & Mulund' },
-    { label: 'AI Classification Accuracy', value: '94.2%', subtext: 'Trained on 60,000+ urban images' },
-    { label: 'Average Emergency SLA', value: '<24h', subtext: 'Monsoon hazards & open manholes' },
-    { label: 'Civic Grievances Triaged', value: '14,800+', subtext: 'Sub-meter GPS pinpointed' },
+    { label: t('about.wardsCovered', 'Administrative Wards'), value: '24', subtext: t('about.wardsSubtext', 'Colaba to Dahisar & Mulund') },
+    { label: t('about.accuracy', 'AI Classification Accuracy'), value: '94.2%', subtext: t('about.accuracySubtext', 'Trained on 60,000+ urban images') },
+    { label: t('about.sla', 'Average Emergency SLA'), value: '<24h', subtext: t('about.slaSubtext', 'Monsoon hazards & open manholes') },
+    { label: t('about.triaged', 'Civic Grievances Triaged'), value: '14,800+', subtext: t('about.triagedSubtext', 'Sub-meter GPS pinpointed') },
   ];
 
   const pillars = [
@@ -173,25 +175,25 @@ export const AboutPage = () => {
               isDark ? "bg-emerald-500/15 border border-emerald-400/30 text-emerald-300" : "bg-emerald-50 border border-emerald-300 text-emerald-800"
             )}>
               <Sparkles size={14} className={isDark ? "text-emerald-400" : "text-emerald-600"} />
-              <span>CIVIC-TECH INNOVATION • BMC SMART CITY INITIATIVE</span>
+              <span>{t('about.heroBadge', 'CIVIC-TECH INNOVATION • BMC SMART CITY INITIATIVE')}</span>
             </div>
 
             <h1 className={classNames(
               "font-display text-4xl sm:text-6xl font-extrabold tracking-tight leading-tight",
               isDark ? "text-white" : "text-neutral-950"
             )}>
-              Building a{' '}
+              {t('about.heroTitle1', 'Building a')}{' '}
               <span className="bg-gradient-to-r from-emerald-500 via-teal-500 to-sky-500 bg-clip-text text-transparent">
-                Cleaner, Smarter & Resilient
+                {t('about.heroTitle2', 'Cleaner, Smarter & Resilient')}
               </span>{' '}
-              Mumbai
+              {t('about.heroTitle3', 'Mumbai')}
             </h1>
 
             <p className={classNames(
               "text-base sm:text-lg leading-relaxed font-normal",
               isDark ? "text-white/75" : "text-neutral-600"
             )}>
-              Kaiser AI is an intelligent civic response platform engineered for Mumbai’s 20+ million citizens and 24 municipal wards. We eliminate bureaucratic delays with automated computer vision triage, sub-meter GPS mapping, and tamper-proof photo resolution audit trails.
+              {t('about.heroDesc', 'Kaiser AI is an intelligent civic response platform engineered for Mumbai’s 20+ million citizens and 24 municipal wards. We eliminate bureaucratic delays with automated computer vision triage, sub-meter GPS mapping, and tamper-proof photo resolution audit trails.')}
             </p>
 
             <div className="flex flex-wrap items-center justify-center gap-4 pt-3">
@@ -200,7 +202,7 @@ export const AboutPage = () => {
                 onClick={() => sound.play('click')}
                 className="glow-btn px-8 py-3.5 rounded-full bg-gradient-to-r from-emerald-500 via-brand-500 to-teal-400 text-neutral-950 font-black text-xs tracking-widest uppercase shadow-[0_0_24px_rgba(52,211,153,0.4)] hover:scale-105 active:scale-95 transition-all flex items-center gap-2 cursor-pointer"
               >
-                <span>Report a Civic Hazard</span>
+                <span>{t('about.reportBtn', 'Report a Civic Hazard')}</span>
                 <ArrowRight size={16} />
               </Link>
               <Link
@@ -213,7 +215,7 @@ export const AboutPage = () => {
                     : "border-neutral-300 bg-white hover:bg-neutral-100 text-neutral-800 shadow-sm"
                 )}
               >
-                Ward Directory & Helpdesk
+                {t('about.helpdeskBtn', 'Ward Directory & Helpdesk')}
               </Link>
             </div>
           </div>

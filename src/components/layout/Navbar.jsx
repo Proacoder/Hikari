@@ -157,7 +157,7 @@ export const Navbar = () => {
                 title="Spotlight Search (Ctrl+K)"
               >
                 <Search size={14} className={isDark ? 'text-white/70' : 'text-neutral-500'} />
-                <span className="hidden xl:inline font-semibold whitespace-nowrap">Quick Find</span>
+                <span className="hidden xl:inline font-semibold whitespace-nowrap">{t('nav.quickFind', 'Quick Find')}</span>
                 <kbd className={classNames(
                   'hidden 2xl:inline-block px-1.5 py-0.5 text-[9px] font-mono font-bold rounded border shadow-xs',
                   isDark ? 'border-white/20 bg-white/15 text-white/80' : 'border-neutral-300 bg-white text-neutral-600'
@@ -217,7 +217,7 @@ export const Navbar = () => {
                         : 'text-neutral-400 hover:text-amber-300 rotate-45'
                     )}
                   />
-                  <span className="hidden sm:inline text-[11px] font-semibold tracking-wide">Light</span>
+                  <span className="hidden sm:inline text-[11px] font-semibold tracking-wide">{t('nav.light', 'Light')}</span>
                 </button>
                 <button
                   type="button"
@@ -244,7 +244,7 @@ export const Navbar = () => {
                         : 'text-neutral-400 hover:text-sky-500 rotate-0'
                     )}
                   />
-                  <span className="hidden sm:inline text-[11px] font-semibold tracking-wide">Dark</span>
+                  <span className="hidden sm:inline text-[11px] font-semibold tracking-wide">{t('nav.dark', 'Dark')}</span>
                 </button>
               </div>
 

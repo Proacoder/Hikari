@@ -7,16 +7,18 @@ import {
 } from 'lucide-react';
 import { sound } from '../../utils/soundEffects';
 import { useTheme } from '../../context/ThemeContext';
+import { useLanguage } from '../../context/LanguageContext';
 import { classNames } from '../../utils/formatters';
 
 export const HowItWorksPage = () => {
   const { isDark } = useTheme();
+  const { t } = useLanguage();
   const steps = [
     {
       num: '01',
       step: 'STEP 1 · CAPTURE & PIN',
-      title: 'Citizen Submission & GPS Telemetry',
-      desc: 'Snap a high-resolution photo or record a voice note in English, Marathi, or Hindi. Kaiser AI instantly captures sub-meter GPS coordinates on OpenStreetMap and auto-detects your Mumbai municipal ward polygon.',
+      title: t('howItWorks.step1Title', 'Citizen Submission & GPS Telemetry'),
+      desc: t('howItWorks.step1Desc', 'Snap a high-resolution photo or record a voice note in English, Marathi, or Hindi. Kaiser AI instantly captures sub-meter GPS coordinates on OpenStreetMap and auto-detects your Mumbai municipal ward polygon.'),
       bullets: [
         'Automatic 24-ward boundary detection (e.g. Ward K/E, Andheri East)',
         'Voice grievance transcription in Marathi, Hindi & English',
@@ -32,8 +34,8 @@ export const HowItWorksPage = () => {
     {
       num: '02',
       step: 'STEP 2 · NEURAL PIPELINE',
-      title: 'OpenAI CLIP Vision & Severity Scoring',
-      desc: 'Our multimodal OpenAI CLIP zero-shot vision and ViT authenticity models classify municipal issues, filter non-civic spam or AI deepfakes, and score urgency from 1 to 100 based on hazard size, flood risk, and road traffic hierarchy.',
+      title: t('howItWorks.step2Title', 'OpenAI CLIP Vision & Severity Scoring'),
+      desc: t('howItWorks.step2Desc', 'Our multimodal OpenAI CLIP zero-shot vision and ViT authenticity models classify municipal issues, filter non-civic spam or AI deepfakes, and score urgency from 1 to 100 based on hazard size, flood risk, and road traffic hierarchy.'),
       bullets: [
         'OpenAI CLIP zero-shot classification for potholes, garbage dumps, open drains, and streetlights with 94%+ precision',
         'Deep learning ViT synthetic AI image verification to block fake and spam complaints',
@@ -49,8 +51,8 @@ export const HowItWorksPage = () => {
     {
       num: '03',
       step: 'STEP 3 · DISPATCH & SLA',
-      title: 'Direct Ward Engineer Assignment',
-      desc: 'The ticket routes straight to the mobile portal of the designated Junior Engineer (Roads, Stormwater Drains, or Solid Waste Management) for that municipal ward, completely bypassing clerical delays.',
+      title: t('howItWorks.step3Title', 'Direct Ward Engineer Assignment'),
+      desc: t('howItWorks.step3Desc', 'The ticket routes straight to the mobile portal of the designated Junior Engineer (Roads, Stormwater Drains, or Solid Waste Management) for that municipal ward, completely bypassing clerical delays.'),
       bullets: [
         'Real-time SLA countdown clock visible to citizen and executive engineer',
         'Contractor road repair crew logging with GPS route verification',
@@ -66,8 +68,8 @@ export const HowItWorksPage = () => {
     {
       num: '04',
       step: 'STEP 4 · AUDIT & CLOSE',
-      title: 'Photo-Verified Resolution & Citizen Sign-off',
-      desc: 'A work order cannot be closed with paperwork alone. The ward engineer must upload an after-repair photo from the exact GPS coordinates. The citizen gets notified to review and rate the fix.',
+      title: t('howItWorks.step4Title', 'Photo-Verified Resolution & Citizen Sign-off'),
+      desc: t('howItWorks.step4Desc', 'A work order cannot be closed with paperwork alone. The ward engineer must upload an after-repair photo from the exact GPS coordinates. The citizen gets notified to review and rate the fix.'),
       bullets: [
         'Side-by-side photographic before/after proof visible on public feed',
         'Citizen 48-hour satisfaction window with one-click re-open button',
@@ -93,7 +95,7 @@ export const HowItWorksPage = () => {
         <div className="relative z-10 max-w-3xl mx-auto space-y-4">
           <div className={classNames('inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full border text-xs font-mono font-bold tracking-widest uppercase', isDark ? 'bg-emerald-500/15 border-emerald-400/30 text-emerald-300' : 'bg-emerald-50 border-emerald-300 text-emerald-800')}>
             <Sparkles size={14} className={isDark ? 'text-emerald-400' : 'text-emerald-600'} />
-            STEP-BY-STEP CIVIC PIPELINE
+            {t('howItWorks.badge', 'STEP-BY-STEP CIVIC PIPELINE')}
           </div>
 
           <h1 className={classNames('font-display text-4xl sm:text-6xl font-extrabold tracking-tight leading-tight', isDark ? 'text-white' : 'text-neutral-900')}>
