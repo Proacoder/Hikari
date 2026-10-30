@@ -59,7 +59,8 @@ class ImageAuthenticityAnalyzer:
 
             self._hf_device = "cuda" if torch.cuda.is_available() else "cpu"
             backend_dir = os.path.dirname(__file__)
-            local_model_dir = os.path.join(backend_dir, "models", "ai_detector")
+            env_model_dir = os.getenv("AI_DETECTOR_MODEL_DIR")
+            local_model_dir = env_model_dir if (env_model_dir and os.path.isabs(env_model_dir)) else os.path.join(backend_dir, env_model_dir or "models/ai_detector")
 
             # Check if local model weights are present
             if os.path.exists(local_model_dir) and os.path.exists(os.path.join(local_model_dir, "pytorch_model.bin")):

@@ -318,9 +318,9 @@ def test_concurrent_duplicate_upvoting():
 
 
 def test_secure_upload_endpoint():
-    """Verify /api/upload enforces auth, rejects invalid formats, and persists evidence."""
+    """Verify complaint image upload enforces auth, rejects invalid formats via magic bytes, and persists evidence."""
     # 1. 401 unauthenticated
-    res_unauth = client.post("/api/upload", files={"file": ("test.jpg", b"123", "image/jpeg")})
+    res_unauth = client.post("/api/complaints", files={"image": ("test.jpg", b"123", "image/jpeg")})
     assert res_unauth.status_code == 401, f"Expected 401, got {res_unauth.status_code}"
 
     # 2. Authenticated user
@@ -329,8 +329,15 @@ def test_secure_upload_endpoint():
 
     # 3. 415 Unsupported media type (not magic bytes)
     res_invalid = client.post(
-        "/api/upload",
-        files={"file": ("bad.exe", b"MZNotAnImageContent", "application/octet-stream")},
+        "/api/complaints",
+        data={
+            "title": "Invalid File Test",
+            "category": "Pothole",
+            "ward": "8",
+            "latitude": "19.0596",
+            "longitude": "72.8296",
+        },
+        files={"image": ("bad.exe", b"MZNotAnImageContent", "application/octet-stream")},
         headers={"Authorization": f"Bearer {token}"},
     )
     assert res_invalid.status_code == 415, f"Expected 415, got {res_invalid.status_code}"
@@ -338,12 +345,19 @@ def test_secure_upload_endpoint():
     # 4. 200 Valid PNG magic bytes
     png_bytes = b"\x89PNG\r\n\x1a\n\x00\x00\x00\rIHDR\x00\x00\x00\x01\x00\x00\x00\x01\x08\x06\x00\x00\x00\x1f\x15c4\x00\x00\x00\nIDATx\x9cc\x00\x01\x00\x00\x05\x00\x01\r\n-\xb4\x00\x00\x00\x00IEND\xaeB`\x82"
     res_valid = client.post(
-        "/api/upload",
-        files={"file": ("evidence.png", png_bytes, "image/png")},
+        "/api/complaints",
+        data={
+            "title": "Valid File Test",
+            "category": "Pothole",
+            "ward": "8",
+            "latitude": "19.0596",
+            "longitude": "72.8296",
+        },
+        files={"image": ("evidence.png", png_bytes, "image/png")},
         headers={"Authorization": f"Bearer {token}"},
     )
     assert res_valid.status_code == 200, f"Upload failed: {res_valid.text}"
-    upload_url = res_valid.json()["data"]["url"]
+    upload_url = res_valid.json()["data"]["imageUrl"]
     assert upload_url.startswith("/uploads/"), f"Unexpected upload path: {upload_url}"
 
     # Verify retrieval
@@ -500,12 +514,12 @@ def test_external_mumbai_news_api():
 
 
 def test_external_nvidia_chatbot_handling():
-    """External API: NVIDIA Chat completions handles missing/invalid credentials gracefully without fabricating responses."""
+    """External API: Assistant chat with NVIDIA provider handles missing/invalid credentials gracefully without fabricating responses."""
     # 1. Missing credentials test
     orig_key = os.environ.get("NVIDIA_API_KEY", "")
     try:
         os.environ["NVIDIA_API_KEY"] = ""
-        res_no_key = client.post("/api/ml/nvidia/chat", json={"query": "How to report water logging?"})
+        res_no_key = client.post("/api/ml/assistant/chat", json={"query": "How to report water logging?", "provider": "nvidia"})
         assert res_no_key.status_code == 200
         body_no_key = res_no_key.json()
         assert body_no_key["success"] is False or body_no_key.get("isLiveModel") is False
@@ -516,7 +530,7 @@ def test_external_nvidia_chatbot_handling():
     # 2. Invalid credentials test: provider error returns error response without claiming model responded
     try:
         os.environ["NVIDIA_API_KEY"] = "nvapi-fake-test-key-99999"
-        res_bad_key = client.post("/api/ml/nvidia/chat", json={"query": "Test query"})
+        res_bad_key = client.post("/api/ml/assistant/chat", json={"query": "Test query", "provider": "nvidia"})
         assert res_bad_key.status_code == 200
         body_bad = res_bad_key.json()
         assert body_bad.get("isLiveModel") is False

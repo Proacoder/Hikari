@@ -126,16 +126,6 @@ class AssistantChatRequest(BaseModel):
         return v
 
 
-class SemanticDuplicateRequest(BaseModel):
-    title: str
-    description: Optional[str] = ""
-    category: str
-    latitude: float
-    longitude: float
-    ward_id: Optional[int] = None
-    exclude_id: Optional[str] = None
-
-
 class DuplicateReviewRequest(BaseModel):
     complaint_id: str
     candidate_id: str
@@ -270,71 +260,6 @@ def ml_health_check():
         "scikit_learn": SKLEARN_READY,
         "device": clip_svc.device,
     }
-
-
-@ml_router.post("/clip-validate")
-async def clip_validate(
-    file: Optional[UploadFile] = File(None),
-    image_base64: Optional[str] = Form(None),
-    text_hint: Optional[str] = Form(None),
-):
-    """
-    Validates uploaded complaint image across 15 categories using CLIP semantic similarity.
-    Returns explicit decision status, ranked candidates, and actionable explanation.
-    """
-    raw_bytes = None
-    if file and file.filename:
-        raw_bytes = await file.read()
-    elif image_base64:
-        raw_bytes = _safe_b64decode(image_base64)
-    if not raw_bytes:
-        raise HTTPException(status_code=400, detail="An image file or base64 image payload is required.")
-
-    svc = get_clip_service()
-    return svc.validate_image(raw_bytes, text_hint)
-
-
-@ml_router.post("/semantic-duplicates")
-def detect_semantic_duplicates(
-    req: SemanticDuplicateRequest,
-    db: Session = Depends(get_db)
-):
-    """
-    Performs Sentence-BERT semantic & DBSCAN spatial candidate search.
-    Never auto-merges complaints; flags ranked candidates for officer review.
-    """
-    svc = get_duplicate_service()
-    return svc.evaluate_candidates(
-        new_title=req.title,
-        new_description=req.description or "",
-        new_category=req.category,
-        new_lat=req.latitude,
-        new_lng=req.longitude,
-        new_ward_id=req.ward_id,
-        db=db,
-        exclude_id=req.exclude_id
-    )
-
-
-@ml_router.post("/image-authenticity")
-async def check_image_authenticity(
-    file: Optional[UploadFile] = File(None),
-    image_base64: Optional[str] = Form(None),
-):
-    """
-    Evaluates C2PA cryptographic provenance, EXIF signatures, and frequency/noise forensics.
-    Returns synthetic AI generation risk and evidence signals.
-    """
-    raw_bytes = None
-    if file and file.filename:
-        raw_bytes = await file.read()
-    elif image_base64:
-        raw_bytes = _safe_b64decode(image_base64)
-    if not raw_bytes:
-        raise HTTPException(status_code=400, detail="An image file or base64 image payload is required.")
-
-    analyzer = get_authenticity_analyzer()
-    return analyzer.analyze_authenticity(raw_bytes)
 
 
 @ml_router.post("/duplicate-review")
@@ -805,23 +730,6 @@ def predict_monsoon_risk(req: MonsoonRiskRequest):
         evacuation_notice=evac,
         protocol=protocol,
     )
-
-
-@ml_router.post("/nvidia/chat")
-async def nvidia_chatbot_endpoint(req: AssistantChatRequest):
-    """
-    Dedicated endpoint for NVIDIA's OpenAI-compatible Chat Completions API.
-    Base URL: https://integrate.api.nvidia.com/v1
-    Reads NVIDIA_API_KEY and NVIDIA_MODEL from environment variables.
-    Never fabricates AI responses.
-    """
-    res = await query_nvidia_chatbot(
-        query=req.query,
-        model=req.model,
-        language=req.language or "en",
-        user_ward=req.user_ward or 8,
-    )
-    return res
 
 
 @ml_router.post("/assistant/chat")

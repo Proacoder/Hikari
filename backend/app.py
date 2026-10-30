@@ -467,19 +467,6 @@ async def store_upload(contents: bytes, original_filename: str, prefix: str = "u
     return f"/uploads/{filename}"
 
 
-@app.post("/api/upload")
-async def upload_file(
-    file: UploadFile = File(...),
-    current_user: UserModel = Depends(require_auth),
-):
-    """Secure standalone evidence upload endpoint with magic-byte validation and auth enforcement."""
-    contents = await file.read()
-    if not contents:
-        raise HTTPException(status_code=400, detail="Empty file upload.")
-    upload_url = await store_upload(contents, file.filename or "upload.jpg", prefix="evidence")
-    return {"success": True, "data": {"url": upload_url}}
-
-
 # ==============================================================================
 # HTML escape utility (for report printout XSS protection)
 # ==============================================================================
