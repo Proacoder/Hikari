@@ -40,7 +40,7 @@ MOCK_USERS = {
         "phone": "+91 98765 43210",
         "role": "citizen",
         "ward": 8,
-        "wardName": "G/N Ward – Bandra (North)",
+        "wardName": "G/N Ward – Dadar (West), Dharavi, Mahim",
         "avatarInitials": "PN",
         "password": "Citizen@123",
     },
@@ -62,7 +62,7 @@ MOCK_USERS = {
         "phone": "+91 98201 11223",
         "role": "citizen",
         "ward": 8,
-        "wardName": "G/N Ward – Bandra (North)",
+        "wardName": "G/N Ward – Dadar (West), Dharavi, Mahim",
         "avatarInitials": "AB",
         "password": "Citizen@123",
     },
@@ -124,45 +124,46 @@ DEMO_CITIZENS = [
     MOCK_USERS["citizen_harsh"],
 ]
 
+# 24 Ward Officers — one per BMC administrative ward
 MOCK_OFFICERS = [
-    {"id": "officer-001", "name": "Rohit Sharma", "email": "rohit.sharma@bmc.gov.in", "phone": "+91-22-24100001", "ward": 1, "wardName": "A Ward – Colaba, Cuffe Parade", "department": "Roads & Infrastructure", "employeeId": "BMC/A/2019/001", "badgeNumber": "B-001", "password": "Colaba@2024", "avatarInitials": "RS"},
-    {"id": "officer-002", "name": "Amol Desai", "email": "amol.desai@bmc.gov.in", "phone": "+91-22-24100002", "ward": 2, "wardName": "B Ward – Dongri, Mandvi", "department": "Sanitation", "employeeId": "BMC/B/2018/002", "badgeNumber": "B-002", "password": "Dongri@2024", "avatarInitials": "AD"},
-    {"id": "officer-003", "name": "Kavita Jadhav", "email": "kavita.jadhav@bmc.gov.in", "phone": "+91-22-24100003", "ward": 3, "wardName": "C Ward – Girgaon, Bhuleshwar", "department": "Water Supply", "employeeId": "BMC/C/2020/003", "badgeNumber": "B-003", "password": "Girgaon@2024", "avatarInitials": "KJ"},
-    {"id": "officer-004", "name": "Rahul Tiwari", "email": "rahul.tiwari@bmc.gov.in", "phone": "+91-22-24100004", "ward": 4, "wardName": "D Ward – Malabar Hill, Grant Road", "department": "Electrical", "employeeId": "BMC/D/2017/004", "badgeNumber": "B-004", "password": "Malabar@2024", "avatarInitials": "RT"},
-    {"id": "officer-005", "name": "Sneha Mhatre", "email": "sneha.mhatre@bmc.gov.in", "phone": "+91-22-24100005", "ward": 5, "wardName": "E Ward – Byculla, Mazgaon", "department": "Building & Permits", "employeeId": "BMC/E/2021/005", "badgeNumber": "B-005", "password": "Byculla@2024", "avatarInitials": "SM"},
-    {"id": "officer-006", "name": "Vikram Salvi", "email": "vikram.salvi@bmc.gov.in", "phone": "+91-22-24100006", "ward": 6, "wardName": "F/N Ward – Kurla (North)", "department": "Sanitation", "employeeId": "BMC/FN/2016/006", "badgeNumber": "B-006", "password": "KurlaN@2024", "avatarInitials": "VS"},
-    {"id": "officer-007", "name": "Preeti Kulkarni", "email": "preeti.kulkarni@bmc.gov.in", "phone": "+91-22-24100007", "ward": 7, "wardName": "F/S Ward – Dharavi, Sion", "department": "Roads & Infrastructure", "employeeId": "BMC/FS/2019/007", "badgeNumber": "B-007", "password": "Dharavi@2024", "avatarInitials": "PK"},
-    {"id": "officer-008", "name": "Suresh Patil", "email": "suresh.patil@bmc.gov.in", "phone": "+91-22-24100008", "ward": 8, "wardName": "G/N Ward – Bandra (North)", "department": "Roads & Infrastructure", "employeeId": "BMC/GN/2020/008", "badgeNumber": "B-008", "password": "BandraN@2024", "avatarInitials": "SP"},
-    {"id": "officer-009", "name": "Meena Rao", "email": "meena.rao@bmc.gov.in", "phone": "+91-22-24100009", "ward": 9, "wardName": "G/S Ward – Bandra (South)", "department": "Water Supply", "employeeId": "BMC/GS/2021/009", "badgeNumber": "B-009", "password": "BandraS@2024", "avatarInitials": "MR"},
-    {"id": "officer-010", "name": "Ajay Nair", "email": "ajay.nair@bmc.gov.in", "phone": "+91-22-24100010", "ward": 10, "wardName": "H/E Ward – Santacruz (East)", "department": "Electrical", "employeeId": "BMC/HE/2018/010", "badgeNumber": "B-010", "password": "SantaE@2024", "avatarInitials": "AN"},
-    {"id": "officer-011", "name": "Deepa Joshi", "email": "deepa.joshi@bmc.gov.in", "phone": "+91-22-24100011", "ward": 11, "wardName": "H/W Ward – Santacruz (West)", "department": "Sanitation", "employeeId": "BMC/HW/2020/011", "badgeNumber": "B-011", "password": "SantaW@2024", "avatarInitials": "DJ"},
-    {"id": "officer-012", "name": "Ravi Mehta", "email": "ravi.mehta@bmc.gov.in", "phone": "+91-22-24100012", "ward": 12, "wardName": "K/E Ward – Andheri (East)", "department": "Roads & Infrastructure", "employeeId": "BMC/KE/2021/012", "badgeNumber": "B-012", "password": "AndheriE@2024", "avatarInitials": "RM"},
-    {"id": "officer-013", "name": "Sunita Pawar", "email": "sunita.pawar@bmc.gov.in", "phone": "+91-22-24100013", "ward": 13, "wardName": "K/W Ward – Andheri (West)", "department": "Water Supply", "employeeId": "BMC/KW/2019/013", "badgeNumber": "B-013", "password": "AndheriW@2024", "avatarInitials": "SW"},
-    {"id": "officer-014", "name": "Ganesh Shirke", "email": "ganesh.shirke@bmc.gov.in", "phone": "+91-22-24100014", "ward": 14, "wardName": "L Ward – Kurla, Sakinaka", "department": "Roads & Infrastructure", "employeeId": "BMC/L/2017/014", "badgeNumber": "B-014", "password": "Kurla@2024", "avatarInitials": "GS"},
-    {"id": "officer-015", "name": "Priya Singh", "email": "priya.singh@bmc.gov.in", "phone": "+91-22-24100015", "ward": 15, "wardName": "M/E Ward – Govandi, Mankhurd", "department": "Sanitation", "employeeId": "BMC/ME/2022/015", "badgeNumber": "B-015", "password": "Govandi@2024", "avatarInitials": "PS"},
-    {"id": "officer-016", "name": "Nikhil Bane", "email": "nikhil.bane@bmc.gov.in", "phone": "+91-22-24100016", "ward": 16, "wardName": "M/W Ward – Chembur (West)", "department": "Electrical", "employeeId": "BMC/MW/2018/016", "badgeNumber": "B-016", "password": "Chembur@2024", "avatarInitials": "NB"},
-    {"id": "officer-017", "name": "Rashmi Shetty", "email": "rashmi.shetty@bmc.gov.in", "phone": "+91-22-24100017", "ward": 17, "wardName": "N Ward – Ghatkopar", "department": "Roads & Infrastructure", "employeeId": "BMC/N/2020/017", "badgeNumber": "B-017", "password": "Ghatkopar@24", "avatarInitials": "RS2"},
-    {"id": "officer-018", "name": "Arun Kamble", "email": "arun.kamble@bmc.gov.in", "phone": "+91-22-24100018", "ward": 18, "wardName": "P/N Ward – Goregaon (North)", "department": "Water Supply", "employeeId": "BMC/PN/2019/018", "badgeNumber": "B-018", "password": "GoregaonN@24", "avatarInitials": "AK"},
-    {"id": "officer-019", "name": "Leela More", "email": "leela.more@bmc.gov.in", "phone": "+91-22-24100019", "ward": 19, "wardName": "P/S Ward – Goregaon (South)", "department": "Sanitation", "employeeId": "BMC/PS/2021/019", "badgeNumber": "B-019", "password": "GoregaonS@24", "avatarInitials": "LM"},
-    {"id": "officer-020", "name": "Harish Gaikwad", "email": "harish.gaikwad@bmc.gov.in", "phone": "+91-22-24100020", "ward": 20, "wardName": "R/C Ward – Kandivali (East)", "department": "Building & Permits", "employeeId": "BMC/RC/2018/020", "badgeNumber": "B-020", "password": "KandivE@2024", "avatarInitials": "HG"},
-    {"id": "officer-021", "name": "Vaibhav Jagtap", "email": "vaibhav.jagtap@bmc.gov.in", "phone": "+91-22-24100021", "ward": 21, "wardName": "R/N Ward – Dahisar", "department": "Roads & Infrastructure", "employeeId": "BMC/RN/2020/021", "badgeNumber": "B-021", "password": "Dahisar@2024", "avatarInitials": "VJ"},
-    {"id": "officer-022", "name": "Shweta Ghosalkar", "email": "shweta.ghosalkar@bmc.gov.in", "phone": "+91-22-24100022", "ward": 22, "wardName": "R/S Ward – Kandivali (West)", "department": "Sanitation", "employeeId": "BMC/RS/2021/022", "badgeNumber": "B-022", "password": "KandivW@2024", "avatarInitials": "SG"},
-    {"id": "officer-023", "name": "Mahesh Wagh", "email": "mahesh.wagh@bmc.gov.in", "phone": "+91-22-24100023", "ward": 23, "wardName": "S Ward – Mulund", "department": "Roads & Infrastructure", "employeeId": "BMC/S/2017/023", "badgeNumber": "B-023", "password": "Mulund@2024", "avatarInitials": "MW"},
-    {"id": "officer-024", "name": "Tanvi Bhosale", "email": "tanvi.bhosale@bmc.gov.in", "phone": "+91-22-24100024", "ward": 24, "wardName": "T Ward – Bhandup, Nahur", "department": "Electrical", "employeeId": "BMC/T/2022/024", "badgeNumber": "B-024", "password": "Bhandup@2024", "avatarInitials": "TB"},
+    {"id": "officer-001", "name": "Rohit Sharma", "email": "rohit.sharma@bmc.gov.in", "phone": "+91-22-24100001", "ward": 1, "wardName": "A Ward – Colaba, Cuffe Parade, Fort", "department": "Roads & Infrastructure", "employeeId": "BMC/A/2019/001", "badgeNumber": "B-001", "avatarInitials": "RS", "password": "Password@123"},
+    {"id": "officer-002", "name": "Amol Desai", "email": "amol.desai@bmc.gov.in", "phone": "+91-22-24100002", "ward": 2, "wardName": "B Ward – Dongri, Mandvi, Sandhurst Road", "department": "Sanitation", "employeeId": "BMC/B/2018/002", "badgeNumber": "B-002", "avatarInitials": "AD", "password": "Password@123"},
+    {"id": "officer-003", "name": "Kavita Jadhav", "email": "kavita.jadhav@bmc.gov.in", "phone": "+91-22-24100003", "ward": 3, "wardName": "C Ward – Girgaon, Bhuleshwar, Marine Lines", "department": "Water Supply", "employeeId": "BMC/C/2020/003", "badgeNumber": "B-003", "avatarInitials": "KJ", "password": "Password@123"},
+    {"id": "officer-004", "name": "Rahul Tiwari", "email": "rahul.tiwari@bmc.gov.in", "phone": "+91-22-24100004", "ward": 4, "wardName": "D Ward – Malabar Hill, Walkeshwar, Grant Road", "department": "Electrical", "employeeId": "BMC/D/2017/004", "badgeNumber": "B-004", "avatarInitials": "RT", "password": "Password@123"},
+    {"id": "officer-005", "name": "Sneha Mhatre", "email": "sneha.mhatre@bmc.gov.in", "phone": "+91-22-24100005", "ward": 5, "wardName": "E Ward – Byculla, Mazgaon, Mumbai Central", "department": "Building & Permits", "employeeId": "BMC/E/2021/005", "badgeNumber": "B-005", "avatarInitials": "SM", "password": "Password@123"},
+    {"id": "officer-006", "name": "Vikram Salvi", "email": "vikram.salvi@bmc.gov.in", "phone": "+91-22-24100006", "ward": 6, "wardName": "F/N Ward – Matunga, Sion, Wadala", "department": "Sanitation", "employeeId": "BMC/FN/2016/006", "badgeNumber": "B-006", "avatarInitials": "VS", "password": "Password@123"},
+    {"id": "officer-007", "name": "Preeti Kulkarni", "email": "preeti.kulkarni@bmc.gov.in", "phone": "+91-22-24100007", "ward": 7, "wardName": "F/S Ward – Parel, Sewri, Lalbaug", "department": "Roads & Infrastructure", "employeeId": "BMC/FS/2019/007", "badgeNumber": "B-007", "avatarInitials": "PK", "password": "Password@123"},
+    {"id": "officer-008", "name": "Suresh Patil", "email": "suresh.patil@bmc.gov.in", "phone": "+91-22-24100008", "ward": 8, "wardName": "G/N Ward – Dadar (West), Dharavi, Mahim", "department": "Roads & Infrastructure", "employeeId": "BMC/GN/2020/008", "badgeNumber": "B-008", "avatarInitials": "SP", "password": "Password@123"},
+    {"id": "officer-009", "name": "Meena Rao", "email": "meena.rao@bmc.gov.in", "phone": "+91-22-24100009", "ward": 9, "wardName": "G/S Ward – Worli, Prabhadevi, Lower Parel", "department": "Water Supply", "employeeId": "BMC/GS/2021/009", "badgeNumber": "B-009", "avatarInitials": "MR", "password": "Password@123"},
+    {"id": "officer-010", "name": "Ajay Nair", "email": "ajay.nair@bmc.gov.in", "phone": "+91-22-24100010", "ward": 10, "wardName": "H/E Ward – Santacruz (East), Kalina, BKC", "department": "Electrical", "employeeId": "BMC/HE/2018/010", "badgeNumber": "B-010", "avatarInitials": "AN", "password": "Password@123"},
+    {"id": "officer-011", "name": "Deepa Joshi", "email": "deepa.joshi@bmc.gov.in", "phone": "+91-22-24100011", "ward": 11, "wardName": "H/W Ward – Bandra (West), Khar (West)", "department": "Sanitation", "employeeId": "BMC/HW/2020/011", "badgeNumber": "B-011", "avatarInitials": "DJ", "password": "Password@123"},
+    {"id": "officer-012", "name": "Ravi Mehta", "email": "ravi.mehta@bmc.gov.in", "phone": "+91-22-24100012", "ward": 12, "wardName": "K/E Ward – Andheri (East), MIDC, Vile Parle", "department": "Roads & Infrastructure", "employeeId": "BMC/KE/2021/012", "badgeNumber": "B-012", "avatarInitials": "RM", "password": "Password@123"},
+    {"id": "officer-013", "name": "Sunita Pawar", "email": "sunita.pawar@bmc.gov.in", "phone": "+91-22-24100013", "ward": 13, "wardName": "K/W Ward – Andheri (West), Juhu, Versova", "department": "Water Supply", "employeeId": "BMC/KW/2019/013", "badgeNumber": "B-013", "avatarInitials": "SP", "password": "Password@123"},
+    {"id": "officer-014", "name": "Ganesh Shirke", "email": "ganesh.shirke@bmc.gov.in", "phone": "+91-22-24100014", "ward": 14, "wardName": "L Ward – Kurla (West), Sakinaka, Chandivali", "department": "Roads & Infrastructure", "employeeId": "BMC/L/2017/014", "badgeNumber": "B-014", "avatarInitials": "GS", "password": "Password@123"},
+    {"id": "officer-015", "name": "Priya Singh", "email": "priya.singh@bmc.gov.in", "phone": "+91-22-24100015", "ward": 15, "wardName": "M/E Ward – Govandi, Mankhurd, Shivaji Nagar", "department": "Sanitation", "employeeId": "BMC/ME/2022/015", "badgeNumber": "B-015", "avatarInitials": "PS", "password": "Password@123"},
+    {"id": "officer-016", "name": "Nikhil Bane", "email": "nikhil.bane@bmc.gov.in", "phone": "+91-22-24100016", "ward": 16, "wardName": "M/W Ward – Chembur, Tilak Nagar, Mahul", "department": "Electrical", "employeeId": "BMC/MW/2018/016", "badgeNumber": "B-016", "avatarInitials": "NB", "password": "Password@123"},
+    {"id": "officer-017", "name": "Rashmi Shetty", "email": "rashmi.shetty@bmc.gov.in", "phone": "+91-22-24100017", "ward": 17, "wardName": "N Ward – Ghatkopar, Vikhroli, Pant Nagar", "department": "Roads & Infrastructure", "employeeId": "BMC/N/2020/017", "badgeNumber": "B-017", "avatarInitials": "RS", "password": "Password@123"},
+    {"id": "officer-018", "name": "Arun Kamble", "email": "arun.kamble@bmc.gov.in", "phone": "+91-22-24100018", "ward": 18, "wardName": "P/N Ward – Malad, Dindoshi, Marve", "department": "Water Supply", "employeeId": "BMC/PN/2019/018", "badgeNumber": "B-018", "avatarInitials": "AK", "password": "Password@123"},
+    {"id": "officer-019", "name": "Leela More", "email": "leela.more@bmc.gov.in", "phone": "+91-22-24100019", "ward": 19, "wardName": "P/S Ward – Goregaon, Jogeshwari, Aarey", "department": "Sanitation", "employeeId": "BMC/PS/2021/019", "badgeNumber": "B-019", "avatarInitials": "LM", "password": "Password@123"},
+    {"id": "officer-020", "name": "Harish Gaikwad", "email": "harish.gaikwad@bmc.gov.in", "phone": "+91-22-24100020", "ward": 20, "wardName": "R/C Ward – Borivali (West), Gorai, IC Colony", "department": "Building & Permits", "employeeId": "BMC/RC/2018/020", "badgeNumber": "B-020", "avatarInitials": "HG", "password": "Password@123"},
+    {"id": "officer-021", "name": "Vaibhav Jagtap", "email": "vaibhav.jagtap@bmc.gov.in", "phone": "+91-22-24100021", "ward": 21, "wardName": "R/N Ward – Dahisar, Rawalpada, Anand Nagar", "department": "Roads & Infrastructure", "employeeId": "BMC/RN/2020/021", "badgeNumber": "B-021", "avatarInitials": "VJ", "password": "Password@123"},
+    {"id": "officer-022", "name": "Shweta Ghosalkar", "email": "shweta.ghosalkar@bmc.gov.in", "phone": "+91-22-24100022", "ward": 22, "wardName": "R/S Ward – Kandivali (West), Charkop, Poisar", "department": "Sanitation", "employeeId": "BMC/RS/2021/022", "badgeNumber": "B-022", "avatarInitials": "SG", "password": "Password@123"},
+    {"id": "officer-023", "name": "Mahesh Wagh", "email": "mahesh.wagh@bmc.gov.in", "phone": "+91-22-24100023", "ward": 23, "wardName": "S Ward – Bhandup, Powai, Kanjurmarg", "department": "Roads & Infrastructure", "employeeId": "BMC/S/2017/023", "badgeNumber": "B-023", "avatarInitials": "MW", "password": "Password@123"},
+    {"id": "officer-024", "name": "Tanvi Bhosale", "email": "tanvi.bhosale@bmc.gov.in", "phone": "+91-22-24100024", "ward": 24, "wardName": "T Ward – Mulund, Nahur, Sarvodaya Nagar", "department": "Electrical", "employeeId": "BMC/T/2022/024", "badgeNumber": "B-024", "avatarInitials": "TB", "password": "Password@123"},
 ]
 
-POTHOLES = "https://images.unsplash.com/photo-1515162816999-a0c47dc192f7?w=800&auto=format&fit=crop&q=80"
-GARBAGE = "https://images.unsplash.com/photo-1530587191325-3db32d826c18?w=800&auto=format&fit=crop&q=80"
-DRAIN = "https://images.unsplash.com/photo-1547683905-f686c993aae5?w=800&auto=format&fit=crop&q=80"
-LIGHT = "https://images.unsplash.com/photo-1518893883800-45cd0954574b?w=800&auto=format&fit=crop&q=80"
-WATER = "https://images.unsplash.com/photo-1585829365295-ab7cd400c167?w=800&auto=format&fit=crop&q=80"
-DEBRIS = "https://images.unsplash.com/photo-1590069261209-f8e9b8642343?w=800&auto=format&fit=crop&q=80"
+POTHOLES = "/civic/pothole-before.jpg"
+GARBAGE = "/civic/garbage-before.jpg"
+DRAIN = "/civic/drain-before.jpg"
+LIGHT = "/civic/light-before.jpg"
+WATER = "/civic/water-before.jpg"
+DEBRIS = "/civic/debris-before.jpg"
 
-POTHOLES_RESOLVED = "https://images.unsplash.com/photo-1621905252507-b35492cc74b4?w=800&auto=format&fit=crop&q=80"
-GARBAGE_RESOLVED = "https://images.unsplash.com/photo-1513694203232-719a280e022f?w=800&auto=format&fit=crop&q=80"
-DRAIN_RESOLVED = "https://images.unsplash.com/photo-1509316975850-ff9c5deb0cd9?w=800&auto=format&fit=crop&q=80"
-LIGHT_RESOLVED = "https://images.unsplash.com/photo-1507034589631-9433cc6bc453?w=800&auto=format&fit=crop&q=80"
-WATER_RESOLVED = "https://images.unsplash.com/photo-1584467735871-8e85353a8413?w=800&auto=format&fit=crop&q=80"
+POTHOLES_RESOLVED = "/civic/pothole-after.jpg"
+GARBAGE_RESOLVED = "/civic/garbage-after.jpg"
+DRAIN_RESOLVED = "/civic/drain-after.jpg"
+LIGHT_RESOLVED = "/civic/light-after.jpg"
+WATER_RESOLVED = "/civic/water-after.jpg"
 
 # Grievance seeds across all 24 BMC Wards with genuine, verified defect and resolution evidence
 MOCK_COMPLAINTS = [

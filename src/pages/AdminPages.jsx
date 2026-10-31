@@ -1,8 +1,9 @@
 import React, { useState, useEffect, useMemo } from 'react';
-import { useLocation } from 'react-router-dom';
+import { useLocation, useNavigate } from 'react-router-dom';
 import {
   Building2, Download, Award, Star,
-  Thermometer, ChevronRight, Search, CheckCircle
+  Thermometer, ChevronRight, Search, CheckCircle,
+  MapPin, Phone, Shield, ExternalLink, Navigation
 } from 'lucide-react';
 import { getDashboardStats, getCategoryAnalytics, getWardAnalytics, getResolutionTrends } from '../api/analytics.api';
 import { getWeatherAQI } from '../api/weather.api';
@@ -121,6 +122,7 @@ const WeatherCorrelationChart = ({ data }) => {
 
 export const AdminDashboard = () => {
   const location = useLocation();
+  const navigate = useNavigate();
   const [analytics, setAnalytics] = useState(null);
   const [loading, setLoading] = useState(true);
   const [categoryData, setCategoryData] = useState([]);
@@ -184,7 +186,7 @@ export const AdminDashboard = () => {
     load();
   }, []);
 
-  // Compute all 24 wards data
+  // Compute all 24 wards data synchronized with assigned Ward Officers and locations
   const allWardsData = useMemo(() => {
     return MUMBAI_WARDS.map((w) => {
       const match = wardData.find((d) => d.wardId === w.id || d.ward?.toLowerCase().startsWith(w.name.toLowerCase()));
@@ -197,6 +199,9 @@ export const AdminDashboard = () => {
       const avgDays = match ? match.avgDays : Number((2.4 + (w.id % 4) * 0.6).toFixed(1));
       const officers = match ? match.officers : (3 + (w.id % 3));
 
+      // Synchronize designated Ward Officer
+      const assignedOfficer = MOCK_OFFICERS.find((o) => o.ward === w.id);
+
       return {
         ...w,
         zone,
@@ -206,15 +211,22 @@ export const AdminDashboard = () => {
         rate,
         avgDays,
         officers,
+        assignedOfficer,
       };
     });
   }, [wardData, mapComplaints]);
 
   const filteredWards = useMemo(() => {
     return allWardsData.filter((w) => {
-      const matchesSearch = !debouncedWardSearch ||
-        w.name.toLowerCase().includes(debouncedWardSearch.toLowerCase()) ||
-        w.area.toLowerCase().includes(debouncedWardSearch.toLowerCase());
+      const q = debouncedWardSearch?.toLowerCase() || '';
+      const matchesSearch = !q ||
+        w.name.toLowerCase().includes(q) ||
+        w.area.toLowerCase().includes(q) ||
+        w.address?.toLowerCase().includes(q) ||
+        w.ac?.toLowerCase().includes(q) ||
+        w.assignedOfficer?.name.toLowerCase().includes(q) ||
+        w.assignedOfficer?.employeeId?.toLowerCase().includes(q) ||
+        w.assignedOfficer?.department?.toLowerCase().includes(q);
       const matchesZone = wardZoneFilter === 'all' || w.zone === wardZoneFilter;
       return matchesSearch && matchesZone;
     });
@@ -405,12 +417,13 @@ export const AdminDashboard = () => {
             </Card>
           </div>
 
-          {/* Wards Grid */}
+          {/* Wards Grid with Synchronized Officer & Location */}
           <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
             {filteredWards.map((w) => (
-              <Card key={w.id} hover className="p-5 space-y-4 shadow-sm flex flex-col justify-between">
-                <div>
-                  <div className="flex items-start justify-between gap-2 mb-2">
+              <Card key={w.id} hover className="p-5 space-y-3.5 shadow-sm flex flex-col justify-between">
+                <div className="space-y-3">
+                  {/* Ward Header */}
+                  <div className="flex items-start justify-between gap-2">
                     <div>
                       <div className="flex items-center gap-2">
                         <span className="font-mono text-xs font-bold px-2 py-0.5 rounded bg-brand-50 dark:bg-brand-950/60 text-brand-700 dark:text-brand-300 border border-brand-200 dark:border-brand-800">
@@ -425,7 +438,64 @@ export const AdminDashboard = () => {
                     </Badge>
                   </div>
 
-                  <div className="grid grid-cols-3 gap-2 py-3 border-y border-neutral-100 dark:border-neutral-800 text-center my-3">
+                  {/* Ward Location & HQ Address */}
+                  <div className="p-2.5 bg-neutral-50 dark:bg-neutral-800/60 rounded-xl border border-neutral-100 dark:border-neutral-800 text-[11px] space-y-1">
+                    <div className="flex items-start gap-1.5 text-neutral-700 dark:text-neutral-300">
+                      <MapPin size={13} className="text-brand-600 dark:text-brand-400 mt-0.5 shrink-0" />
+                      <span className="leading-snug line-clamp-2">{w.address}</span>
+                    </div>
+                    <div className="flex flex-wrap items-center gap-1.5 text-[10px] text-neutral-500 dark:text-neutral-400 pl-4">
+                      <span>AC: <strong className="text-neutral-700 dark:text-neutral-300 font-semibold">{w.ac}</strong></span>
+                      <span>•</span>
+                      <span>GPS: {w.lat?.toFixed(3)}°N, {w.lng?.toFixed(3)}°E</span>
+                      {w.phone && (
+                        <>
+                          <span>•</span>
+                          <span className="flex items-center gap-0.5"><Phone size={9} /> {w.phone}</span>
+                        </>
+                      )}
+                    </div>
+                  </div>
+
+                  {/* Assigned Ward Officer Sync Card */}
+                  {w.assignedOfficer && (
+                    <div className="flex items-center justify-between p-2.5 rounded-xl bg-gradient-to-r from-neutral-50 to-brand-50/40 dark:from-neutral-800/80 dark:to-brand-950/30 border border-neutral-100 dark:border-neutral-800">
+                      <div className="flex items-center gap-2.5 min-w-0">
+                        <div className="w-8 h-8 rounded-lg bg-brand-600 text-white flex items-center justify-center font-bold text-xs shrink-0 shadow-sm">
+                          {w.assignedOfficer.avatarInitials}
+                        </div>
+                        <div className="min-w-0">
+                          <div className="flex items-center gap-1.5 flex-wrap">
+                            <span className="font-bold text-xs text-neutral-900 dark:text-neutral-100 truncate">
+                              Officer {w.assignedOfficer.name}
+                            </span>
+                            <span className={`text-[9px] font-bold px-1.5 py-0.2 rounded-full border ${
+                              w.assignedOfficer.status === 'Available'
+                                ? 'bg-emerald-50 dark:bg-emerald-950/50 text-emerald-700 dark:text-emerald-300 border-emerald-200 dark:border-emerald-800'
+                                : w.assignedOfficer.status === 'Busy'
+                                ? 'bg-amber-50 dark:bg-amber-950/50 text-amber-700 dark:text-amber-300 border-amber-200 dark:border-amber-800'
+                                : 'bg-neutral-100 dark:bg-neutral-800 text-neutral-600 dark:text-neutral-400 border-neutral-200 dark:border-neutral-700'
+                            }`}>
+                              {w.assignedOfficer.status}
+                            </span>
+                          </div>
+                          <p className="text-[10px] text-neutral-500 dark:text-neutral-400 truncate">
+                            {w.assignedOfficer.department} · {w.assignedOfficer.employeeId}
+                          </p>
+                        </div>
+                      </div>
+                      <button
+                        onClick={() => navigate(`/officer/${w.assignedOfficer.id}`)}
+                        className="px-2 py-1 text-xs font-semibold text-brand-600 dark:text-brand-400 hover:text-brand-700 hover:bg-brand-50 dark:hover:bg-neutral-700 rounded-lg transition-colors flex items-center gap-1 shrink-0 cursor-pointer"
+                        title={`Open ${w.assignedOfficer.name}'s Desk`}
+                      >
+                        <Shield size={12} /> Desk
+                      </button>
+                    </div>
+                  )}
+
+                  {/* Complaint Stats Grid */}
+                  <div className="grid grid-cols-3 gap-2 py-2.5 border-y border-neutral-100 dark:border-neutral-800 text-center">
                     <div>
                       <span className="text-[10px] text-neutral-400 font-semibold block uppercase">Total</span>
                       <span className="text-sm font-bold text-neutral-800 dark:text-neutral-200">{w.total?.toLocaleString()}</span>
@@ -444,7 +514,7 @@ export const AdminDashboard = () => {
                   <div className="space-y-1">
                     <div className="flex justify-between text-[11px]">
                       <span className="text-neutral-500 dark:text-neutral-400">Resolution Speed: <strong className="text-neutral-800 dark:text-neutral-200">{w.avgDays}d</strong></span>
-                      <span className="text-neutral-500 dark:text-neutral-400">{w.officers} Engineers Assigned</span>
+                      <span className="text-neutral-500 dark:text-neutral-400">{w.officers} Field Engineers</span>
                     </div>
                     <div className="w-full h-2 bg-neutral-100 dark:bg-neutral-800 rounded-full overflow-hidden">
                       <div
@@ -457,17 +527,27 @@ export const AdminDashboard = () => {
                   </div>
                 </div>
 
-                <div className="pt-2 flex items-center justify-between border-t border-neutral-100 dark:border-neutral-800 text-xs">
+                <div className="pt-2.5 flex items-center justify-between border-t border-neutral-100 dark:border-neutral-800 text-xs">
                   <span className="text-neutral-400 font-mono text-[11px]">Ward ID #{w.id}</span>
-                  <button
-                    onClick={() => {
-                      setComplaintWardFilter(String(w.id));
-                      setActiveSection('complaints');
-                    }}
-                    className="text-brand-600 hover:text-brand-700 font-semibold flex items-center gap-1 text-[11px] cursor-pointer"
-                  >
-                    View Grievances <ChevronRight size={13} />
-                  </button>
+                  <div className="flex items-center gap-2">
+                    {w.assignedOfficer && (
+                      <button
+                        onClick={() => navigate(`/officer/${w.assignedOfficer.id}`)}
+                        className="text-neutral-600 dark:text-neutral-300 hover:text-brand-600 font-medium flex items-center gap-1 text-[11px] cursor-pointer px-2 py-1 rounded-lg hover:bg-neutral-100 dark:hover:bg-neutral-800 transition-colors"
+                      >
+                        <Shield size={12} className="text-brand-600" /> Officer Portal
+                      </button>
+                    )}
+                    <button
+                      onClick={() => {
+                        setComplaintWardFilter(String(w.id));
+                        setActiveSection('complaints');
+                      }}
+                      className="text-brand-600 hover:text-brand-700 font-semibold flex items-center gap-1 text-[11px] cursor-pointer"
+                    >
+                      View Grievances <ChevronRight size={13} />
+                    </button>
+                  </div>
                 </div>
               </Card>
             ))}
@@ -489,40 +569,75 @@ export const AdminDashboard = () => {
                 <tr>
                   <th className="px-4 py-3">#</th>
                   <th className="px-4 py-3">Ward Code & Zone</th>
-                  <th className="px-4 py-3">Total Complaints</th>
+                  <th className="px-4 py-3">Designated Ward Officer</th>
+                  <th className="px-4 py-3">Ward Location / HQ</th>
+                  <th className="px-4 py-3">Complaints</th>
                   <th className="px-4 py-3">Resolved</th>
                   <th className="px-4 py-3">Pending</th>
                   <th className="px-4 py-3">Avg Days</th>
-                  <th className="px-4 py-3">Officers</th>
-                  <th className="px-4 py-3">Resolution Rate</th>
+                  <th className="px-4 py-3">SLA Rate</th>
+                  <th className="px-4 py-3">Actions</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-neutral-100 dark:divide-neutral-800 font-medium">
-                {wardData.map((w, idx) => (
-                  <tr key={w.wardId || idx} className="hover:bg-neutral-50 dark:hover:bg-neutral-800/50 transition-colors">
+                {allWardsData.map((w, idx) => (
+                  <tr key={w.id || idx} className="hover:bg-neutral-50 dark:hover:bg-neutral-800/50 transition-colors">
                     <td className="px-4 py-3">
                       <span className={`w-6 h-6 rounded-full flex items-center justify-center text-[11px] font-bold ${idx < 3 ? 'bg-brand-100 dark:bg-brand-900/60 text-brand-700 dark:text-brand-300' : 'bg-neutral-100 dark:bg-neutral-800 text-neutral-500 dark:text-neutral-400'}`}>
                         {idx + 1}
                       </span>
                     </td>
-                    <td className="px-4 py-3 font-bold text-neutral-900 dark:text-neutral-100">{w.ward}</td>
-                    <td className="px-4 py-3">{w.total?.toLocaleString()}</td>
+                    <td className="px-4 py-3">
+                      <div className="font-bold text-neutral-900 dark:text-neutral-100">{w.name}</div>
+                      <div className="text-[10px] text-neutral-400">{w.zone}</div>
+                    </td>
+                    <td className="px-4 py-3">
+                      {w.assignedOfficer ? (
+                        <div className="flex items-center gap-2">
+                          <span className="w-6 h-6 rounded bg-brand-100 dark:bg-brand-950/60 text-brand-700 dark:text-brand-300 font-bold text-[10px] flex items-center justify-center">
+                            {w.assignedOfficer.avatarInitials}
+                          </span>
+                          <div>
+                            <div className="font-semibold text-neutral-900 dark:text-neutral-100 text-xs">Officer {w.assignedOfficer.name}</div>
+                            <div className="text-[10px] text-neutral-400">{w.assignedOfficer.employeeId} · {w.assignedOfficer.department}</div>
+                          </div>
+                        </div>
+                      ) : (
+                        <span className="text-neutral-400 italic">Unassigned</span>
+                      )}
+                    </td>
+                    <td className="px-4 py-3 max-w-[200px] truncate text-[11px]" title={w.address}>
+                      <span className="flex items-center gap-1 text-neutral-600 dark:text-neutral-300">
+                        <MapPin size={11} className="text-brand-600 shrink-0" />
+                        <span className="truncate">{w.area}</span>
+                      </span>
+                    </td>
+                    <td className="px-4 py-3 font-semibold text-neutral-800 dark:text-neutral-200">{w.total?.toLocaleString()}</td>
                     <td className="px-4 py-3 text-emerald-600 dark:text-emerald-400 font-semibold">{w.resolved?.toLocaleString()}</td>
                     <td className="px-4 py-3 text-amber-600 dark:text-amber-400 font-semibold">{w.pending}</td>
                     <td className="px-4 py-3">{w.avgDays}d</td>
-                    <td className="px-4 py-3">{w.officers}</td>
                     <td className="px-4 py-3">
                       <div className="flex items-center gap-2">
-                        <div className="w-20 h-2 bg-neutral-100 dark:bg-neutral-800 rounded-full overflow-hidden">
+                        <div className="w-16 h-2 bg-neutral-100 dark:bg-neutral-800 rounded-full overflow-hidden">
                           <div
                             className={`h-full rounded-full ${w.rate >= 80 ? 'bg-emerald-500' : w.rate >= 60 ? 'bg-amber-500' : 'bg-red-500'}`}
                             style={{ width: `${w.rate}%` }}
                           />
                         </div>
-                        <span className={`font-bold ${w.rate >= 80 ? 'text-emerald-600 dark:text-emerald-400' : w.rate >= 60 ? 'text-amber-600 dark:text-amber-400' : 'text-red-600 dark:text-red-400'}`}>
+                        <span className={`font-bold text-[11px] ${w.rate >= 80 ? 'text-emerald-600 dark:text-emerald-400' : w.rate >= 60 ? 'text-amber-600 dark:text-amber-400' : 'text-red-600 dark:text-red-400'}`}>
                           {w.rate}%
                         </span>
                       </div>
+                    </td>
+                    <td className="px-4 py-3">
+                      {w.assignedOfficer && (
+                        <button
+                          onClick={() => navigate(`/officer/${w.assignedOfficer.id}`)}
+                          className="px-2 py-1 rounded bg-neutral-100 dark:bg-neutral-800 hover:bg-brand-50 hover:text-brand-600 text-neutral-700 dark:text-neutral-300 text-[10px] font-semibold flex items-center gap-1 transition-colors cursor-pointer"
+                        >
+                          <Shield size={11} /> Desk
+                        </button>
+                      )}
                     </td>
                   </tr>
                 ))}
@@ -555,10 +670,12 @@ export const AdminDashboard = () => {
                   <div className="w-12 h-12 rounded-2xl bg-brand-100 dark:bg-brand-900/40 flex items-center justify-center text-brand-700 dark:text-brand-300 font-bold text-sm">
                     {officer.name.split(' ').map(n => n[0]).join('')}
                   </div>
-                  <div>
-                    <h4 className="font-bold text-neutral-900 dark:text-neutral-100 text-sm">{officer.name}</h4>
-                    <p className="text-[11px] text-neutral-500 dark:text-neutral-400">{officer.wardName}</p>
-                    <p className="text-[11px] text-neutral-400 dark:text-neutral-500">{officer.department}</p>
+                  <div className="min-w-0 flex-1">
+                    <h4 className="font-bold text-neutral-900 dark:text-neutral-100 text-sm truncate">{officer.name}</h4>
+                    <p className="text-[11px] text-brand-600 dark:text-brand-400 font-semibold truncate flex items-center gap-1">
+                      <MapPin size={11} /> {officer.wardName}
+                    </p>
+                    <p className="text-[10px] text-neutral-400 dark:text-neutral-500">{officer.department} · Ward #{officer.ward}</p>
                   </div>
                 </div>
 
@@ -588,7 +705,15 @@ export const AdminDashboard = () => {
                   <Badge variant={officer.status === 'Available' ? 'success' : officer.status === 'On Leave' ? 'amber' : 'sky'}>
                     {officer.status}
                   </Badge>
-                  <span className="text-[11px] text-neutral-400 font-mono">{officer.employeeId}</span>
+                  <div className="flex items-center gap-2">
+                    <span className="text-[11px] text-neutral-400 font-mono">{officer.employeeId}</span>
+                    <button
+                      onClick={() => navigate(`/officer/${officer.id}`)}
+                      className="px-2 py-0.5 rounded bg-brand-50 hover:bg-brand-100 text-brand-700 dark:bg-brand-950/60 dark:text-brand-300 text-[10px] font-semibold flex items-center gap-1 transition-colors cursor-pointer"
+                    >
+                      <ExternalLink size={10} /> Open Desk
+                    </button>
+                  </div>
                 </div>
               </Card>
             ))}

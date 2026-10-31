@@ -7,21 +7,21 @@ import { calculateDistanceKm } from '../../utils/geoUtils';
 import toast from 'react-hot-toast';
 
 export const RESOLVED_CATEGORY_IMAGES = {
-  Pothole: 'https://images.unsplash.com/photo-1621905252507-b35492cc74b4?w=800&auto=format&fit=crop&q=80',
-  Garbage: 'https://images.unsplash.com/photo-1513694203232-719a280e022f?w=800&auto=format&fit=crop&q=80',
-  Drainage: 'https://images.unsplash.com/photo-1509316975850-ff9c5deb0cd9?w=800&auto=format&fit=crop&q=80',
-  Streetlight: 'https://images.unsplash.com/photo-1507034589631-9433cc6bc453?w=800&auto=format&fit=crop&q=80',
-  'Water Leakage': 'https://images.unsplash.com/photo-1584467735871-8e85353a8413?w=800&auto=format&fit=crop&q=80',
-  Other: 'https://images.unsplash.com/photo-1513694203232-719a280e022f?w=800&auto=format&fit=crop&q=80',
+  Pothole: '/civic/pothole-after.jpg',
+  Garbage: '/civic/garbage-after.jpg',
+  Drainage: '/civic/drain-after.jpg',
+  Streetlight: '/civic/light-after.jpg',
+  'Water Leakage': '/civic/water-after.jpg',
+  Other: '/civic/debris-after.jpg',
 };
 
 export const DEFECT_CATEGORY_FALLBACKS = {
-  Pothole: 'https://images.unsplash.com/photo-1515162816999-a0c47dc192f7?w=800&auto=format&fit=crop&q=80',
-  Garbage: 'https://images.unsplash.com/photo-1530587191325-3db32d826c18?w=800&auto=format&fit=crop&q=80',
-  Drainage: 'https://images.unsplash.com/photo-1547683905-f686c993aae5?w=800&auto=format&fit=crop&q=80',
-  Streetlight: 'https://images.unsplash.com/photo-1518893883800-45cd0954574b?w=800&auto=format&fit=crop&q=80',
-  'Water Leakage': 'https://images.unsplash.com/photo-1585829365295-ab7cd400c167?w=800&auto=format&fit=crop&q=80',
-  Other: 'https://images.unsplash.com/photo-1590069261209-f8e9b8642343?w=800&auto=format&fit=crop&q=80',
+  Pothole: '/civic/pothole-before.jpg',
+  Garbage: '/civic/garbage-before.jpg',
+  Drainage: '/civic/drain-before.jpg',
+  Streetlight: '/civic/light-before.jpg',
+  'Water Leakage': '/civic/water-before.jpg',
+  Other: '/civic/debris-before.jpg',
 };
 
 export const FieldInspectionModal = ({ complaint, officer, isOpen, onClose, onResolveSuccess }) => {
@@ -39,7 +39,7 @@ export const FieldInspectionModal = ({ complaint, officer, isOpen, onClose, onRe
 
 const FieldInspectionModalContent = ({ complaint, officer, onClose, onResolveSuccess }) => {
   const getInitialAfter = (cmp) => {
-    if (cmp?.resolvedImageUrl && !cmp.resolvedImageUrl.includes('photo-1541888946425-d0fbb')) {
+    if (cmp?.resolvedImageUrl && !cmp.resolvedImageUrl.includes('photo-1541888946425') && !cmp.resolvedImageUrl.includes('photo-1558618666') && !cmp.resolvedImageUrl.includes('photo-1515162816999')) {
       return cmp.resolvedImageUrl;
     }
     return RESOLVED_CATEGORY_IMAGES[cmp?.category] || RESOLVED_CATEGORY_IMAGES.Pothole;
@@ -53,7 +53,7 @@ const FieldInspectionModalContent = ({ complaint, officer, onClose, onResolveSuc
   }, [complaint]);
 
   const rawBefore = complaint.imageUrl;
-  const isRandomOrBroken = !rawBefore || rawBefore.includes('photo-1558618666') || rawBefore.includes('photo-1541888946425-d0fbb') || (rawBefore.endsWith('.png') && rawBefore.includes('/uploads/'));
+  const isRandomOrBroken = !rawBefore || rawBefore.includes('photo-1558618666') || rawBefore.includes('photo-1515162816999') || rawBefore.includes('photo-1541888946425') || (rawBefore.endsWith('.png') && rawBefore.includes('/uploads/'));
   const beforeImage = isRandomOrBroken ? (DEFECT_CATEGORY_FALLBACKS[complaint.category] || DEFECT_CATEGORY_FALLBACKS.Pothole) : rawBefore;
   const [sliderPos, setSliderPos] = useState(50);
   const [materials, setMaterials] = useState([
@@ -293,6 +293,13 @@ const FieldInspectionModalContent = ({ complaint, officer, onClose, onResolveSuc
                   className="px-2.5 py-1 bg-neutral-100 hover:bg-neutral-200 dark:bg-neutral-800 dark:hover:bg-neutral-700 text-neutral-700 dark:text-neutral-200 rounded text-[10px] font-semibold cursor-pointer shrink-0 transition-colors"
                 >
                   Pipe Sealed
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setAfterImage(RESOLVED_CATEGORY_IMAGES.Other)}
+                  className="px-2.5 py-1 bg-neutral-100 hover:bg-neutral-200 dark:bg-neutral-800 dark:hover:bg-neutral-700 text-neutral-700 dark:text-neutral-200 rounded text-[10px] font-semibold cursor-pointer shrink-0 transition-colors"
+                >
+                  Debris Cleared
                 </button>
               </div>
             </div>

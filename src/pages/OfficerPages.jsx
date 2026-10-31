@@ -32,7 +32,7 @@ import {
 // ── Helpers ────────────────────────────────────────────────────────────────────
 
 const getCleanEvidenceUrl = (url, category) => {
-  if (!url || url.includes('photo-1558618666') || (url.endsWith('.png') && url.includes('/uploads/'))) {
+  if (!url || url.includes('photo-1558618666') || url.includes('photo-1515162816999') || url.includes('photo-1541888946425') || (url.endsWith('.png') && url.includes('/uploads/'))) {
     return DEFECT_CATEGORY_FALLBACKS[category] || DEFECT_CATEGORY_FALLBACKS.Pothole;
   }
   return url;

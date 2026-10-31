@@ -308,8 +308,8 @@ export const ComplaintDetailPage = () => {
     );
   }
 
-  const DEFAULT_PHOTO = 'https://images.unsplash.com/photo-1541888946425-d0fbb18f15f6?w=600&q=80';
-  const resolvedPhoto = complaint.resolvedImageUrl || (complaint.status === 'resolved' ? 'https://images.unsplash.com/photo-1584467735871-8e85353a8413?w=600&q=80' : null);
+  const DEFAULT_PHOTO = '/civic/pothole-before.jpg';
+  const resolvedPhoto = complaint.resolvedImageUrl || (complaint.status === 'resolved' ? '/civic/pothole-after.jpg' : null);
   const reopenProofPhoto = complaint.reopenPhotoUrl;
 
   const photos = [
@@ -990,7 +990,7 @@ export const ComplaintDetailPage = () => {
                   <span className="text-[10px] text-neutral-400 dark:text-neutral-500">Quick Test Proof:</span>
                   <button
                     type="button"
-                    onClick={() => setReopenPhotoUrl('https://images.unsplash.com/photo-1515162816999-a0c47dc192f7?w=600&q=80')}
+                    onClick={() => setReopenPhotoUrl('/civic/pothole-before.jpg')}
                     className="text-[10px] text-brand-600 dark:text-brand-400 underline hover:text-brand-800 dark:hover:text-brand-300 cursor-pointer"
                   >
                     Sample Incomplete Work Photo

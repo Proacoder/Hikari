@@ -2047,6 +2047,20 @@ async def get_ward_analytics(db: Session = Depends(get_db)):
             UserModel.ward_id == w.id,
         ).count()
         rate = round((ward_resolved / ward_total * 100), 1) if ward_total > 0 else 0.0
+        assigned_officer = db.query(UserModel).filter(
+            UserModel.role == "officer",
+            UserModel.ward_id == w.id,
+        ).first()
+        officer_data = {
+            "id": assigned_officer.id,
+            "name": assigned_officer.name,
+            "email": assigned_officer.email,
+            "phone": assigned_officer.phone,
+            "department": assigned_officer.department,
+            "employeeId": assigned_officer.employee_id,
+            "avatarInitials": assigned_officer.avatar_initials,
+        } if assigned_officer else None
+
         results.append({
             "ward": w.name,
             "wardId": w.id,
@@ -2056,6 +2070,12 @@ async def get_ward_analytics(db: Session = Depends(get_db)):
             "avgDays": None,
             "officers": officers_count,
             "rate": rate,
+            "assignedOfficer": officer_data,
+            "officerName": assigned_officer.name if assigned_officer else None,
+            "address": w.address,
+            "acName": w.ac_name,
+            "lat": w.lat,
+            "lng": w.lng,
         })
     return {"success": True, "data": results}
 
@@ -2129,6 +2149,10 @@ app.include_router(ml_router, prefix="/api/ml", tags=["Machine Learning"])
 uploads_dir = os.path.join(os.path.dirname(__file__), "uploads")
 os.makedirs(uploads_dir, exist_ok=True)
 app.mount("/uploads", StaticFiles(directory=uploads_dir), name="uploads")
+
+civic_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "public", "civic"))
+if os.path.exists(civic_dir):
+    app.mount("/civic", StaticFiles(directory=civic_dir), name="civic")
 
 
 # Serve React production build if available

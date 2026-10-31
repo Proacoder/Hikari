@@ -40,7 +40,7 @@ export const MOCK_USERS = {
     phone: '+91 98765 43210',
     role: 'citizen',
     ward: 8,
-    wardName: 'G/N Ward – Bandra (North)',
+    wardName: 'G/N Ward – Dadar (West), Dharavi, Mahim',
     avatarInitials: 'PN',
     createdAt: '2024-03-15T10:30:00Z',
   },
@@ -62,7 +62,7 @@ export const MOCK_USERS = {
     phone: '+91 98201 11223',
     role: 'citizen',
     ward: 8,
-    wardName: 'G/N Ward – Bandra (North)',
+    wardName: 'G/N Ward – Dadar (West), Dharavi, Mahim',
     avatarInitials: 'AB',
     createdAt: '2024-02-10T09:00:00Z',
   },
@@ -95,7 +95,7 @@ export const MOCK_USERS = {
     phone: '+91-22-24100008',
     role: 'officer',
     ward: 8,
-    wardName: 'G/N Ward – Bandra (North)',
+    wardName: 'G/N Ward – Dadar (West), Dharavi, Mahim',
     department: 'Roads & Infrastructure',
     employeeId: 'BMC/GN/2020/008',
     badgeNumber: 'B-008',
@@ -129,32 +129,32 @@ const makeDateAgo = (days) => {
   return d.toISOString();
 };
 
-// ─── 26 Officers — one per ward ──────────────────────────────────────────────
+// ─── 24 Ward Officers — one per BMC administrative ward ───────────────────────
 export const MOCK_OFFICERS = [
-  { id: 'officer-001', name: 'Rohit Sharma', email: 'rohit.sharma@bmc.gov.in', phone: '+91-22-24100001', ward: 1, wardName: 'A Ward – Colaba, Cuffe Parade', department: 'Roads & Infrastructure', employeeId: 'BMC/A/2019/001', status: 'Available', assignedCount: 8, resolvedCount: 142, avgResolutionDays: 3.8, rating: 4.2, joinedAt: '2019-04-01T09:00:00Z', avatarInitials: 'RS' },
-  { id: 'officer-002', name: 'Amol Desai', email: 'amol.desai@bmc.gov.in', phone: '+91-22-24100002', ward: 2, wardName: 'B Ward – Dongri, Mandvi', department: 'Sanitation', employeeId: 'BMC/B/2018/002', status: 'Busy', assignedCount: 21, resolvedCount: 234, avgResolutionDays: 3.2, rating: 4.6, joinedAt: '2018-06-10T09:00:00Z', avatarInitials: 'AD' },
-  { id: 'officer-003', name: 'Kavita Jadhav', email: 'kavita.jadhav@bmc.gov.in', phone: '+91-22-24100003', ward: 3, wardName: 'C Ward – Girgaon, Bhuleshwar', department: 'Water Supply', employeeId: 'BMC/C/2020/003', status: 'Available', assignedCount: 9, resolvedCount: 156, avgResolutionDays: 2.9, rating: 4.7, joinedAt: '2020-01-10T09:00:00Z', avatarInitials: 'KJ' },
-  { id: 'officer-004', name: 'Rahul Tiwari', email: 'rahul.tiwari@bmc.gov.in', phone: '+91-22-24100004', ward: 4, wardName: 'D Ward – Malabar Hill, Grant Road', department: 'Electrical', employeeId: 'BMC/D/2017/004', status: 'On Leave', assignedCount: 0, resolvedCount: 312, avgResolutionDays: 3.1, rating: 4.4, joinedAt: '2017-06-01T09:00:00Z', avatarInitials: 'RT' },
-  { id: 'officer-005', name: 'Sneha Mhatre', email: 'sneha.mhatre@bmc.gov.in', phone: '+91-22-24100005', ward: 5, wardName: 'E Ward – Byculla, Mazgaon', department: 'Building & Permits', employeeId: 'BMC/E/2021/005', status: 'Available', assignedCount: 6, resolvedCount: 89, avgResolutionDays: 5.1, rating: 3.9, joinedAt: '2021-09-01T09:00:00Z', avatarInitials: 'SM' },
-  { id: 'officer-006', name: 'Vikram Salvi', email: 'vikram.salvi@bmc.gov.in', phone: '+91-22-24100006', ward: 6, wardName: 'F/N Ward – Kurla (North)', department: 'Sanitation', employeeId: 'BMC/FN/2016/006', status: 'Busy', assignedCount: 17, resolvedCount: 401, avgResolutionDays: 2.6, rating: 4.8, joinedAt: '2016-11-20T09:00:00Z', avatarInitials: 'VS' },
-  { id: 'officer-007', name: 'Preeti Kulkarni', email: 'preeti.kulkarni@bmc.gov.in', phone: '+91-22-24100007', ward: 7, wardName: 'F/S Ward – Dharavi, Sion', department: 'Roads & Infrastructure', employeeId: 'BMC/FS/2019/007', status: 'Available', assignedCount: 12, resolvedCount: 198, avgResolutionDays: 3.5, rating: 4.3, joinedAt: '2019-03-15T09:00:00Z', avatarInitials: 'PK' },
-  { id: 'officer-008', name: 'Suresh Patil', email: 'suresh.patil@bmc.gov.in', phone: '+91-22-24100008', ward: 8, wardName: 'G/N Ward – Bandra (North)', department: 'Roads & Infrastructure', employeeId: 'BMC/GN/2020/008', status: 'Available', assignedCount: 14, resolvedCount: 187, avgResolutionDays: 4.2, rating: 4.3, joinedAt: '2020-07-01T09:00:00Z', avatarInitials: 'SP' },
-  { id: 'officer-009', name: 'Meena Rao', email: 'meena.rao@bmc.gov.in', phone: '+91-22-24100009', ward: 9, wardName: 'G/S Ward – Bandra (South)', department: 'Water Supply', employeeId: 'BMC/GS/2021/009', status: 'Busy', assignedCount: 11, resolvedCount: 167, avgResolutionDays: 3.7, rating: 4.5, joinedAt: '2021-02-01T09:00:00Z', avatarInitials: 'MR' },
-  { id: 'officer-010', name: 'Ajay Nair', email: 'ajay.nair@bmc.gov.in', phone: '+91-22-24100010', ward: 10, wardName: 'H/E Ward – Santacruz (East)', department: 'Electrical', employeeId: 'BMC/HE/2018/010', status: 'Available', assignedCount: 7, resolvedCount: 289, avgResolutionDays: 2.8, rating: 4.6, joinedAt: '2018-01-15T09:00:00Z', avatarInitials: 'AN' },
-  { id: 'officer-011', name: 'Deepa Joshi', email: 'deepa.joshi@bmc.gov.in', phone: '+91-22-24100011', ward: 11, wardName: 'H/W Ward – Santacruz (West)', department: 'Sanitation', employeeId: 'BMC/HW/2020/011', status: 'Available', assignedCount: 10, resolvedCount: 211, avgResolutionDays: 3.3, rating: 4.4, joinedAt: '2020-05-01T09:00:00Z', avatarInitials: 'DJ' },
-  { id: 'officer-012', name: 'Ravi Mehta', email: 'ravi.mehta@bmc.gov.in', phone: '+91-22-24100012', ward: 12, wardName: 'K/E Ward – Andheri (East)', department: 'Roads & Infrastructure', employeeId: 'BMC/KE/2021/012', status: 'Busy', assignedCount: 18, resolvedCount: 256, avgResolutionDays: 3.9, rating: 4.2, joinedAt: '2021-07-01T09:00:00Z', avatarInitials: 'RM' },
-  { id: 'officer-013', name: 'Sunita Pawar', email: 'sunita.pawar@bmc.gov.in', phone: '+91-22-24100013', ward: 13, wardName: 'K/W Ward – Andheri (West)', department: 'Water Supply', employeeId: 'BMC/KW/2019/013', status: 'Available', assignedCount: 9, resolvedCount: 178, avgResolutionDays: 3.1, rating: 4.7, joinedAt: '2019-11-01T09:00:00Z', avatarInitials: 'SP2' },
-  { id: 'officer-014', name: 'Ganesh Shirke', email: 'ganesh.shirke@bmc.gov.in', phone: '+91-22-24100014', ward: 14, wardName: 'L Ward – Kurla, Sakinaka', department: 'Roads & Infrastructure', employeeId: 'BMC/L/2017/014', status: 'Available', assignedCount: 15, resolvedCount: 334, avgResolutionDays: 3.6, rating: 4.5, joinedAt: '2017-08-01T09:00:00Z', avatarInitials: 'GS' },
-  { id: 'officer-015', name: 'Priya Singh', email: 'priya.singh@bmc.gov.in', phone: '+91-22-24100015', ward: 15, wardName: 'M/E Ward – Govandi, Mankhurd', department: 'Sanitation', employeeId: 'BMC/ME/2022/015', status: 'Available', assignedCount: 5, resolvedCount: 78, avgResolutionDays: 4.5, rating: 3.8, joinedAt: '2022-03-01T09:00:00Z', avatarInitials: 'PS' },
-  { id: 'officer-016', name: 'Nikhil Bane', email: 'nikhil.bane@bmc.gov.in', phone: '+91-22-24100016', ward: 16, wardName: 'M/W Ward – Chembur (West)', department: 'Electrical', employeeId: 'BMC/MW/2018/016', status: 'Busy', assignedCount: 13, resolvedCount: 290, avgResolutionDays: 3.0, rating: 4.4, joinedAt: '2018-09-01T09:00:00Z', avatarInitials: 'NB' },
-  { id: 'officer-017', name: 'Rashmi Shetty', email: 'rashmi.shetty@bmc.gov.in', phone: '+91-22-24100017', ward: 17, wardName: 'N Ward – Ghatkopar', department: 'Roads & Infrastructure', employeeId: 'BMC/N/2020/017', status: 'Available', assignedCount: 11, resolvedCount: 223, avgResolutionDays: 3.4, rating: 4.3, joinedAt: '2020-06-01T09:00:00Z', avatarInitials: 'RS2' },
-  { id: 'officer-018', name: 'Arun Kamble', email: 'arun.kamble@bmc.gov.in', phone: '+91-22-24100018', ward: 18, wardName: 'P/N Ward – Goregaon (North)', department: 'Water Supply', employeeId: 'BMC/PN/2019/018', status: 'Available', assignedCount: 8, resolvedCount: 154, avgResolutionDays: 3.8, rating: 4.1, joinedAt: '2019-07-01T09:00:00Z', avatarInitials: 'AK' },
-  { id: 'officer-019', name: 'Leela More', email: 'leela.more@bmc.gov.in', phone: '+91-22-24100019', ward: 19, wardName: 'P/S Ward – Goregaon (South)', department: 'Sanitation', employeeId: 'BMC/PS/2021/019', status: 'Busy', assignedCount: 16, resolvedCount: 199, avgResolutionDays: 3.2, rating: 4.5, joinedAt: '2021-01-10T09:00:00Z', avatarInitials: 'LM' },
-  { id: 'officer-020', name: 'Harish Gaikwad', email: 'harish.gaikwad@bmc.gov.in', phone: '+91-22-24100020', ward: 20, wardName: 'R/C Ward – Kandivali (East)', department: 'Building & Permits', employeeId: 'BMC/RC/2018/020', status: 'Available', assignedCount: 7, resolvedCount: 267, avgResolutionDays: 2.9, rating: 4.6, joinedAt: '2018-04-01T09:00:00Z', avatarInitials: 'HG' },
-  { id: 'officer-021', name: 'Vaibhav Jagtap', email: 'vaibhav.jagtap@bmc.gov.in', phone: '+91-22-24100021', ward: 21, wardName: 'R/N Ward – Dahisar', department: 'Roads & Infrastructure', employeeId: 'BMC/RN/2020/021', status: 'Available', assignedCount: 10, resolvedCount: 189, avgResolutionDays: 3.7, rating: 4.2, joinedAt: '2020-08-01T09:00:00Z', avatarInitials: 'VJ' },
-  { id: 'officer-022', name: 'Shweta Ghosalkar', email: 'shweta.ghosalkar@bmc.gov.in', phone: '+91-22-24100022', ward: 22, wardName: 'R/S Ward – Kandivali (West)', department: 'Sanitation', employeeId: 'BMC/RS/2021/022', status: 'Available', assignedCount: 6, resolvedCount: 145, avgResolutionDays: 4.1, rating: 4.0, joinedAt: '2021-05-15T09:00:00Z', avatarInitials: 'SG' },
-  { id: 'officer-023', name: 'Mahesh Wagh', email: 'mahesh.wagh@bmc.gov.in', phone: '+91-22-24100023', ward: 23, wardName: 'S Ward – Mulund', department: 'Roads & Infrastructure', employeeId: 'BMC/S/2017/023', status: 'Busy', assignedCount: 19, resolvedCount: 378, avgResolutionDays: 3.3, rating: 4.5, joinedAt: '2017-10-01T09:00:00Z', avatarInitials: 'MW' },
-  { id: 'officer-024', name: 'Tanvi Bhosale', email: 'tanvi.bhosale@bmc.gov.in', phone: '+91-22-24100024', ward: 24, wardName: 'T Ward – Bhandup, Nahur', department: 'Electrical', employeeId: 'BMC/T/2022/024', status: 'Available', assignedCount: 4, resolvedCount: 67, avgResolutionDays: 4.8, rating: 3.9, joinedAt: '2022-06-01T09:00:00Z', avatarInitials: 'TB' },
+  { id: 'officer-001', name: 'Rohit Sharma', email: 'rohit.sharma@bmc.gov.in', phone: '+91-22-24100001', ward: 1, wardName: 'A Ward – Colaba, Cuffe Parade, Fort', department: 'Roads & Infrastructure', employeeId: 'BMC/A/2019/001', status: 'Available', assignedCount: 8, resolvedCount: 142, avgResolutionDays: 3.8, rating: 4.2, joinedAt: '2019-04-01T09:00:00Z', avatarInitials: 'RS' },
+  { id: 'officer-002', name: 'Amol Desai', email: 'amol.desai@bmc.gov.in', phone: '+91-22-24100002', ward: 2, wardName: 'B Ward – Dongri, Mandvi, Sandhurst Road', department: 'Sanitation', employeeId: 'BMC/B/2018/002', status: 'Busy', assignedCount: 21, resolvedCount: 234, avgResolutionDays: 3.2, rating: 4.6, joinedAt: '2018-06-10T09:00:00Z', avatarInitials: 'AD' },
+  { id: 'officer-003', name: 'Kavita Jadhav', email: 'kavita.jadhav@bmc.gov.in', phone: '+91-22-24100003', ward: 3, wardName: 'C Ward – Girgaon, Bhuleshwar, Marine Lines', department: 'Water Supply', employeeId: 'BMC/C/2020/003', status: 'Available', assignedCount: 9, resolvedCount: 156, avgResolutionDays: 2.9, rating: 4.7, joinedAt: '2020-01-10T09:00:00Z', avatarInitials: 'KJ' },
+  { id: 'officer-004', name: 'Rahul Tiwari', email: 'rahul.tiwari@bmc.gov.in', phone: '+91-22-24100004', ward: 4, wardName: 'D Ward – Malabar Hill, Walkeshwar, Grant Road', department: 'Electrical', employeeId: 'BMC/D/2017/004', status: 'On Leave', assignedCount: 0, resolvedCount: 312, avgResolutionDays: 3.1, rating: 4.4, joinedAt: '2017-06-01T09:00:00Z', avatarInitials: 'RT' },
+  { id: 'officer-005', name: 'Sneha Mhatre', email: 'sneha.mhatre@bmc.gov.in', phone: '+91-22-24100005', ward: 5, wardName: 'E Ward – Byculla, Mazgaon, Mumbai Central', department: 'Building & Permits', employeeId: 'BMC/E/2021/005', status: 'Available', assignedCount: 6, resolvedCount: 89, avgResolutionDays: 5.1, rating: 3.9, joinedAt: '2021-09-01T09:00:00Z', avatarInitials: 'SM' },
+  { id: 'officer-006', name: 'Vikram Salvi', email: 'vikram.salvi@bmc.gov.in', phone: '+91-22-24100006', ward: 6, wardName: 'F/N Ward – Matunga, Sion, Wadala', department: 'Sanitation', employeeId: 'BMC/FN/2016/006', status: 'Busy', assignedCount: 17, resolvedCount: 401, avgResolutionDays: 2.6, rating: 4.8, joinedAt: '2016-11-20T09:00:00Z', avatarInitials: 'VS' },
+  { id: 'officer-007', name: 'Preeti Kulkarni', email: 'preeti.kulkarni@bmc.gov.in', phone: '+91-22-24100007', ward: 7, wardName: 'F/S Ward – Parel, Sewri, Lalbaug', department: 'Roads & Infrastructure', employeeId: 'BMC/FS/2019/007', status: 'Available', assignedCount: 12, resolvedCount: 198, avgResolutionDays: 3.5, rating: 4.3, joinedAt: '2019-03-15T09:00:00Z', avatarInitials: 'PK' },
+  { id: 'officer-008', name: 'Suresh Patil', email: 'suresh.patil@bmc.gov.in', phone: '+91-22-24100008', ward: 8, wardName: 'G/N Ward – Dadar (West), Dharavi, Mahim', department: 'Roads & Infrastructure', employeeId: 'BMC/GN/2020/008', status: 'Available', assignedCount: 14, resolvedCount: 187, avgResolutionDays: 4.2, rating: 4.3, joinedAt: '2020-07-01T09:00:00Z', avatarInitials: 'SP' },
+  { id: 'officer-009', name: 'Meena Rao', email: 'meena.rao@bmc.gov.in', phone: '+91-22-24100009', ward: 9, wardName: 'G/S Ward – Worli, Prabhadevi, Lower Parel', department: 'Water Supply', employeeId: 'BMC/GS/2021/009', status: 'Busy', assignedCount: 11, resolvedCount: 167, avgResolutionDays: 3.7, rating: 4.5, joinedAt: '2021-02-01T09:00:00Z', avatarInitials: 'MR' },
+  { id: 'officer-010', name: 'Ajay Nair', email: 'ajay.nair@bmc.gov.in', phone: '+91-22-24100010', ward: 10, wardName: 'H/E Ward – Santacruz (East), Kalina, BKC', department: 'Electrical', employeeId: 'BMC/HE/2018/010', status: 'Available', assignedCount: 7, resolvedCount: 289, avgResolutionDays: 2.8, rating: 4.6, joinedAt: '2018-01-15T09:00:00Z', avatarInitials: 'AN' },
+  { id: 'officer-011', name: 'Deepa Joshi', email: 'deepa.joshi@bmc.gov.in', phone: '+91-22-24100011', ward: 11, wardName: 'H/W Ward – Bandra (West), Khar (West)', department: 'Sanitation', employeeId: 'BMC/HW/2020/011', status: 'Available', assignedCount: 10, resolvedCount: 211, avgResolutionDays: 3.3, rating: 4.4, joinedAt: '2020-05-01T09:00:00Z', avatarInitials: 'DJ' },
+  { id: 'officer-012', name: 'Ravi Mehta', email: 'ravi.mehta@bmc.gov.in', phone: '+91-22-24100012', ward: 12, wardName: 'K/E Ward – Andheri (East), MIDC, Vile Parle', department: 'Roads & Infrastructure', employeeId: 'BMC/KE/2021/012', status: 'Busy', assignedCount: 18, resolvedCount: 256, avgResolutionDays: 3.9, rating: 4.2, joinedAt: '2021-07-01T09:00:00Z', avatarInitials: 'RM' },
+  { id: 'officer-013', name: 'Sunita Pawar', email: 'sunita.pawar@bmc.gov.in', phone: '+91-22-24100013', ward: 13, wardName: 'K/W Ward – Andheri (West), Juhu, Versova', department: 'Water Supply', employeeId: 'BMC/KW/2019/013', status: 'Available', assignedCount: 9, resolvedCount: 178, avgResolutionDays: 3.1, rating: 4.7, joinedAt: '2019-11-01T09:00:00Z', avatarInitials: 'SP2' },
+  { id: 'officer-014', name: 'Ganesh Shirke', email: 'ganesh.shirke@bmc.gov.in', phone: '+91-22-24100014', ward: 14, wardName: 'L Ward – Kurla (West), Sakinaka, Chandivali', department: 'Roads & Infrastructure', employeeId: 'BMC/L/2017/014', status: 'Available', assignedCount: 15, resolvedCount: 334, avgResolutionDays: 3.6, rating: 4.5, joinedAt: '2017-08-01T09:00:00Z', avatarInitials: 'GS' },
+  { id: 'officer-015', name: 'Priya Singh', email: 'priya.singh@bmc.gov.in', phone: '+91-22-24100015', ward: 15, wardName: 'M/E Ward – Govandi, Mankhurd, Shivaji Nagar', department: 'Sanitation', employeeId: 'BMC/ME/2022/015', status: 'Available', assignedCount: 5, resolvedCount: 78, avgResolutionDays: 4.5, rating: 3.8, joinedAt: '2022-03-01T09:00:00Z', avatarInitials: 'PS' },
+  { id: 'officer-016', name: 'Nikhil Bane', email: 'nikhil.bane@bmc.gov.in', phone: '+91-22-24100016', ward: 16, wardName: 'M/W Ward – Chembur, Tilak Nagar, Mahul', department: 'Electrical', employeeId: 'BMC/MW/2018/016', status: 'Busy', assignedCount: 13, resolvedCount: 290, avgResolutionDays: 3.0, rating: 4.4, joinedAt: '2018-09-01T09:00:00Z', avatarInitials: 'NB' },
+  { id: 'officer-017', name: 'Rashmi Shetty', email: 'rashmi.shetty@bmc.gov.in', phone: '+91-22-24100017', ward: 17, wardName: 'N Ward – Ghatkopar, Vikhroli, Pant Nagar', department: 'Roads & Infrastructure', employeeId: 'BMC/N/2020/017', status: 'Available', assignedCount: 11, resolvedCount: 223, avgResolutionDays: 3.4, rating: 4.3, joinedAt: '2020-06-01T09:00:00Z', avatarInitials: 'RS2' },
+  { id: 'officer-018', name: 'Arun Kamble', email: 'arun.kamble@bmc.gov.in', phone: '+91-22-24100018', ward: 18, wardName: 'P/N Ward – Malad, Dindoshi, Marve', department: 'Water Supply', employeeId: 'BMC/PN/2019/018', status: 'Available', assignedCount: 8, resolvedCount: 154, avgResolutionDays: 3.8, rating: 4.1, joinedAt: '2019-07-01T09:00:00Z', avatarInitials: 'AK' },
+  { id: 'officer-019', name: 'Leela More', email: 'leela.more@bmc.gov.in', phone: '+91-22-24100019', ward: 19, wardName: 'P/S Ward – Goregaon, Jogeshwari, Aarey', department: 'Sanitation', employeeId: 'BMC/PS/2021/019', status: 'Busy', assignedCount: 16, resolvedCount: 199, avgResolutionDays: 3.2, rating: 4.5, joinedAt: '2021-01-10T09:00:00Z', avatarInitials: 'LM' },
+  { id: 'officer-020', name: 'Harish Gaikwad', email: 'harish.gaikwad@bmc.gov.in', phone: '+91-22-24100020', ward: 20, wardName: 'R/C Ward – Borivali (West), Gorai, IC Colony', department: 'Building & Permits', employeeId: 'BMC/RC/2018/020', status: 'Available', assignedCount: 7, resolvedCount: 267, avgResolutionDays: 2.9, rating: 4.6, joinedAt: '2018-04-01T09:00:00Z', avatarInitials: 'HG' },
+  { id: 'officer-021', name: 'Vaibhav Jagtap', email: 'vaibhav.jagtap@bmc.gov.in', phone: '+91-22-24100021', ward: 21, wardName: 'R/N Ward – Dahisar, Rawalpada, Anand Nagar', department: 'Roads & Infrastructure', employeeId: 'BMC/RN/2020/021', status: 'Available', assignedCount: 10, resolvedCount: 189, avgResolutionDays: 3.7, rating: 4.2, joinedAt: '2020-08-01T09:00:00Z', avatarInitials: 'VJ' },
+  { id: 'officer-022', name: 'Shweta Ghosalkar', email: 'shweta.ghosalkar@bmc.gov.in', phone: '+91-22-24100022', ward: 22, wardName: 'R/S Ward – Kandivali (West), Charkop, Poisar', department: 'Sanitation', employeeId: 'BMC/RS/2021/022', status: 'Available', assignedCount: 6, resolvedCount: 145, avgResolutionDays: 4.1, rating: 4.0, joinedAt: '2021-05-15T09:00:00Z', avatarInitials: 'SG' },
+  { id: 'officer-023', name: 'Mahesh Wagh', email: 'mahesh.wagh@bmc.gov.in', phone: '+91-22-24100023', ward: 23, wardName: 'S Ward – Bhandup, Powai, Kanjurmarg', department: 'Roads & Infrastructure', employeeId: 'BMC/S/2017/023', status: 'Busy', assignedCount: 19, resolvedCount: 378, avgResolutionDays: 3.3, rating: 4.5, joinedAt: '2017-10-01T09:00:00Z', avatarInitials: 'MW' },
+  { id: 'officer-024', name: 'Tanvi Bhosale', email: 'tanvi.bhosale@bmc.gov.in', phone: '+91-22-24100024', ward: 24, wardName: 'T Ward – Mulund, Nahur, Sarvodaya Nagar', department: 'Electrical', employeeId: 'BMC/T/2022/024', status: 'Available', assignedCount: 4, resolvedCount: 67, avgResolutionDays: 4.8, rating: 3.9, joinedAt: '2022-06-01T09:00:00Z', avatarInitials: 'TB' },
 ];
 
 // ─── Mock Complaints (one or two per ward for demo) ───────────────────────────
@@ -186,18 +186,18 @@ const makeCmp = (id, title, desc, cat, sev, lat, lng, ward, img, status, uid, un
   aiAnalysis: { categoryDetected: cat, confidence: +(0.78 + Math.random() * 0.19).toFixed(2), aqiAtLocation: 90 + Math.floor(Math.random() * 80), weatherCondition: ['Clear', 'Partly Cloudy', 'Monsoon', 'Post-rain', 'Humid'][Math.floor(Math.random() * 5)] },
 });
 
-const POTHOLES = 'https://images.unsplash.com/photo-1515162816999-a0c47dc192f7?w=800&auto=format&fit=crop&q=80';
-const GARBAGE = 'https://images.unsplash.com/photo-1530587191325-3db32d826c18?w=800&auto=format&fit=crop&q=80';
-const DRAIN = 'https://images.unsplash.com/photo-1547683905-f686c993aae5?w=800&auto=format&fit=crop&q=80';
-const LIGHT = 'https://images.unsplash.com/photo-1518893883800-45cd0954574b?w=800&auto=format&fit=crop&q=80';
-const WATER = 'https://images.unsplash.com/photo-1585829365295-ab7cd400c167?w=800&auto=format&fit=crop&q=80';
-const DEBRIS = 'https://images.unsplash.com/photo-1590069261209-f8e9b8642343?w=800&auto=format&fit=crop&q=80';
+const POTHOLES = '/civic/pothole-before.jpg';
+const GARBAGE = '/civic/garbage-before.jpg';
+const DRAIN = '/civic/drain-before.jpg';
+const LIGHT = '/civic/light-before.jpg';
+const WATER = '/civic/water-before.jpg';
+const DEBRIS = '/civic/debris-before.jpg';
 
-const POTHOLES_RESOLVED = 'https://images.unsplash.com/photo-1621905252507-b35492cc74b4?w=800&auto=format&fit=crop&q=80';
-const GARBAGE_RESOLVED = 'https://images.unsplash.com/photo-1513694203232-719a280e022f?w=800&auto=format&fit=crop&q=80';
-const DRAIN_RESOLVED = 'https://images.unsplash.com/photo-1509316975850-ff9c5deb0cd9?w=800&auto=format&fit=crop&q=80';
-const LIGHT_RESOLVED = 'https://images.unsplash.com/photo-1507034589631-9433cc6bc453?w=800&auto=format&fit=crop&q=80';
-const WATER_RESOLVED = 'https://images.unsplash.com/photo-1584467735871-8e85353a8413?w=800&auto=format&fit=crop&q=80';
+const POTHOLES_RESOLVED = '/civic/pothole-after.jpg';
+const GARBAGE_RESOLVED = '/civic/garbage-after.jpg';
+const DRAIN_RESOLVED = '/civic/drain-after.jpg';
+const LIGHT_RESOLVED = '/civic/light-after.jpg';
+const WATER_RESOLVED = '/civic/water-after.jpg';
 
 export const MOCK_COMPLAINTS = [
   makeCmp('cmp-001', 'Pothole near Colaba bus stop', 'Large pothole causing accidents near Colaba causeway bus stop.', 'Pothole', 87, 18.9067, 72.8280, 1, POTHOLES, 'in_progress', 'u-001', 'Anil Ghosh', 'officer-001', 'Rohit Sharma', 143, 18, 12, null),

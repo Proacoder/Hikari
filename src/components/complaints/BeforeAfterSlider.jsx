@@ -3,8 +3,8 @@ import { CheckCircle2, AlertTriangle, ArrowLeftRight, Calendar, Sparkles } from 
 import { sound } from '../../utils/soundEffects';
 
 export const BeforeAfterSlider = ({
-  beforeUrl = 'https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=800&q=80',
-  afterUrl = 'https://images.unsplash.com/photo-1544620347-c4fd4a3d5957?w=800&q=80',
+  beforeUrl = '/civic/pothole-before.jpg',
+  afterUrl = '/civic/pothole-after.jpg',
   title = 'Pothole Restored on SV Road',
   wardName = 'Ward K/E – Andheri East',
   resolvedDate = '14 Oct 2026',

@@ -563,7 +563,7 @@ export const LandingPage = () => {
               <div className="mt-4 space-y-3">
                 <div className="relative rounded-2xl overflow-hidden border border-neutral-800 bg-neutral-950 h-48 group-hover:border-neutral-700 transition-colors">
                   <img
-                    src="https://images.unsplash.com/photo-1515162816999-a0c47dc192f7?w=800&auto=format&fit=crop&q=80"
+                    src="/civic/pothole-before.jpg"
                     alt="Road inspection"
                     className="w-full h-full object-cover opacity-80"
                   />
