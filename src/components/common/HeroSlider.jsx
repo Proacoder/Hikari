@@ -7,77 +7,6 @@ import { useLanguage } from '../../context/LanguageContext';
 
 const INTERVAL = 7000;
 
-// Interactive particle / constellation canvas that tracks and reacts to cursor
-const NetworkCanvas = () => {
-  const ref = useRef(null);
-  useEffect(() => {
-    const c = ref.current; if (!c) return;
-    const ctx = c.getContext('2d');
-    if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
-    let w, h, raf, pts = [], mouse = { x: -999, y: -999 }, visible = true;
-    const resize = () => {
-      const dpr = Math.min(window.devicePixelRatio || 1, 2);
-      w = c.clientWidth; h = c.clientHeight; c.width = w * dpr; c.height = h * dpr;
-      ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
-      pts = Array.from({ length: Math.round((w * h) / 14000) }, () => ({
-        x: Math.random() * w,
-        y: Math.random() * h,
-        vx: (Math.random() - .5) * .35,
-        vy: (Math.random() - .5) * .35,
-        r: Math.random() * 1.8 + .6,
-      }));
-    };
-    const draw = () => {
-      raf = requestAnimationFrame(draw); if (!visible) return;
-      ctx.clearRect(0, 0, w, h);
-      for (const p of pts) {
-        p.x += p.vx; p.y += p.vy;
-        if (p.x < 0 || p.x > w) p.vx *= -1;
-        if (p.y < 0 || p.y > h) p.vy *= -1;
-        const dm = Math.hypot(p.x - mouse.x, p.y - mouse.y);
-        if (dm < 180) {
-          p.x += (p.x - mouse.x) * .005;
-          p.y += (p.y - mouse.y) * .005;
-        }
-        ctx.fillStyle = dm < 180 ? 'rgba(74, 222, 128, 0.95)' : 'rgba(255, 255, 255, 0.65)';
-        ctx.beginPath(); ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2); ctx.fill();
-      }
-      for (let i = 0; i < pts.length; i++) {
-        for (let j = i + 1; j < pts.length; j++) {
-          const d = Math.hypot(pts[i].x - pts[j].x, pts[i].y - pts[j].y);
-          if (d < 140) {
-            const near = Math.hypot(pts[i].x - mouse.x, pts[i].y - mouse.y) < 200;
-            ctx.strokeStyle = near
-              ? `rgba(74, 222, 128, ${(1 - d / 140) * 0.75})`
-              : `rgba(160, 210, 255, ${(1 - d / 140) * 0.22})`;
-            ctx.lineWidth = near ? 0.9 : 0.6;
-            ctx.beginPath();
-            ctx.moveTo(pts[i].x, pts[i].y);
-            ctx.lineTo(pts[j].x, pts[j].y);
-            ctx.stroke();
-          }
-        }
-      }
-    };
-    const move = (e) => {
-      if (!c) return;
-      const r = c.getBoundingClientRect();
-      mouse = { x: e.clientX - r.left, y: e.clientY - r.top };
-    };
-    const io = new IntersectionObserver(([e]) => { visible = e.isIntersecting; });
-    io.observe(c); resize(); draw();
-    window.addEventListener('resize', resize);
-    window.addEventListener('mousemove', move);
-    return () => {
-      cancelAnimationFrame(raf);
-      io.disconnect();
-      window.removeEventListener('resize', resize);
-      window.removeEventListener('mousemove', move);
-    };
-  }, []);
-  return <canvas ref={ref} className="absolute inset-0 w-full h-full pointer-events-none z-10" />;
-};
-
 // Ambient Water Reflection Wave Effect simulating water ripples reflecting city lights
 const WaterReflectionEffect = ({ activeSlide }) => {
   return (
@@ -101,14 +30,14 @@ const WaterReflectionEffect = ({ activeSlide }) => {
       <div className="absolute bottom-6 left-1/4 w-32 h-10 border border-emerald-400/30 rounded-full animate-ripple pointer-events-none" />
       <div className="absolute bottom-12 right-1/3 w-40 h-12 border border-sky-400/25 rounded-full animate-ripple pointer-events-none" style={{ animationDelay: '1.4s' }} />
 
-      {/* Rain effect for Slide 3 (Monsoon) */}
+      {/* Rain animation for Slide 3 (Monsoon Readiness) */}
       {activeSlide === 2 && (
-        <div className="absolute inset-0 overflow-hidden pointer-events-none">
-          {[12, 28, 44, 60, 75, 88].map((left, idx) => (
+        <div className="fixed inset-0 overflow-hidden pointer-events-none z-10">
+          {[6, 15, 24, 35, 45, 55, 65, 76, 85, 94].map((left, idx) => (
             <div
               key={idx}
-              className="absolute top-0 w-0.5 h-16 bg-gradient-to-b from-transparent via-sky-300/60 to-transparent animate-rain-drop"
-              style={{ left: `${left}%`, animationDelay: `${idx * 0.22}s`, animationDuration: '0.9s' }}
+              className="absolute top-0 w-0.5 h-20 bg-gradient-to-b from-transparent via-sky-300/70 to-transparent animate-rain-drop"
+              style={{ left: `${left}%`, animationDelay: `${idx * 0.18}s`, animationDuration: '0.85s' }}
             />
           ))}
         </div>
@@ -284,17 +213,13 @@ export const HeroSlider = ({ stats, weather }) => {
 
 {/* Seamless smooth slide transition */}
 
-            {/* Deep Cinematic Contrast Gradients */}
-            <div className="absolute inset-0 bg-gradient-to-r from-neutral-950/90 via-neutral-950/65 to-neutral-950/20" />
-            <div className="absolute inset-0 bg-gradient-to-t from-neutral-950 via-neutral-950/30 to-neutral-950/50" />
-            <div className="absolute inset-0 bg-[radial-gradient(circle_at_75%_35%,rgba(52,211,153,0.15),transparent_55%)] pointer-events-none" />
-            <div className="absolute inset-0 bg-[radial-gradient(circle_at_25%_65%,rgba(14,165,233,0.12),transparent_55%)] pointer-events-none" />
+            {/* Crisp Cinematic Gradient Overlays (Clear Photo Visibility) */}
+            <div className="absolute inset-0 bg-gradient-to-r from-neutral-950/80 via-neutral-950/45 to-transparent" />
+            <div className="absolute inset-0 bg-gradient-to-t from-neutral-950/75 via-transparent to-neutral-950/35" />
           </div>
         );
       })}
 
-      {/* ── Constellation Particle Canvas ── */}
-      <NetworkCanvas />
 
       {/* ── Animated Water Surface Reflection Effect (Matches City Images) ── */}
       <WaterReflectionEffect activeSlide={index} />
