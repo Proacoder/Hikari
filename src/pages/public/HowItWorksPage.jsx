@@ -162,29 +162,6 @@ export const HowItWorksPage = () => {
 
   const currentDefect = DEFECT_MATRIX.find((d) => d.id === selectedCat) || DEFECT_MATRIX[0];
 
-  const COMPARISONS = [
-    {
-      metric: 'Reporting Channel',
-      traditional: 'Paper registers, clogged telephone helplines, or Twitter mentions lost in noise.',
-      kaiser: 'Instant mobile PWA with sub-meter GPS pin, photo capture, and voice notes in Marathi, Hindi & English.'
-    },
-    {
-      metric: 'Triage & Categorization',
-      traditional: 'Manual sorting by municipal clerks taking 2 to 5 business days before reaching engineering division.',
-      kaiser: 'Sub-second AI neural categorization and automated dispatch to the assigned ward engineer in <2 seconds.'
-    },
-    {
-      metric: 'Priority Allocation',
-      traditional: 'First-come, first-served or influencer-driven escalation regardless of actual danger level.',
-      kaiser: 'Algorithmic 1-100 severity scoring factoring pedestrian footfall, hospital routes, and monsoon risk.'
-    },
-    {
-      metric: 'Resolution Transparency',
-      traditional: 'Opaque "Closed" status without verifiable photographic proof or citizen notification.',
-      kaiser: 'Mandatory geolocated after-repair photo proof with citizen satisfaction ratings & 48h re-open window.'
-    }
-  ];
-
   const FAQS = [
     {
       q: 'How does Kaiser AI ensure photos are authentic and not downloaded from the internet?',
@@ -449,67 +426,6 @@ export const HowItWorksPage = () => {
                 </span>
               </div>
             </div>
-          </div>
-        </div>
-      </section>
-
-      {/* ── SECTION: How Kaiser AI Outperforms Traditional Helplines (Enlarged) ── */}
-      <section className="relative max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 pt-16">
-        <div className="text-center max-w-3xl mx-auto mb-10 space-y-3">
-          <div className={classNames(
-            'inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full text-xs font-mono font-bold tracking-wider uppercase border',
-            isDark ? 'bg-emerald-500/10 border-emerald-500/30 text-emerald-400' : 'bg-emerald-50 border-emerald-300 text-emerald-700'
-          )}>
-            <Sparkles size={14} />
-            <span>TRANSFORMATIVE CIVIC IMPACT</span>
-          </div>
-          <h2 className={classNames('font-display text-3xl sm:text-4xl lg:text-5xl font-extrabold tracking-tight', isDark ? 'text-white' : 'text-neutral-900')}>
-            How Kaiser AI Outperforms Traditional Helplines
-          </h2>
-          <p className={classNames('text-sm sm:text-base leading-relaxed', isDark ? 'text-white/70' : 'text-neutral-600')}>
-            A direct side-by-side comparison between legacy municipal complaint helplines and Kaiser AI’s automated sovereign pipeline.
-          </p>
-        </div>
-
-        <div className={classNames(
-          'rounded-3xl border overflow-hidden shadow-2xl backdrop-blur-xl transition-all',
-          isDark ? 'bg-neutral-900/80 border-white/15' : 'bg-white border-neutral-200 shadow-soft-xl'
-        )}>
-          {/* Header Row - Enlarged */}
-          <div className={classNames(
-            'grid grid-cols-12 text-xs sm:text-sm font-mono font-bold uppercase tracking-wider p-4 sm:p-5 border-b',
-            isDark ? 'bg-neutral-950/80 border-white/10 text-white/70' : 'bg-slate-100 border-neutral-200 text-neutral-700'
-          )}>
-            <div className="col-span-3 sm:col-span-3 text-neutral-500 dark:text-neutral-400">Metric</div>
-            <div className="col-span-4 sm:col-span-4 text-rose-600 dark:text-rose-400">Traditional Municipal Helpline</div>
-            <div className="col-span-5 sm:col-span-5 text-emerald-600 dark:text-emerald-400">Kaiser AI Platform</div>
-          </div>
-
-          {/* Body Rows - Enlarged & Clearly Legible */}
-          <div className="divide-y divide-neutral-200 dark:divide-white/10">
-            {COMPARISONS.map((row, i) => (
-              <div key={i} className={classNames(
-                'grid grid-cols-12 p-5 sm:p-6 items-center gap-4 transition-colors',
-                isDark ? 'hover:bg-white/5' : 'hover:bg-slate-50'
-              )}>
-                <div className={classNames('col-span-3 sm:col-span-3 font-bold text-sm sm:text-base', isDark ? 'text-white' : 'text-neutral-900')}>
-                  {row.metric}
-                </div>
-                <div className={classNames('col-span-4 sm:col-span-4 text-xs sm:text-sm leading-relaxed flex items-start gap-2', isDark ? 'text-white/60' : 'text-neutral-600')}>
-                  <span className="text-rose-500 font-bold text-base shrink-0 leading-none mt-0.5">✕</span>
-                  <span>{row.traditional}</span>
-                </div>
-                <div className={classNames(
-                  'col-span-5 sm:col-span-5 text-xs sm:text-sm font-medium leading-relaxed flex items-start gap-2.5 p-3.5 sm:p-4 rounded-2xl border',
-                  isDark
-                    ? 'bg-emerald-500/10 text-emerald-200 border-emerald-400/25'
-                    : 'bg-emerald-50 text-emerald-900 border-emerald-200'
-                )}>
-                  <Check size={18} className="shrink-0 mt-0.5 text-emerald-500" />
-                  <span>{row.kaiser}</span>
-                </div>
-              </div>
-            ))}
           </div>
         </div>
       </section>
