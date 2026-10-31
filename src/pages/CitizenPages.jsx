@@ -25,6 +25,7 @@ import { HolographicScanner } from '../components/ai/HolographicScanner';
 import { BeforeAfterSlider } from '../components/complaints/BeforeAfterSlider';
 import { VoiceReportRecorder } from '../components/citizen/VoiceReportRecorder';
 import { sound } from '../utils/soundEffects';
+import { classNames } from '../utils/formatters';
 import { triggerConfetti } from '../utils/confetti';
 
 
