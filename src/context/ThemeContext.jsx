@@ -45,21 +45,14 @@ export const ThemeProvider = ({ children }) => {
     applyTheme(theme);
   }, [theme, applyTheme]);
 
-  // Listen for system theme changes if not overridden
+  // Light mode is the default mode per user specification
   useEffect(() => {
-    const mediaQuery = window.matchMedia('(prefers-color-scheme: dark)');
-    const handleChange = (e) => {
-      const stored = localStorage.getItem('kaiser_theme');
-      if (!stored) {
-        setThemeState(e.matches ? 'dark' : 'light');
-      }
-    };
-
-    if (mediaQuery?.addEventListener) {
-      mediaQuery.addEventListener('change', handleChange);
-      return () => mediaQuery.removeEventListener('change', handleChange);
+    // If user has not explicitly set a theme, keep default light mode active
+    const userChoice = localStorage.getItem('kaiser_theme_user_set');
+    if (userChoice !== 'true') {
+      applyTheme('light');
     }
-  }, []);
+  }, [applyTheme]);
 
   const toggleTheme = useCallback(() => {
     setThemeState((prev) => (prev === 'light' ? 'dark' : 'light'));

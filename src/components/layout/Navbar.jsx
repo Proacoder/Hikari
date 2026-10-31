@@ -102,7 +102,7 @@ export const Navbar = () => {
       
       <div
         className={classNames(
-          'max-w-7xl mx-auto rounded-2xl border transition-all duration-300',
+          'w-full max-w-[1420px] mx-auto rounded-2xl border transition-all duration-300',
           navIsDark
             ? scrolled
               ? 'bg-neutral-950/92 backdrop-blur-xl border-white/20 text-white shadow-[0_16px_40px_rgba(0,0,0,0.7)]'
@@ -143,7 +143,7 @@ export const Navbar = () => {
                   onMouseEnter={(e) => movePill(e.currentTarget)}
                   className={({ isActive }) =>
                     classNames(
-                      'relative z-10 px-3 lg:px-4 py-2 rounded-xl text-sm font-semibold transition-colors duration-200 whitespace-nowrap shrink-0 inline-block',
+                      'relative z-10 px-2.5 lg:px-3.5 py-1.5 rounded-xl text-sm font-semibold transition-colors duration-200 whitespace-nowrap shrink-0 inline-block',
                       isActive
                         ? navIsDark ? 'text-emerald-400 font-bold' : 'text-emerald-600 font-bold'
                         : navIsDark ? 'text-white/80 hover:text-white' : 'text-neutral-600 hover:text-neutral-950'
@@ -156,7 +156,7 @@ export const Navbar = () => {
             </nav>
 
             {/* Right Controls */}
-            <div className="hidden md:flex items-center gap-2">
+            <div className="hidden md:flex items-center gap-1.5 xl:gap-2 pr-1 sm:pr-2">
               {/* Quick Spotlight Search trigger */}
               <button
                 onClick={() => {
@@ -232,7 +232,7 @@ export const Navbar = () => {
                         : 'text-neutral-400 hover:text-amber-300 rotate-45'
                     )}
                   />
-                  <span className="hidden sm:inline text-[11px] font-semibold tracking-wide">{t('nav.light', 'Light')}</span>
+                  <span className="hidden xl:inline text-[11px] font-semibold tracking-wide">{t('nav.light', 'Light')}</span>
                 </button>
                 <button
                   type="button"
@@ -259,7 +259,7 @@ export const Navbar = () => {
                         : 'text-neutral-400 hover:text-sky-500 rotate-0'
                     )}
                   />
-                  <span className="hidden sm:inline text-[11px] font-semibold tracking-wide">{t('nav.dark', 'Dark')}</span>
+                  <span className="hidden xl:inline text-[11px] font-semibold tracking-wide">{t('nav.dark', 'Dark')}</span>
                 </button>
               </div>
 
@@ -277,7 +277,7 @@ export const Navbar = () => {
                   aria-label="Select language"
                 >
                   <Globe size={14} className={navIsDark ? 'text-emerald-400' : 'text-emerald-600'} />
-                  <span className="hidden sm:inline">{currentLangObj.native}</span>
+                  <span className="hidden xl:inline">{currentLangObj.native}</span><span className="xl:hidden uppercase font-mono text-[10px]">{language}</span>
                   <ChevronDown size={12} className={classNames('transition-transform', langOpen && 'rotate-180')} />
                 </button>
                 {langOpen && (

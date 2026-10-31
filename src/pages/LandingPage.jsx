@@ -66,32 +66,104 @@ export const LandingPage = () => {
     }
   }, [language]);
 
+  // Pre-warm Web Speech Synthesis voices
+  useEffect(() => {
+    if (typeof window !== 'undefined' && 'speechSynthesis' in window) {
+      window.speechSynthesis.getVoices();
+      const onVoicesChanged = () => {
+        window.speechSynthesis.getVoices();
+      };
+      window.speechSynthesis.addEventListener('voiceschanged', onVoicesChanged);
+      return () => {
+        window.speechSynthesis.removeEventListener('voiceschanged', onVoicesChanged);
+      };
+    }
+  }, []);
+
   const handleSimulate = () => {
     sound.play('click');
     setIsSimulating(true);
 
+    // 1. Unmistakable two-tone emergency radio dispatch chime & squelch
+    try {
+      const AudioCtx = window.AudioContext || window.webkitAudioContext;
+      if (AudioCtx) {
+        const ctx = new AudioCtx();
+        const now = ctx.currentTime;
+        
+        // Two-tone walkie-talkie chirp
+        const osc = ctx.createOscillator();
+        const gain = ctx.createGain();
+        osc.type = 'sine';
+        osc.frequency.setValueAtTime(750, now);
+        osc.frequency.setValueAtTime(1200, now + 0.07);
+        gain.gain.setValueAtTime(0.22, now);
+        gain.gain.exponentialRampToValueAtTime(0.001, now + 0.16);
+        osc.connect(gain);
+        gain.connect(ctx.destination);
+        osc.start(now);
+        osc.stop(now + 0.18);
+
+        // Radio squelch static burst
+        const bufferSize = Math.floor(ctx.sampleRate * 0.12);
+        const buffer = ctx.createBuffer(1, bufferSize, ctx.sampleRate);
+        const data = buffer.getChannelData(0);
+        for (let i = 0; i < bufferSize; i++) {
+          data[i] = (Math.random() * 2 - 1) * 0.10;
+        }
+        const noise = ctx.createBufferSource();
+        noise.buffer = buffer;
+        const filter = ctx.createBiquadFilter();
+        filter.type = 'bandpass';
+        filter.frequency.value = 2200;
+        const noiseGain = ctx.createGain();
+        noiseGain.gain.setValueAtTime(0.12, now + 0.04);
+        noiseGain.gain.exponentialRampToValueAtTime(0.001, now + 0.16);
+        noise.connect(filter);
+        filter.connect(noiseGain);
+        noiseGain.connect(ctx.destination);
+        noise.start(now + 0.04);
+        noise.stop(now + 0.18);
+      }
+    } catch (e) {
+      console.warn('Audio tone error', e);
+    }
+
+    // 2. High-reliability Speech Synthesis
     if (typeof window !== 'undefined' && 'speechSynthesis' in window) {
-      window.speechSynthesis.cancel();
+      try {
+        window.speechSynthesis.cancel();
+        window.speechSynthesis.resume();
+      } catch {}
 
-      const textToSpeak = currentScenario.audioText;
-      const utterance = new SpeechSynthesisUtterance(textToSpeak);
-
+      const voices = window.speechSynthesis.getVoices() || [];
       const langMap = {
         mr: 'mr-IN',
         hi: 'hi-IN',
         en: 'en-IN',
       };
       const targetLang = langMap[simLang] || 'en-IN';
-      utterance.lang = targetLang;
 
-      // Select matching voice
-      const voices = window.speechSynthesis.getVoices();
-      const voice = voices.find((v) => v.lang === targetLang || v.lang.startsWith(targetLang.slice(0, 2)));
+      // Find best available voice
+      let voice = voices.find((v) => v.lang === targetLang || v.lang.startsWith(targetLang.slice(0, 2)));
+
+      // If Marathi or Hindi voice is not installed on Windows, use English voice with translated dispatch text so speech is always audible!
+      let textToSpeak = currentScenario.audioText;
+      let speechLang = targetLang;
+      if (!voice && simLang !== 'en') {
+        textToSpeak = currentScenario.englishFallback || currentScenario.audioText;
+        speechLang = 'en-US';
+        voice = voices.find((v) => v.lang.startsWith('en')) || voices[0];
+      }
+
+      const utterance = new SpeechSynthesisUtterance(textToSpeak);
+      window._kaiserUtterance = utterance; // Prevent Chrome V8 garbage-collection audio drop bug
+
+      utterance.lang = speechLang;
       if (voice) {
         utterance.voice = voice;
       }
-
-      utterance.rate = 0.92;
+      utterance.rate = 0.95;
       utterance.pitch = 1.0;
       utterance.volume = 1.0;
 
@@ -102,36 +174,24 @@ export const LandingPage = () => {
       utterance.onend = () => {
         setIsSimulating(false);
         sound.play('pop');
+        window._kaiserUtterance = null;
       };
 
-      utterance.onerror = () => {
+      utterance.onerror = (err) => {
+        console.warn('SpeechSynthesis error:', err);
         setIsSimulating(false);
         sound.play('pop');
+        window._kaiserUtterance = null;
       };
 
-      // Play walkie-talkie / radio mic beep chime before speaking
       try {
-        const AudioCtx = window.AudioContext || window.webkitAudioContext;
-        if (AudioCtx) {
-          const ctx = new AudioCtx();
-          const osc = ctx.createOscillator();
-          const gain = ctx.createGain();
-          osc.type = 'triangle';
-          osc.frequency.setValueAtTime(600, ctx.currentTime);
-          osc.frequency.setValueAtTime(1050, ctx.currentTime + 0.08);
-          gain.gain.setValueAtTime(0.10, ctx.currentTime);
-          gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.14);
-          osc.connect(gain);
-          gain.connect(ctx.destination);
-          osc.start();
-          osc.stop(ctx.currentTime + 0.15);
-        }
-      } catch {}
-
-      window.speechSynthesis.speak(utterance);
+        window.speechSynthesis.speak(utterance);
+      } catch (err) {
+        console.warn('SpeechSynthesis.speak failed:', err);
+      }
 
       // Safety timeout in case speech synthesis stalls
-      const maxMs = Math.max(3500, textToSpeak.length * 85);
+      const maxMs = Math.max(3800, textToSpeak.length * 90);
       setTimeout(() => {
         setIsSimulating((prev) => {
           if (prev) {
@@ -140,12 +200,13 @@ export const LandingPage = () => {
           }
           return false;
         });
+        window._kaiserUtterance = null;
       }, maxMs);
     } else {
       setTimeout(() => {
         setIsSimulating(false);
         sound.play('pop');
-      }, 2200);
+      }, 2400);
     }
   };
 
@@ -153,6 +214,7 @@ export const LandingPage = () => {
     mr: {
       langLabel: 'मराठी (Marathi)',
       audioText: 'अंधेरी पूर्व स्टेशनजवळ वेस्टर्न एक्सप्रेस हायवेवर मोठा खड्डा पडला आहे, गाड्या घसरून अपघात होण्याचा धोका आहे.',
+      englishFallback: 'Severe pothole detected near Western Express Highway, Andheri East station. Hazardous road condition reported.',
       category: 'खड्डा (Pothole)',
       confidence: '98.4%',
       severity: 88,
@@ -164,6 +226,7 @@ export const LandingPage = () => {
     hi: {
       langLabel: 'हिन्दी (Hindi)',
       audioText: 'दादर कबूतरखाना के पास कचरे का बड़ा ढेर लगा हुआ है और बदबू आ रही है, तुरंत सफाई करवाएं।',
+      englishFallback: 'Heavy garbage overflow and waste dumping reported near Dadar Kabutarkhana. Immediate municipal sanitation sweep required.',
       category: 'कचरा व गंदगी (Garbage Dump)',
       confidence: '96.2%',
       severity: 74,
@@ -175,6 +238,7 @@ export const LandingPage = () => {
     en: {
       langLabel: 'English (Mumbai)',
       audioText: 'Severe waterlogging and open manhole cover observed near Bandra Talao, SV Road traffic completely stalled.',
+      englishFallback: 'Severe waterlogging and open manhole cover observed near Bandra Talao, SV Road traffic completely stalled.',
       category: 'Drainage & Open Manhole',
       confidence: '99.1%',
       severity: 94,
@@ -237,7 +301,7 @@ export const LandingPage = () => {
   return (
     <div
       className={classNames(
-        'space-y-16 sm:space-y-24 pb-24 overflow-hidden relative transition-colors duration-300',
+        'pb-20 overflow-hidden relative transition-colors duration-300',
         isDark ? 'bg-neutral-950 text-neutral-100' : 'bg-slate-50 text-neutral-900'
       )}
     >
@@ -248,7 +312,7 @@ export const LandingPage = () => {
       {/* ── SECTION 2: Ward Marquee Stream (Transition Ribbon) ── */}
       <div
         className={classNames(
-          'overflow-hidden border-y py-3.5 shadow-md -mt-16 sm:-mt-24 relative z-20 backdrop-blur-md transition-colors',
+          'overflow-hidden border-y py-3 shadow-md -mt-12 sm:-mt-16 relative z-20 backdrop-blur-md transition-colors',
           isDark
             ? 'border-emerald-500/20 bg-neutral-900/95 text-emerald-300'
             : 'border-emerald-200 bg-white/95 text-emerald-800'
@@ -274,7 +338,7 @@ export const LandingPage = () => {
 
       {/* ── SECTION 3: Weather Intelligence Bar ── */}
       {weatherData && (
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 !mt-2 sm:!mt-3 !mb-1 sm:!mb-2">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mt-2.5 sm:mt-3 mb-2 sm:mb-2.5">
           <div
             className={classNames(
               'rounded-3xl px-5 py-3 sm:py-3.5 text-xs flex flex-col sm:flex-row sm:items-center justify-between gap-4 shadow-xl backdrop-blur-xl border transition-colors',
@@ -340,12 +404,12 @@ export const LandingPage = () => {
       )}
 
       {/* ── SECTION 3.5: BMC Water & Flood Command Telemetry (Dedicated High-Tech Water UI) ── */}
-      <div className="!mt-1 sm:!mt-2">
+      <div className="mt-2 sm:mt-2.5">
         <WaterTelemetrySection />
       </div>
 
       {/* ── SECTION 4: Zero-Touch Triage Architecture & Interactive Simulation ── */}
-      <section className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 !mt-4 sm:!mt-6">
+      <section className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mt-5 sm:mt-6">
         <Reveal className="text-center max-w-2xl mx-auto px-4 mb-6 sm:mb-8">
           <p className={classNames(
             "text-xs font-mono font-bold tracking-[.3em] uppercase flex items-center justify-center gap-2",
@@ -556,7 +620,7 @@ export const LandingPage = () => {
       </section>
 
       {/* ── SECTION 5: NEW! Interactive Multilingual Voice & AI Triage Simulator ── */}
-      <section className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <section className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mt-6 sm:mt-8">
         <div className={classNames(
           "rounded-3xl p-6 sm:p-10 shadow-2xl relative overflow-hidden transition-all",
           isDark
@@ -708,7 +772,7 @@ export const LandingPage = () => {
       </section>
 
       {/* ── SECTION 6: NEW! Mumbai 24 Wards Performance Matrix & SLA Leaderboard ── */}
-      <section className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <section className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mt-6 sm:mt-8">
         <div className="flex flex-col md:flex-row md:items-end justify-between gap-4 mb-8">
           <div>
             <div className="inline-flex items-center gap-2 text-xs font-mono font-bold tracking-widest text-emerald-500 uppercase mb-2">
@@ -978,7 +1042,7 @@ export const LandingPage = () => {
       </section>
 
       {/* ── SECTION 8: NEW! Civic Gamification & Rewards Showcase ── */}
-      <section className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <section className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mt-6 sm:mt-8">
         <div className={classNames(
           "grid lg:grid-cols-12 gap-8 items-center rounded-3xl border p-6 sm:p-10 shadow-2xl relative overflow-hidden transition-all",
           isDark

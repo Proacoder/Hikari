@@ -109,10 +109,10 @@ export const WaterTelemetrySection = () => {
   };
 
   return (
-    <section className="relative w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-1 sm:pt-2 pb-2 sm:pb-4 select-none">
+    <section className="relative w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-0 pb-1 sm:pb-2 select-none">
       
       {/* ── Section Header with Cyber Accent ── */}
-      <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 pb-8 border-b border-neutral-200 dark:border-white/10">
+      <div className="flex flex-col md:flex-row md:items-end justify-between gap-4 pb-4 border-b border-neutral-200 dark:border-white/10">
         <div className="space-y-3">
           <div className="flex items-center gap-2.5">
             <span className="w-2.5 h-2.5 rounded-full bg-teal-500 dark:bg-teal-400 shadow-[0_0_12px_#14b8a6] dark:shadow-[0_0_12px_#2dd4bf] animate-ping" />
@@ -149,7 +149,7 @@ export const WaterTelemetrySection = () => {
       </div>
 
       {/* ── Main Telemetry Grid ── */}
-      <div className="grid lg:grid-cols-12 gap-8 pt-8">
+      <div className="grid lg:grid-cols-12 gap-6 pt-4">
         
         {/* Left Column (8 cols): Water Sensor Station Cards */}
         <div className="lg:col-span-8 space-y-6">

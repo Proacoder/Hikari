@@ -48,6 +48,8 @@ backend/models/ai_detector/pytorch_model.bin
 *.sqlite3
 
 # Temporary / Extracted directories
+scratch/
+
 Hikari-main/
 
 # Environment secrets — NEVER commit .env
