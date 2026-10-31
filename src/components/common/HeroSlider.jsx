@@ -1,7 +1,7 @@
 // ─── Full-bleed Cinematic Hero: Image Slideshow + Water Reflection + Live Telemetry ───
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { Link } from 'react-router-dom';
-import { ArrowRight, Pause, Play, Activity, Waves, ChevronLeft, ChevronRight } from 'lucide-react';
+import { ArrowRight, Pause, Play, Activity, Waves } from 'lucide-react';
 import { sound } from '../../utils/soundEffects';
 import { useLanguage } from '../../context/LanguageContext';
 
@@ -337,24 +337,7 @@ export const HeroSlider = ({ stats, weather }) => {
         </div>
       </div>
 
-      {/* ── Left / Right Manual Slide Navigation Chevrons ── */}
-      <button
-        onClick={() => { sound.play('pop'); go(index - 1); }}
-        aria-label="Previous slide"
-        title="Previous slide"
-        className="absolute left-3 sm:left-5 top-1/2 -translate-y-1/2 z-30 w-10 h-10 rounded-full border border-white/20 bg-neutral-900/60 hover:bg-neutral-900/90 hover:border-emerald-400 text-white flex items-center justify-center transition-all backdrop-blur-md cursor-pointer hover:scale-110 active:scale-95 shadow-lg group hidden sm:flex"
-      >
-        <ChevronLeft size={20} className="group-hover:-translate-x-0.5 transition-transform" />
-      </button>
 
-      <button
-        onClick={() => { sound.play('pop'); go(index + 1); }}
-        aria-label="Next slide"
-        title="Next slide"
-        className="absolute right-14 sm:right-16 top-1/2 -translate-y-1/2 z-30 w-10 h-10 rounded-full border border-white/20 bg-neutral-900/60 hover:bg-neutral-900/90 hover:border-emerald-400 text-white flex items-center justify-center transition-all backdrop-blur-md cursor-pointer hover:scale-110 active:scale-95 shadow-lg group hidden sm:flex"
-      >
-        <ChevronRight size={20} className="group-hover:translate-x-0.5 transition-transform" />
-      </button>
 
       {/* ── Mobile Slide Pills Indicator ── */}
       <div className="flex sm:hidden items-center justify-center gap-1.5 pb-2 z-30">
