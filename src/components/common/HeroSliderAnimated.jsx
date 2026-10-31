@@ -5,7 +5,7 @@ import { ArrowRight, Pause, Play, Activity, Waves } from 'lucide-react';
 import { sound } from '../../utils/soundEffects';
 import { useLanguage } from '../../context/LanguageContext';
 
-const INTERVAL = 7000;
+const INTERVAL = 4200;
 
 // Interactive particle / constellation canvas that tracks and reacts to cursor
 const NetworkCanvas = () => {
@@ -238,15 +238,6 @@ export const HeroSlider = ({ stats, weather }) => {
     <section
       ref={box}
       onMouseMove={onMove}
-      onMouseEnter={() => {
-        if (!isManuallyPaused.current) setPaused(true);
-      }}
-      onMouseLeave={() => {
-        if (!isManuallyPaused.current) {
-          setPaused(false);
-          setCycle((c) => c + 1);
-        }
-      }}
       onTouchStart={(e) => (touchX.current = e.touches[0].clientX)}
       onTouchEnd={(e) => {
         const d = e.changedTouches[0].clientX - touchX.current;

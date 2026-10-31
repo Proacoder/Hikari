@@ -1,11 +1,11 @@
 // ─── Full-bleed Cinematic Hero: Image Slideshow + Water Reflection + Live Telemetry ───
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { Link } from 'react-router-dom';
-import { ArrowRight, Pause, Play, Activity, Waves } from 'lucide-react';
+import { ArrowRight, Pause, Play, Activity, Waves, ChevronLeft, ChevronRight } from 'lucide-react';
 import { sound } from '../../utils/soundEffects';
 import { useLanguage } from '../../context/LanguageContext';
 
-const INTERVAL = 7000;
+const INTERVAL = 4200;
 
 // Ambient bottom gradient fade & monsoon rain telemetry animation (ocean wave animation removed)
 const WaterReflectionEffect = ({ isRainSlide }) => {
@@ -172,15 +172,6 @@ export const HeroSlider = ({ stats, weather }) => {
     <section
       ref={box}
       onMouseMove={onMove}
-      onMouseEnter={() => {
-        if (!isManuallyPaused.current) setPaused(true);
-      }}
-      onMouseLeave={() => {
-        if (!isManuallyPaused.current) {
-          setPaused(false);
-          setCycle((c) => c + 1);
-        }
-      }}
       onTouchStart={(e) => (touchX.current = e.touches[0].clientX)}
       onTouchEnd={(e) => {
         const d = e.changedTouches[0].clientX - touchX.current;
@@ -353,6 +344,39 @@ export const HeroSlider = ({ stats, weather }) => {
         </div>
       </div>
 
+      {/* ── Left / Right Manual Slide Navigation Chevrons ── */}
+      <button
+        onClick={() => { sound.play('pop'); go(index - 1); }}
+        aria-label="Previous slide"
+        title="Previous slide"
+        className="absolute left-3 sm:left-5 top-1/2 -translate-y-1/2 z-30 w-10 h-10 rounded-full border border-white/20 bg-neutral-900/60 hover:bg-neutral-900/90 hover:border-emerald-400 text-white flex items-center justify-center transition-all backdrop-blur-md cursor-pointer hover:scale-110 active:scale-95 shadow-lg group hidden sm:flex"
+      >
+        <ChevronLeft size={20} className="group-hover:-translate-x-0.5 transition-transform" />
+      </button>
+
+      <button
+        onClick={() => { sound.play('pop'); go(index + 1); }}
+        aria-label="Next slide"
+        title="Next slide"
+        className="absolute right-14 sm:right-16 top-1/2 -translate-y-1/2 z-30 w-10 h-10 rounded-full border border-white/20 bg-neutral-900/60 hover:bg-neutral-900/90 hover:border-emerald-400 text-white flex items-center justify-center transition-all backdrop-blur-md cursor-pointer hover:scale-110 active:scale-95 shadow-lg group hidden sm:flex"
+      >
+        <ChevronRight size={20} className="group-hover:translate-x-0.5 transition-transform" />
+      </button>
+
+      {/* ── Mobile Slide Pills Indicator ── */}
+      <div className="flex sm:hidden items-center justify-center gap-1.5 pb-2 z-30">
+        {slides.map((_, i) => (
+          <button
+            key={i}
+            onClick={() => { sound.play('pop'); go(i); }}
+            aria-label={`Slide ${i + 1}`}
+            className={`h-1.5 rounded-full transition-all duration-300 cursor-pointer ${
+              i === index ? 'w-6 bg-emerald-400 shadow-[0_0_8px_#34d399]' : 'w-2 bg-white/40'
+            }`}
+          />
+        ))}
+      </div>
+
       {/* ── Vertical Dot Indicators (Right Edge, Kavach Style) with Pause/Play Above ── */}
       <div className="absolute right-4 sm:right-6 top-1/2 -translate-y-1/2 z-30 hidden sm:flex flex-col items-center gap-3">
         {/* Play/Pause Button positioned directly above the 5 slide indicators */}
@@ -389,6 +413,17 @@ export const HeroSlider = ({ stats, weather }) => {
         ))}
 
         <span className="w-px h-8 bg-gradient-to-t from-transparent via-white/30 to-transparent" />
+      </div>
+
+      {/* ── Slide Progress Bar at Bottom of Hero (Visual Auto-Scroll Countdown) ── */}
+      <div className="absolute bottom-0 inset-x-0 h-1 bg-white/10 z-20 overflow-hidden pointer-events-none">
+        <div
+          key={cycle}
+          className={`h-full w-full bg-gradient-to-r from-emerald-400 via-teal-300 to-sky-400 shadow-[0_0_10px_#34d399] bar-fill ${
+            paused ? 'bar-paused' : ''
+          }`}
+          style={{ '--dur': `${INTERVAL}ms` }}
+        />
       </div>
     </section>
   );
