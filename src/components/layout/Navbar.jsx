@@ -102,7 +102,7 @@ export const Navbar = () => {
       
       <div
         className={classNames(
-          'w-full max-w-[1060px] xl:max-w-[1120px] mx-auto rounded-2xl border transition-all duration-300',
+          'w-full max-w-[1100px] xl:max-w-[1180px] mx-auto rounded-2xl border transition-all duration-300',
           navIsDark
             ? scrolled
               ? 'bg-neutral-950/92 backdrop-blur-xl border-white/20 text-white shadow-[0_16px_40px_rgba(0,0,0,0.7)]'
@@ -112,7 +112,7 @@ export const Navbar = () => {
               : 'bg-white/90 backdrop-blur-xl border-neutral-200/80 text-neutral-900 shadow-[0_8px_24px_rgba(0,0,0,0.06)]'
         )}
       >
-        <div className="px-3 sm:px-4 lg:px-5">
+        <div className="px-3 sm:px-4.5 lg:px-5">
           <div className={classNames('flex items-center justify-between transition-all duration-300', scrolled ? 'h-14' : 'h-16')}>
             {/* Logo */}
             <Link to="/" className="flex items-center gap-2.5 shrink-0 group mr-2 sm:mr-3 lg:mr-4" onClick={() => sound.play('click')}>
@@ -380,21 +380,25 @@ export const Navbar = () => {
                   </div>
                 </div>
               ) : (
-                <div className="flex items-center gap-1.5 lg:gap-2 shrink-0">
+                <div className="flex flex-col items-stretch justify-center gap-0.5 sm:gap-1 shrink-0 pl-1.5 sm:pl-2 border-l border-neutral-200/80 dark:border-white/15 my-auto">
+                  {/* Row 1: Sign In */}
                   <Link
                     to="/login"
                     onClick={() => sound.play('click')}
                     className={classNames(
-                      'text-xs font-semibold px-3 py-2 rounded-xl transition-colors whitespace-nowrap',
-                      navIsDark ? 'text-white/90 hover:text-white hover:bg-white/10' : 'text-neutral-700 hover:text-neutral-900 hover:bg-neutral-100'
+                      'px-2.5 py-0.5 rounded-md text-[10.5px] font-bold text-center transition-colors leading-tight whitespace-nowrap',
+                      navIsDark
+                        ? 'text-white/85 hover:text-white hover:bg-white/10'
+                        : 'text-neutral-700 hover:text-neutral-950 hover:bg-neutral-100'
                     )}
                   >
                     {t('nav.signIn', 'Sign In')}
                   </Link>
+                  {/* Row 2: Sign Up */}
                   <Link
                     to="/register"
                     onClick={() => sound.play('click')}
-                    className="glow-btn relative overflow-hidden shine px-3.5 py-1.5 rounded-xl bg-gradient-to-r from-emerald-500 via-brand-500 to-teal-400 text-neutral-950 font-black text-xs tracking-wider uppercase shadow-[0_0_20px_rgba(52,211,153,0.35)] hover:scale-105 active:scale-95 transition-all whitespace-nowrap"
+                    className="glow-btn relative overflow-hidden px-2.5 py-1 rounded-md bg-gradient-to-r from-emerald-500 via-brand-500 to-teal-400 text-neutral-950 font-black text-[10px] tracking-wider uppercase shadow-[0_0_12px_rgba(52,211,153,0.35)] hover:scale-[1.02] active:scale-95 transition-all text-center leading-tight whitespace-nowrap"
                   >
                     {t('nav.signUp', 'Sign Up')}
                   </Link>
