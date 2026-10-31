@@ -94,7 +94,7 @@ app = FastAPI(
     lifespan=lifespan,
 )
 
-# CORS — allow only localhost in dev; configure ALLOWED_ORIGINS env var in production
+# CORS — allow localhost, Vercel deployments, or custom ALLOWED_ORIGINS env var
 _raw_origins = os.getenv("ALLOWED_ORIGINS", "")
 if _raw_origins:
     _origins = [o.strip() for o in _raw_origins.split(",") if o.strip()]
@@ -108,7 +108,7 @@ if _raw_origins:
 else:
     app.add_middleware(
         CORSMiddleware,
-        allow_origin_regex=r"^https?://(localhost|127\.0\.0\.1)(:\d+)?$",
+        allow_origin_regex=r"^https?://([a-zA-Z0-9-]+\.)*(vercel\.app|localhost|127\.0\.0\.1)(:\d+)?$",
         allow_credentials=True,
         allow_methods=["*"],
         allow_headers=["*"],
