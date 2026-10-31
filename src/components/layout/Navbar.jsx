@@ -102,7 +102,7 @@ export const Navbar = () => {
       
       <div
         className={classNames(
-          'w-full max-w-[1360px] mx-auto rounded-2xl border transition-all duration-300',
+          'w-full max-w-[1200px] mx-auto rounded-2xl border transition-all duration-300',
           navIsDark
             ? scrolled
               ? 'bg-neutral-950/92 backdrop-blur-xl border-white/20 text-white shadow-[0_16px_40px_rgba(0,0,0,0.7)]'
@@ -112,10 +112,10 @@ export const Navbar = () => {
               : 'bg-white/90 backdrop-blur-xl border-neutral-200/80 text-neutral-900 shadow-[0_8px_24px_rgba(0,0,0,0.06)]'
         )}
       >
-        <div className="px-3 sm:px-4 lg:px-6">
+        <div className="px-3 sm:px-4 lg:px-5">
           <div className={classNames('flex items-center justify-between transition-all duration-300', scrolled ? 'h-14' : 'h-16')}>
             {/* Logo */}
-            <Link to="/" className="flex items-center gap-2.5 shrink-0 group mr-4 sm:mr-5 lg:mr-6" onClick={() => sound.play('click')}>
+            <Link to="/" className="flex items-center gap-2.5 shrink-0 group mr-2 sm:mr-3 lg:mr-4" onClick={() => sound.play('click')}>
               <div className="relative w-10 h-10 rounded-xl bg-white shadow-brand flex items-center justify-center p-0.5 overflow-hidden group-hover:scale-105 group-hover:rotate-2 transition-all duration-300">
                 <img src="/kaiser-mark.png" alt="Kaiser AI" className="w-full h-full object-contain" />
                 <span className="absolute inset-0 bg-gradient-to-tr from-transparent via-white/70 to-transparent translate-x-[-120%] group-hover:translate-x-[120%] transition-transform duration-700" />
