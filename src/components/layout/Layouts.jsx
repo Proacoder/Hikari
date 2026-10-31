@@ -97,9 +97,6 @@ const AppTopBar = ({ title, setSidebarOpen }) => {
             <span className="hidden md:inline font-medium text-neutral-600">
               Quick Find
             </span>
-            <kbd className="hidden sm:inline-block px-1.5 py-0.5 text-[9px] font-mono font-bold rounded border bg-white text-neutral-500 border-neutral-300">
-              Ctrl K
-            </kbd>
           </button>
 
           {/* Sound Effects Toggle */}

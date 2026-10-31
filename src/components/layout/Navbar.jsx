@@ -172,13 +172,7 @@ export const Navbar = () => {
                 title="Spotlight Search (Ctrl+K)"
               >
                 <Search size={14} className={navIsDark ? 'text-white/70' : 'text-neutral-500'} />
-                <span className="hidden 2xl:inline font-semibold whitespace-nowrap">{t('nav.quickFind', 'Quick Find')}</span>
-                <kbd className={classNames(
-                  'hidden 2xl:inline-block px-1.5 py-0.5 text-[9px] font-mono font-bold rounded border shadow-xs',
-                  navIsDark ? 'border-white/20 bg-white/15 text-white/80' : 'border-neutral-300 bg-white text-neutral-600'
-                )}>
-                  Ctrl K
-                </kbd>
+                <span className="font-semibold whitespace-nowrap">{t('nav.quickFind', 'Quick Find')}</span>
               </button>
 
               {/* Sound Effects Toggle */}
