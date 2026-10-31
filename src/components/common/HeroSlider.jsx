@@ -7,25 +7,18 @@ import { useLanguage } from '../../context/LanguageContext';
 
 const INTERVAL = 4200;
 
-// Ambient bottom gradient fade & monsoon rain telemetry animation (ocean wave animation removed)
+// Monsoon rain telemetry animation (bottom black blend removed for 100% photo clarity)
 const WaterReflectionEffect = ({ isRainSlide }) => {
+  if (!isRainSlide) return null;
   return (
-    <div className="absolute bottom-0 left-0 right-0 h-28 sm:h-36 pointer-events-none z-10 overflow-hidden">
-      {/* Bottom shadow gradient for clean transition to the next section */}
-      <div className="absolute inset-0 bg-gradient-to-t from-neutral-950 via-neutral-950/60 to-transparent" />
-
-      {/* Rain animation for Monsoon Readiness slide */}
-      {Boolean(isRainSlide) && (
-        <div className="fixed inset-0 overflow-hidden pointer-events-none z-10">
-          {[6, 15, 24, 35, 45, 55, 65, 76, 85, 94].map((left, idx) => (
-            <div
-              key={idx}
-              className="absolute top-0 w-0.5 h-20 bg-gradient-to-b from-transparent via-sky-300/70 to-transparent animate-rain-drop"
-              style={{ left: `${left}%`, animationDelay: `${idx * 0.18}s`, animationDuration: '0.85s' }}
-            />
-          ))}
-        </div>
-      )}
+    <div className="fixed inset-0 overflow-hidden pointer-events-none z-10">
+      {[6, 15, 24, 35, 45, 55, 65, 76, 85, 94].map((left, idx) => (
+        <div
+          key={idx}
+          className="absolute top-0 w-0.5 h-20 bg-gradient-to-b from-transparent via-sky-300/70 to-transparent animate-rain-drop"
+          style={{ left: `${left}%`, animationDelay: `${idx * 0.18}s`, animationDuration: '0.85s' }}
+        />
+      ))}
     </div>
   );
 };
@@ -193,9 +186,9 @@ export const HeroSlider = ({ stats, weather }) => {
 
 {/* Seamless smooth slide transition */}
 
-            {/* Crisp Cinematic Gradient Overlays (Clear Photo Visibility) */}
-            <div className="absolute inset-0 bg-gradient-to-r from-neutral-950/80 via-neutral-950/45 to-transparent" />
-            <div className="absolute inset-0 bg-gradient-to-t from-neutral-950/75 via-transparent to-neutral-950/35" />
+            {/* Crisp High-Definition Photo Overlays (No bottom black blend, full edge-to-edge clarity) */}
+            <div className="absolute inset-0 bg-gradient-to-r from-neutral-950/70 via-neutral-950/25 to-transparent pointer-events-none" />
+            <div className="absolute inset-x-0 top-0 h-28 bg-gradient-to-b from-neutral-950/45 to-transparent pointer-events-none" />
           </div>
         );
       })}
@@ -261,24 +254,24 @@ export const HeroSlider = ({ stats, weather }) => {
             </div>
 
             {/* Quick Municipal Feature Chips */}
-            <div className="pt-2 flex flex-wrap items-center gap-2.5 text-[11px] font-mono text-white/75">
-              <span className="px-3 py-1 rounded-full bg-white/5 border border-white/10 backdrop-blur-sm flex items-center gap-1.5">
-                <span className="w-1.5 h-1.5 rounded-full bg-emerald-400" />
+            <div className="pt-2 flex flex-wrap items-center gap-2.5 text-[11px] font-mono text-white/90">
+              <span className="px-3 py-1 rounded-full bg-neutral-950/60 border border-white/20 backdrop-blur-md flex items-center gap-1.5 shadow-sm">
+                <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 shadow-[0_0_6px_#34d399]" />
                 24 BMC Wards
               </span>
-              <span className="px-3 py-1 rounded-full bg-white/5 border border-white/10 backdrop-blur-sm flex items-center gap-1.5">
-                <span className="w-1.5 h-1.5 rounded-full bg-sky-400" />
+              <span className="px-3 py-1 rounded-full bg-neutral-950/60 border border-white/20 backdrop-blur-md flex items-center gap-1.5 shadow-sm">
+                <span className="w-1.5 h-1.5 rounded-full bg-sky-400 shadow-[0_0_6px_#38bdf8]" />
                 OpenAI CLIP Vision
               </span>
-              <span className="px-3 py-1 rounded-full bg-white/5 border border-white/10 backdrop-blur-sm flex items-center gap-1.5">
-                <span className="w-1.5 h-1.5 rounded-full bg-amber-400" />
+              <span className="px-3 py-1 rounded-full bg-neutral-950/60 border border-white/20 backdrop-blur-md flex items-center gap-1.5 shadow-sm">
+                <span className="w-1.5 h-1.5 rounded-full bg-amber-400 shadow-[0_0_6px_#fbbf24]" />
                 SLA Auto-Escalate
               </span>
-              <span className="px-3 py-1 rounded-full bg-white/5 border border-white/10 backdrop-blur-sm flex items-center gap-1.5">
+              <span className="px-3 py-1 rounded-full bg-neutral-950/60 border border-white/20 backdrop-blur-md flex items-center gap-1.5 shadow-sm">
                 <Waves size={12} className="text-teal-400" />
                 IMD Flood Radar
               </span>
-              <span className="px-3 py-1 rounded-full bg-white/5 border border-white/10 backdrop-blur-sm flex items-center gap-1.5">
+              <span className="px-3 py-1 rounded-full bg-neutral-950/60 border border-white/20 backdrop-blur-md flex items-center gap-1.5 shadow-sm">
                 <span className="w-1.5 h-1.5 rounded-full bg-rose-400 animate-ping" />
                 1916 Control Room
               </span>
