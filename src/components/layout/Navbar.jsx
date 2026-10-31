@@ -102,7 +102,7 @@ export const Navbar = () => {
       
       <div
         className={classNames(
-          'w-full max-w-[1180px] mx-auto rounded-2xl border transition-all duration-300',
+          'w-full max-w-[1200px] mx-auto rounded-2xl border transition-all duration-300',
           navIsDark
             ? scrolled
               ? 'bg-neutral-950/92 backdrop-blur-xl border-white/20 text-white shadow-[0_16px_40px_rgba(0,0,0,0.7)]'
@@ -360,7 +360,7 @@ export const Navbar = () => {
                     <button
                       onClick={handleLogout}
                       className={classNames(
-                        'flex items-center gap-1 text-xs font-semibold px-2.5 py-1 rounded-xl transition-colors cursor-pointer whitespace-nowrap shrink-0',
+                        'flex items-center gap-1.5 px-2 py-0.5 rounded-xl transition-colors cursor-pointer shrink-0',
                         navIsDark
                           ? 'text-white/80 hover:text-rose-400 hover:bg-rose-500/15'
                           : 'text-neutral-700 hover:text-rose-600 hover:bg-rose-50'
@@ -368,7 +368,10 @@ export const Navbar = () => {
                       title={t('nav.signOut', 'Sign Out')}
                     >
                       <LogOut size={13} className="shrink-0" />
-                      <span>{t('nav.signOut', 'Sign Out')}</span>
+                      <span className="flex flex-col text-[10px] leading-[1.05] font-bold text-left tracking-tight">
+                        <span>Sign</span>
+                        <span>Out</span>
+                      </span>
                     </button>
                   </div>
                 </div>
