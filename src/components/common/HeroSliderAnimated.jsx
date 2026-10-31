@@ -131,7 +131,7 @@ export const HeroSlider = ({ stats, weather }) => {
 
   const slides = [
     {
-      img: '/hero/mumbai-night-skyline.jpg',
+      img: '/hero/slide-1.jpg',
       eyebrow: t('hero.slide1.eyebrow', 'SOVEREIGN AI-DRIVEN CIVIC GOVERNANCE'),
       l1: t('hero.slide1.l1', 'Fix Mumbai'),
       l2: t('hero.slide1.l2', 'one report at a time.'),
@@ -146,7 +146,7 @@ export const HeroSlider = ({ stats, weather }) => {
       ],
     },
     {
-      img: '/hero/mumbai-night-skyline.jpg',
+      img: '/hero/slide-2.jpg',
       eyebrow: t('hero.slide2.eyebrow', 'REAL-TIME 24 WARDS GIS TELEMETRY'),
       l1: t('hero.slide2.l1', 'Every ward.'),
       l2: t('hero.slide2.l2', 'Every issue. Live.'),
@@ -161,7 +161,7 @@ export const HeroSlider = ({ stats, weather }) => {
       ],
     },
     {
-      img: '/hero/mumbai-night-skyline.jpg',
+      img: '/hero/slide-3.jpg',
       eyebrow: t('hero.slide3.eyebrow', 'MONSOON READINESS & FLOOD TELEMETRY'),
       l1: t('hero.slide3.l1', 'Flood alerts'),
       l2: t('hero.slide3.l2', 'before the water arrives.'),
@@ -176,7 +176,7 @@ export const HeroSlider = ({ stats, weather }) => {
       ],
     },
     {
-      img: '/hero/mumbai-night-skyline.jpg',
+      img: '/hero/slide-4.jpg',
       eyebrow: t('hero.slide4.eyebrow', 'CITIZEN INCENTIVES & CLEAN WARDS'),
       l1: t('hero.slide4.l1', 'Be the citizen'),
       l2: t('hero.slide4.l2', 'Mumbai deserves.'),
@@ -191,7 +191,7 @@ export const HeroSlider = ({ stats, weather }) => {
       ],
     },
     {
-      img: '/hero/mumbai-night-skyline.jpg',
+      img: '/hero/slide-5.jpg',
       eyebrow: t('hero.slide5.eyebrow', 'TIME-BOUND ACCOUNTABILITY'),
       l1: t('hero.slide5.l1', 'Real SLAs.'),
       l2: t('hero.slide5.l2', 'Real accountability.'),
