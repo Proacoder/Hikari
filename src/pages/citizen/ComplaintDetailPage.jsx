@@ -658,23 +658,23 @@ export const ComplaintDetailPage = () => {
         {/* Right Column (Status Timeline, Officer Card, Map) */}
         <div className="lg:col-span-5 space-y-6">
           {/* Status Timeline */}
-          <Card className="p-6 space-y-4 border border-neutral-200">
-            <h3 className="font-bold text-neutral-900 text-sm">Resolution Lifecycle</h3>
+          <Card className="p-6 space-y-4 border border-neutral-200 dark:border-neutral-800">
+            <h3 className="font-bold text-neutral-900 dark:text-neutral-100 text-sm">Resolution Lifecycle</h3>
             <StatusTimeline status={complaint.status} complaint={complaint} />
           </Card>
 
           {/* Assigned Officer Card */}
-          <Card className="p-5 border border-neutral-200 space-y-3">
+          <Card className="p-5 border border-neutral-200 dark:border-neutral-800 space-y-3">
             <div className="flex items-center justify-between">
-              <span className="text-xs font-semibold text-neutral-500">Assigned Ward Official</span>
+              <span className="text-xs font-semibold text-neutral-500 dark:text-neutral-400">Assigned Ward Official</span>
               <Badge variant="brand">Active Duty</Badge>
             </div>
             <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-full bg-brand-100 text-brand-700 font-bold flex items-center justify-center text-sm">
+              <div className="w-10 h-10 rounded-full bg-brand-100 dark:bg-brand-950/60 text-brand-700 dark:text-brand-400 font-bold flex items-center justify-center text-sm shadow-xs">
                 {complaint.assignedOfficer?.name?.[0] || 'SP'}
               </div>
               <div>
-                <div className="font-bold text-xs text-neutral-900">
+                <div className="font-bold text-xs text-neutral-900 dark:text-neutral-100">
                   {complaint.assignedOfficer?.name || 'Suresh Patil (Junior Engineer)'}
                 </div>
                 <div className="text-[11px] text-neutral-400">Roads & Infrastructure Maintenance</div>
@@ -682,54 +682,61 @@ export const ComplaintDetailPage = () => {
             </div>
           </Card>
 
-          {/* 1. CLIP Civic Relevance Panel */}
-          <Card className="p-5 border border-neutral-200 space-y-3">
-            <div className="flex items-center justify-between">
-              <span className="text-xs font-bold text-neutral-800 flex items-center gap-1.5">
-                <Sparkles size={14} className="text-cyan-600" />
-                CLIP Semantic Image Validation
+          {/* Location on OpenStreetMap */}
+          <Card className="p-4 space-y-3 border border-neutral-200 dark:border-neutral-800">
+            <div className="flex items-center justify-between flex-wrap gap-1.5">
+              <span className="text-xs font-bold text-neutral-800 dark:text-neutral-200 flex items-center gap-1.5">
+                <MapPin size={14} className="text-brand-600 dark:text-brand-400" />
+                Exact Pinned Location
               </span>
-              <span className={`px-2.5 py-0.5 rounded-full text-[10px] font-bold ${
-                complaint.clipValidation?.status === 'accepted_for_review'
-                  ? 'bg-emerald-100 text-emerald-800 border border-emerald-300'
-                  : complaint.clipValidation?.status === 'rejected_irrelevant'
-                  ? 'bg-rose-100 text-rose-800 border border-rose-300'
-                  : 'bg-amber-100 text-amber-800 border border-amber-300'
-              }`}>
-                {(complaint.clipValidation?.status || 'accepted_for_review').replace(/_/g, ' ').toUpperCase()}
-              </span>
+              <div className="flex items-center gap-2">
+                {complaint.locationMethod && (
+                  <span className="text-[10px] font-semibold text-brand-700 dark:text-brand-300 bg-brand-50 dark:bg-brand-950/40 border border-brand-200 dark:border-brand-800 px-2 py-0.5 rounded-full">
+                    {complaint.locationMethod}
+                  </span>
+                )}
+                <span className="text-[11px] text-neutral-400 font-mono">
+                  {complaint.latitude?.toFixed(4)}, {complaint.longitude?.toFixed(4)}
+                </span>
+              </div>
             </div>
-
-            <div className="space-y-1.5 bg-neutral-50 p-3 rounded-xl border border-neutral-200 text-xs">
-              <div className="flex items-center justify-between">
-                <span className="text-neutral-500 font-medium">Predicted Category:</span>
-                <span className="font-bold text-neutral-900 capitalize">
-                  {complaint.clipValidation?.category || complaint.category}
-                </span>
-              </div>
-              <div className="flex items-center justify-between">
-                <span className="text-neutral-500 font-medium">CLIP Cosine Similarity:</span>
-                <span className="font-mono font-bold text-cyan-700">
-                  {((complaint.clipValidation?.score || 0.88) * 100).toFixed(1)}%
-                </span>
-              </div>
-              <div className="w-full bg-neutral-200 h-1.5 rounded-full overflow-hidden mt-1">
-                <div
-                  className="bg-cyan-500 h-full rounded-full transition-all duration-500"
-                  style={{ width: `${Math.min(100, (complaint.clipValidation?.score || 0.88) * 100)}%` }}
-                />
-              </div>
-              <p className="text-[11px] text-neutral-600 pt-1 leading-relaxed italic">
-                {complaint.clipValidation?.explanation || 'Photo matches municipal civic defect criteria. Zero-shot visual semantic inference verified.'}
-              </p>
-              <div className="text-[9px] text-neutral-400 font-mono">
-                * Metric represents cosine similarity in CLIP embedding space, not a calibrated probability.
-              </div>
+            <div className="rounded-xl overflow-hidden border border-neutral-200 dark:border-neutral-800">
+              <LeafletMap
+                center={[complaint.latitude || 19.0596, complaint.longitude || 72.8296]}
+                zoom={15}
+                complaints={[complaint]}
+                height="220px"
+              />
             </div>
           </Card>
+        </div>
 
-          {/* 1.5. Deep Learning ViT AI Image Authenticity & Deepfake Inspection */}
-          <Card className="p-5 border border-neutral-200 dark:border-neutral-800 space-y-3">
+      </div>
+
+      {/* ── Multi-Tier AI Verification & Forensic Audit Suite (Full Width 2-Column Grid) ── */}
+      <div className="mt-8 pt-8 border-t border-neutral-200 dark:border-neutral-800 space-y-5">
+        <div className="flex items-center justify-between flex-wrap gap-2">
+          <div className="flex items-center gap-2.5">
+            <div className="w-8 h-8 rounded-xl bg-gradient-to-tr from-emerald-500 to-teal-400 text-neutral-950 flex items-center justify-center font-bold shadow-xs">
+              <Sparkles size={16} />
+            </div>
+            <div>
+              <h3 className="font-extrabold text-sm sm:text-base text-neutral-900 dark:text-neutral-100 flex items-center gap-2">
+                Autonomous AI Forensic & Verification Intelligence
+                <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-800 dark:bg-emerald-950/60 dark:text-emerald-300 border border-emerald-300 dark:border-emerald-700">
+                  4 Active Neural Defenses
+                </span>
+              </h3>
+              <p className="text-xs text-neutral-500 dark:text-neutral-400">
+                Automated multi-modal inspection: zero-shot computer vision, deepfake forensics, and spatial clustering.
+              </p>
+            </div>
+          </div>
+        </div>
+
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+          {/* Card 1: Hugging Face ViT AI Image Authenticity & Deepfake Inspection */}
+          <Card className="p-5 border border-neutral-200 dark:border-neutral-800 space-y-3 shadow-xs">
             <div className="flex items-center justify-between">
               <span className="text-xs font-bold text-neutral-800 dark:text-neutral-200 flex items-center gap-1.5">
                 <ShieldCheck size={14} className="text-emerald-600 dark:text-emerald-400" />
@@ -744,15 +751,15 @@ export const ComplaintDetailPage = () => {
               </span>
             </div>
 
-            <div className="space-y-1.5 bg-neutral-50 dark:bg-neutral-900/60 p-3 rounded-xl border border-neutral-200 dark:border-neutral-800 text-xs">
+            <div className="space-y-1.5 bg-neutral-50 dark:bg-neutral-900/60 p-3.5 rounded-xl border border-neutral-200 dark:border-neutral-800 text-xs">
               <div className="flex items-center justify-between">
-                <span className="text-neutral-500 font-medium">Model Architecture:</span>
+                <span className="text-neutral-500 dark:text-neutral-400 font-medium">Model Architecture:</span>
                 <span className="font-mono font-bold text-neutral-800 dark:text-neutral-200 text-[11px]">
                   umm-maybe/AI-image-detector (Swin/ViT)
                 </span>
               </div>
               <div className="flex items-center justify-between">
-                <span className="text-neutral-500 font-medium">Camera Provenance:</span>
+                <span className="text-neutral-500 dark:text-neutral-400 font-medium">Camera Provenance:</span>
                 <span className="font-mono font-bold text-emerald-600 dark:text-emerald-400">
                   {complaint.authenticity?.confidence || '96.2% Genuine'}
                 </span>
@@ -774,30 +781,30 @@ export const ComplaintDetailPage = () => {
             </div>
           </Card>
 
-          {/* 2. Semantic & Spatial Duplicate Detection Panel */}
-          <Card className="p-5 border border-neutral-200 space-y-3">
+          {/* Card 2: Semantic & Spatial Duplicate Detection Panel */}
+          <Card className="p-5 border border-neutral-200 dark:border-neutral-800 space-y-3 shadow-xs">
             <div className="flex items-center justify-between">
-              <span className="text-xs font-bold text-neutral-800 flex items-center gap-1.5">
-                <Copy size={14} className="text-indigo-600" />
+              <span className="text-xs font-bold text-neutral-800 dark:text-neutral-200 flex items-center gap-1.5">
+                <Copy size={14} className="text-indigo-600 dark:text-indigo-400" />
                 Sentence-BERT & DBSCAN Deduplication
               </span>
               <span className={`px-2.5 py-0.5 rounded-full text-[10px] font-bold ${
                 complaint.duplicateDetection?.status === 'high_confidence_candidate'
-                  ? 'bg-rose-100 text-rose-800 border border-rose-300'
+                  ? 'bg-rose-100 text-rose-800 border border-rose-300 dark:bg-rose-950/60 dark:text-rose-300'
                   : complaint.duplicateDetection?.status === 'possible_duplicate'
-                  ? 'bg-amber-100 text-amber-800 border border-amber-300'
+                  ? 'bg-amber-100 text-amber-800 border border-amber-300 dark:bg-amber-950/60 dark:text-amber-300'
                   : complaint.duplicateDetection?.status === 'confirmed_duplicate'
-                  ? 'bg-purple-100 text-purple-800 border border-purple-300'
-                  : 'bg-emerald-100 text-emerald-800 border border-emerald-300'
+                  ? 'bg-purple-100 text-purple-800 border border-purple-300 dark:bg-purple-950/60 dark:text-purple-300'
+                  : 'bg-emerald-100 text-emerald-800 border border-emerald-300 dark:bg-emerald-950/60 dark:text-emerald-300'
               }`}>
                 {(complaint.duplicateDetection?.status || 'no_candidate').replace(/_/g, ' ').toUpperCase()}
               </span>
             </div>
 
-            <div className="space-y-2 bg-neutral-50 p-3 rounded-xl border border-neutral-200 text-xs">
+            <div className="space-y-2 bg-neutral-50 dark:bg-neutral-900/60 p-3.5 rounded-xl border border-neutral-200 dark:border-neutral-800 text-xs">
               <div className="flex items-center justify-between">
-                <span className="text-neutral-500 font-medium">Candidate Proximity Status:</span>
-                <span className="font-semibold text-neutral-800">
+                <span className="text-neutral-500 dark:text-neutral-400 font-medium">Candidate Proximity Status:</span>
+                <span className="font-semibold text-neutral-800 dark:text-neutral-200">
                   {complaint.duplicateDetection?.status === 'no_candidate'
                     ? 'Unique spatial signature'
                     : `Linked with ${complaint.duplicateDetection?.parentId || 'neighborhood cluster'}`}
@@ -805,13 +812,13 @@ export const ComplaintDetailPage = () => {
               </div>
               {complaint.duplicateDetection?.score > 0 && (
                 <div className="flex items-center justify-between">
-                  <span className="text-neutral-500 font-medium">Composite Correlation:</span>
-                  <span className="font-mono font-bold text-indigo-700">
+                  <span className="text-neutral-500 dark:text-neutral-400 font-medium">Composite Correlation:</span>
+                  <span className="font-mono font-bold text-indigo-700 dark:text-indigo-400">
                     {((complaint.duplicateDetection?.score || 0) * 100).toFixed(1)}%
                   </span>
                 </div>
               )}
-              <p className="text-[11px] text-neutral-600 leading-relaxed">
+              <p className="text-[11px] text-neutral-600 dark:text-neutral-300 leading-relaxed">
                 {complaint.duplicateDetection?.status === 'confirmed_duplicate'
                   ? 'Staff audit verified this grievance as duplicate. Linked to parent ticket without data loss.'
                   : complaint.duplicateDetection?.status === 'possible_duplicate' || complaint.duplicateDetection?.status === 'high_confidence_candidate'
@@ -841,8 +848,8 @@ export const ComplaintDetailPage = () => {
             </div>
           </Card>
 
-          {/* 3. Image Authenticity & Forensics Panel */}
-          <Card className="p-5 border border-neutral-200 dark:border-neutral-800 space-y-3">
+          {/* Card 3: Image Authenticity & Forensics Panel (C2PA & Spectral Residuals) */}
+          <Card className="p-5 border border-neutral-200 dark:border-neutral-800 space-y-3 shadow-xs">
             <div className="flex items-center justify-between">
               <span className="text-xs font-bold text-neutral-800 dark:text-neutral-200 flex items-center gap-1.5">
                 <ShieldAlert size={14} className="text-violet-600 dark:text-violet-400" />
@@ -859,7 +866,7 @@ export const ComplaintDetailPage = () => {
               </span>
             </div>
 
-            <div className="space-y-1.5 bg-neutral-50 dark:bg-neutral-800/80 p-3 rounded-xl border border-neutral-200 dark:border-neutral-700 text-xs">
+            <div className="space-y-1.5 bg-neutral-50 dark:bg-neutral-800/80 p-3.5 rounded-xl border border-neutral-200 dark:border-neutral-700 text-xs">
               <div className="flex items-center justify-between">
                 <span className="text-neutral-500 dark:text-neutral-400 font-medium">Synthetic Risk Probability:</span>
                 <span className="font-mono font-bold text-violet-700 dark:text-violet-400">
@@ -890,35 +897,52 @@ export const ComplaintDetailPage = () => {
             </div>
           </Card>
 
-          {/* Location on OpenStreetMap */}
-          <Card className="p-4 space-y-3 border border-neutral-200">
-            <div className="flex items-center justify-between flex-wrap gap-1.5">
-              <span className="text-xs font-bold text-neutral-800 flex items-center gap-1.5">
-                <MapPin size={14} className="text-brand-600" />
-                Exact Pinned Location
+          {/* Card 4: CLIP Civic Relevance Panel */}
+          <Card className="p-5 border border-neutral-200 dark:border-neutral-800 space-y-3 shadow-xs">
+            <div className="flex items-center justify-between">
+              <span className="text-xs font-bold text-neutral-800 dark:text-neutral-200 flex items-center gap-1.5">
+                <Sparkles size={14} className="text-cyan-600 dark:text-cyan-400" />
+                CLIP Semantic Image Validation
               </span>
-              <div className="flex items-center gap-2">
-                {complaint.locationMethod && (
-                  <span className="text-[10px] font-semibold text-brand-700 bg-brand-50 border border-brand-200 px-2 py-0.5 rounded-full">
-                    {complaint.locationMethod}
-                  </span>
-                )}
-                <span className="text-[11px] text-neutral-400 font-mono">
-                  {complaint.latitude?.toFixed(4)}, {complaint.longitude?.toFixed(4)}
+              <span className={`px-2.5 py-0.5 rounded-full text-[10px] font-bold ${
+                complaint.clipValidation?.status === 'accepted_for_review'
+                  ? 'bg-emerald-100 text-emerald-800 border border-emerald-300 dark:bg-emerald-950/60 dark:text-emerald-300'
+                  : complaint.clipValidation?.status === 'rejected_irrelevant'
+                  ? 'bg-rose-100 text-rose-800 border border-rose-300 dark:bg-rose-950/60 dark:text-rose-300'
+                  : 'bg-amber-100 text-amber-800 border border-amber-300 dark:bg-amber-950/60 dark:text-amber-300'
+              }`}>
+                {(complaint.clipValidation?.status || 'accepted_for_review').replace(/_/g, ' ').toUpperCase()}
+              </span>
+            </div>
+
+            <div className="space-y-1.5 bg-neutral-50 dark:bg-neutral-900/60 p-3.5 rounded-xl border border-neutral-200 dark:border-neutral-800 text-xs">
+              <div className="flex items-center justify-between">
+                <span className="text-neutral-500 dark:text-neutral-400 font-medium">Predicted Category:</span>
+                <span className="font-bold text-neutral-900 dark:text-neutral-100 capitalize">
+                  {complaint.clipValidation?.category || complaint.category}
                 </span>
               </div>
-            </div>
-            <div className="rounded-xl overflow-hidden border border-neutral-200">
-              <LeafletMap
-                center={[complaint.latitude || 19.0596, complaint.longitude || 72.8296]}
-                zoom={15}
-                complaints={[complaint]}
-                height="220px"
-              />
+              <div className="flex items-center justify-between">
+                <span className="text-neutral-500 dark:text-neutral-400 font-medium">CLIP Cosine Similarity:</span>
+                <span className="font-mono font-bold text-cyan-700 dark:text-cyan-400">
+                  {((complaint.clipValidation?.score || 0.88) * 100).toFixed(1)}%
+                </span>
+              </div>
+              <div className="w-full bg-neutral-200 dark:bg-neutral-800 h-1.5 rounded-full overflow-hidden mt-1">
+                <div
+                  className="bg-cyan-500 h-full rounded-full transition-all duration-500"
+                  style={{ width: `${Math.min(100, (complaint.clipValidation?.score || 0.88) * 100)}%` }}
+                />
+              </div>
+              <p className="text-[11px] text-neutral-600 dark:text-neutral-300 pt-1 leading-relaxed italic">
+                {complaint.clipValidation?.explanation || 'Photo matches municipal civic defect criteria. Zero-shot visual semantic inference verified.'}
+              </p>
+              <div className="text-[9px] text-neutral-400 font-mono">
+                * Metric represents cosine similarity in CLIP embedding space, not a calibrated probability.
+              </div>
             </div>
           </Card>
         </div>
-
       </div>
 
       {/* ── Anti-Abuse Contest / Re-open Modal ───────────────────────────────── */}
