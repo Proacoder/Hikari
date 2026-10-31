@@ -338,7 +338,7 @@ export const LandingPage = () => {
 
       {/* ── SECTION 3: Weather Intelligence Bar ── */}
       {weatherData && (
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mt-2.5 sm:mt-3 mb-2 sm:mb-2.5">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 my-7 sm:my-9">
           <div
             className={classNames(
               'rounded-3xl px-5 py-3 sm:py-3.5 text-xs flex flex-col sm:flex-row sm:items-center justify-between gap-4 shadow-xl backdrop-blur-xl border transition-colors',
