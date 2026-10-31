@@ -301,7 +301,7 @@ export const LandingPage = () => {
   return (
     <div
       className={classNames(
-        'pb-20 overflow-hidden relative transition-colors duration-300',
+        'pb-8 sm:pb-10 overflow-hidden relative transition-colors duration-300',
         isDark ? 'bg-neutral-950 text-neutral-100' : 'bg-slate-50 text-neutral-900'
       )}
     >
@@ -312,7 +312,7 @@ export const LandingPage = () => {
       {/* ── SECTION 2: Ward Marquee Stream (Transition Ribbon) ── */}
       <div
         className={classNames(
-          'overflow-hidden border-y py-3 shadow-md -mt-12 sm:-mt-16 relative z-20 backdrop-blur-md transition-colors',
+          'overflow-hidden border-y py-3 shadow-md relative z-20 backdrop-blur-md transition-colors',
           isDark
             ? 'border-emerald-500/20 bg-neutral-900/95 text-emerald-300'
             : 'border-emerald-200 bg-white/95 text-emerald-800'
@@ -1170,7 +1170,7 @@ export const LandingPage = () => {
       </section>
 
       {/* ── SECTION 10: Emergency Response Helpline Protocol ── */}
-      <section className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mt-16 sm:mt-24 lg:mt-28 mb-12 sm:mb-16">
+      <section className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mt-8 sm:mt-10 lg:mt-12 mb-6 sm:mb-8">
         <div className="bg-gradient-to-r from-neutral-950 via-neutral-900 to-neutral-950 text-white rounded-3xl p-6 sm:p-10 border border-neutral-800 shadow-2xl flex flex-col lg:flex-row items-center justify-between gap-8 relative overflow-hidden">
           <div className="space-y-3 text-center lg:text-left">
             <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-red-500/20 border border-red-500/30 text-red-400 font-mono text-[10px] font-bold uppercase tracking-wider">
