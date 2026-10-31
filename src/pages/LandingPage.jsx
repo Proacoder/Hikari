@@ -278,7 +278,7 @@ export const LandingPage = () => {
     },
     {
       q: language === 'mr' ? 'पावसाळ्यात पूर किंवा जलमय रस्त्यांची माहिती कशी मिळते?' : language === 'hi' ? 'मानसून में जलभराव और बाढ़ अलर्ट की जानकारी कैसे मिलती है?' : 'How does the monsoon flood warning system work?',
-      a: language === 'mr' ? 'कैसर AI सांताक्रूझ डॉपलर रडार आणि हिंदमाता, कुर्ला, सायनमधील सेन्सर्सशी जोडलेले आहे. भरती आणि मुसळधार पावसाच्या वेळी नागरिकांना थेट अलर्ट पाठवले जातात.' : language === 'hi' ? 'कैसर AI मौसम विभाग के डॉपलर रडार और जमीनी जलभराव सेंसरों से जुड़ा है, जो भारी बारिश में तुरंत चेतावनी जारी करता है।' : 'The platform continuously monitors IMD Santacruz Doppler feeds and municipal flood telemetry sensors across low-lying zones (Hindmata, Kurla, Sion).'
+      a: language === 'mr' ? 'कैसर AI अखिल मुंबई डॉपलर रडार नेटवर्क आणि हिंदमाता, कुर्ला, सायनमधील सेन्सर्सशी जोडलेले आहे. भरती आणि मुसळधार पावसाच्या वेळी नागरिकांना थेट अलर्ट पाठवले जातात.' : language === 'hi' ? 'कैसर AI अखिल मुंबई डॉपलर रडार नेटवर्क और जमीनी जलभराव सेंसरों से जुड़ा है, जो भारी बारिश में तुरंत चेतावनी जारी करता है।' : 'The platform continuously monitors the All-Mumbai IMD Doppler Radar Network and municipal flood telemetry sensors across low-lying zones (Hindmata, Kurla, Sion).'
     },
   ];
 
@@ -375,7 +375,7 @@ export const LandingPage = () => {
                   {weatherData.temperature}°C {weatherData.condition}
                 </span>
                 <span className={isDark ? 'text-neutral-500 hidden sm:inline' : 'text-neutral-300 hidden sm:inline'}>·</span>
-                <span className={isDark ? 'text-neutral-400' : 'text-neutral-500'}>{t('weather.radarActive', 'Santacruz Doppler Radar Active')}</span>
+                <span className={isDark ? 'text-neutral-400' : 'text-neutral-500'}>{t('weather.radarActive', 'All-Mumbai Doppler Radar Grid Active')}</span>
               </div>
             </div>
             <div className="flex items-center gap-2.5 shrink-0">
@@ -387,7 +387,7 @@ export const LandingPage = () => {
                     : 'bg-emerald-50 text-emerald-800 border-emerald-300'
                 )}
               >
-                {t('weather.radarLive', 'SANTACRUZ RADAR LIVE')}
+                {t('weather.radarLive', 'ALL-MUMBAI RADAR LIVE')}
               </span>
               <Link
                 to="/app/map"

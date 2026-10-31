@@ -149,7 +149,7 @@ export const HeroSlider = ({ stats, weather }) => {
       eyebrow: t('hero.slide3.eyebrow', 'MONSOON READINESS & FLOOD TELEMETRY'),
       l1: t('hero.slide3.l1', 'Flood alerts'),
       l2: t('hero.slide3.l2', 'before the water arrives.'),
-      caption: t('hero.slide3.caption', `AQI ${weather?.aqi ?? '112'} · ${weather?.temperature != null ? weather.temperature + '°C' : '31°C'} · SANTACRUZ DOPPLER ACTIVE`),
+      caption: t('hero.slide3.caption', `AQI ${weather?.aqi ?? '112'} · ${weather?.temperature != null ? weather.temperature + '°C' : '31°C'} · ALL-MUMBAI DOPPLER ACTIVE`),
       desc: t('hero.slide3.desc', 'Predictive disaster intelligence blends live IMD rainfall feeds with citizen flood reports to warn vulnerable wards early and mobilize BMC emergency response teams.'),
       cta: { to: '/app/map', label: t('hero.mapBtn', 'View Flood Sensors') },
       rows: [

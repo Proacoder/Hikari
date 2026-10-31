@@ -102,7 +102,7 @@ export const Footer = () => {
                   24 WARD GRID ONLINE
                 </span>
                 <span className="text-[10px] text-neutral-500 dark:text-neutral-400 font-semibold">
-                  IMD SANTACRUZ SYNC
+                  IMD ALL-MUMBAI RADAR SYNC
                 </span>
               </div>
               <div className="grid grid-cols-2 gap-2 pt-2.5 text-[11px] font-mono">

@@ -174,7 +174,7 @@ export const PredictiveDisasterCenter = () => {
               Doppler Rain Intensity
             </span>
             <span className="text-[10px] font-mono px-2 py-0.5 rounded-full bg-brand-100 text-brand-800 font-bold">
-              Santacruz IMD Radar
+              All-Mumbai IMD Radar Grid
             </span>
           </div>
           <div className="flex items-baseline gap-2">

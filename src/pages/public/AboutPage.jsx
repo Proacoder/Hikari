@@ -128,7 +128,7 @@ export const AboutPage = () => {
       name: 'Harsh Mane',
       role: 'Cloud API & Systems Integration Lead',
       domain: 'Municipal APIs & Multi-Portal Architecture',
-      bio: 'Architected the robust cloud integration fabric, external telemetry services, and multi-tier municipal portal ecosystem powering Kaiser AI. Integrated the NVIDIA NIM civic LLM assistant, real-time Open-Meteo weather telemetry, Santacruz IMD radar streaming, and automated AQI monitoring pipelines. Engineered the role-based multi-portal architecture spanning Citizen, Ward Officer, and Municipal HQ command interfaces with strict DPDP Act 2023 privacy redaction, cryptographic JWT session security, and automated webhook dispatch. Curated foundational geospatial datasets and response SLA benchmarks across all 24 BMC administrative zones to synchronize municipal workflows.',
+      bio: 'Architected the robust cloud integration fabric, external telemetry services, and multi-tier municipal portal ecosystem powering Kaiser AI. Integrated the NVIDIA NIM civic LLM assistant, real-time Open-Meteo weather telemetry, Greater Mumbai IMD radar grid streaming, and automated AQI monitoring pipelines. Engineered the role-based multi-portal architecture spanning Citizen, Ward Officer, and Municipal HQ command interfaces with strict DPDP Act 2023 privacy redaction, cryptographic JWT session security, and automated webhook dispatch. Curated foundational geospatial datasets and response SLA benchmarks across all 24 BMC administrative zones to synchronize municipal workflows.',
       initials: 'HM',
       badge: 'Integration Lead'
     }
@@ -469,7 +469,7 @@ export const AboutPage = () => {
                   </div>
                   <div className="flex justify-between py-1 border-b border-white/5">
                     <span className="text-white/40">Monsoon Matrix:</span>
-                    <span className="text-sky-300">IMD Santacruz Radar Hook</span>
+                    <span className="text-sky-300">IMD Greater Mumbai Radar Hook</span>
                   </div>
                   <div className="flex justify-between py-1">
                     <span className="text-white/40">Audit Proof:</span>

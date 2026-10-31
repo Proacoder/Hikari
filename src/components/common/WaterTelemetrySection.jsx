@@ -96,11 +96,96 @@ const WATER_STATIONS = [
   },
 ];
 
+const MUMBAI_RADAR_REGIONS = [
+  {
+    id: 'all',
+    label: 'All Mumbai',
+    fullTitle: 'ALL-MUMBAI DOPPLER RADAR NETWORK',
+    badge: 'SCANNING 24 WARDS',
+    range: 'RANGE 120 KM · ALL 24 WARDS',
+    coverage: 'All 24 BMC Wards (603 km²)',
+    rainfall: '38.4 mm/hr (Citywide Avg)',
+    wind: '24 km/h · WSW',
+    advisory: 'YELLOW WATCH',
+    advisoryColor: 'text-amber-700 dark:text-amber-300',
+    radarsSynced: '4/4 IMD Radars (Colaba, Santacruz, Veravali, Powai)',
+    blips: [
+      { id: 'b-colaba', name: 'Colaba Point & Nariman Pt', ward: 'Ward A', top: '78%', left: '46%', color: 'bg-emerald-400', intensity: 'Moderate · 18 mm/h', pulse: true },
+      { id: 'b-hindmata', name: 'Hindmata & Parel Sump', ward: 'Ward F/S', top: '58%', left: '48%', color: 'bg-amber-400', intensity: 'Heavy · 42 mm/h', pulse: true },
+      { id: 'b-sion', name: 'Sion Circle Culvert', ward: 'Ward F/N', top: '48%', left: '52%', color: 'bg-rose-500', intensity: 'Torrential · 48 mm/h', pulse: true },
+      { id: 'b-kurla', name: 'Kurla Kamani (LBS)', ward: 'Ward L', top: '42%', left: '60%', color: 'bg-rose-500', intensity: 'Torrential · 46 mm/h', pulse: true },
+      { id: 'b-bandra', name: 'Bandra & Khar Seaface', ward: 'Ward H/W', top: '46%', left: '38%', color: 'bg-amber-400', intensity: 'Heavy · 36 mm/h', pulse: true },
+      { id: 'b-andheri', name: 'Andheri SV Rd Subway', ward: 'Ward K/W', top: '34%', left: '38%', color: 'bg-amber-400', intensity: 'Heavy · 34 mm/h', pulse: true },
+      { id: 'b-borivali', name: 'Borivali & Dahisar', ward: 'Ward R/C', top: '18%', left: '42%', color: 'bg-emerald-400', intensity: 'Moderate · 22 mm/h', pulse: false },
+      { id: 'b-powai', name: 'Powai & Vihar Lake Catchment', ward: 'Ward S', top: '28%', left: '60%', color: 'bg-cyan-400', intensity: 'High Inflow · 38 mm/h', pulse: false },
+    ],
+  },
+  {
+    id: 'south',
+    label: 'South (Colaba)',
+    fullTitle: 'IMD COLABA DOPPLER RADAR',
+    badge: 'SOUTH SECTOR',
+    range: 'RANGE 45 KM · ISLAND CITY',
+    coverage: 'Wards A, B, C, D, E (Island City)',
+    rainfall: '21.5 mm/hr (Moderate)',
+    wind: '28 km/h · SSW',
+    advisory: 'GREEN NORMAL',
+    advisoryColor: 'text-emerald-700 dark:text-emerald-300',
+    radarsSynced: 'IMD Colaba C-Band Doppler Radar',
+    blips: [
+      { id: 'b-colaba', name: 'Colaba Point & Cuffe Parade', ward: 'Ward A', top: '78%', left: '46%', color: 'bg-emerald-400', intensity: 'Moderate · 18 mm/h', pulse: true },
+      { id: 'b-marine', name: 'Marine Drive & Nariman Pt', ward: 'Ward A', top: '70%', left: '40%', color: 'bg-emerald-400', intensity: 'Moderate · 22 mm/h', pulse: true },
+      { id: 'b-byculla', name: 'Byculla & Mazgaon Docks', ward: 'Ward E', top: '62%', left: '52%', color: 'bg-teal-400', intensity: 'Light · 14 mm/h', pulse: false },
+    ],
+  },
+  {
+    id: 'central',
+    label: 'Central & East',
+    fullTitle: 'GREATER MUMBAI CENTRAL RADAR GRID',
+    badge: 'CENTRAL & EAST',
+    range: 'RANGE 50 KM · SION-KURLA BELT',
+    coverage: 'Wards F/N, F/S, L, M, N (Central & East)',
+    rainfall: '48.2 mm/hr (Heavy Flash Risk)',
+    wind: '22 km/h · WSW',
+    advisory: 'ORANGE ALERT',
+    advisoryColor: 'text-rose-700 dark:text-rose-300',
+    radarsSynced: 'IMD Veravali & Eastern Suburbs Array',
+    blips: [
+      { id: 'b-hindmata', name: 'Hindmata Sump & Parel', ward: 'Ward F/S', top: '58%', left: '48%', color: 'bg-amber-400', intensity: 'Heavy · 42 mm/h', pulse: true },
+      { id: 'b-sion', name: 'Sion Circle Railway Culvert', ward: 'Ward F/N', top: '48%', left: '52%', color: 'bg-rose-500', intensity: 'Torrential · 48 mm/h', pulse: true },
+      { id: 'b-kurla', name: 'Kurla Kamani (LBS Marg)', ward: 'Ward L', top: '42%', left: '60%', color: 'bg-rose-500', intensity: 'Torrential · 54 mm/h', pulse: true },
+      { id: 'b-ghatkopar', name: 'Ghatkopar & Chembur Corridor', ward: 'Ward M/N', top: '44%', left: '68%', color: 'bg-amber-400', intensity: 'Heavy · 38 mm/h', pulse: false },
+    ],
+  },
+  {
+    id: 'west',
+    label: 'West Suburbs',
+    fullTitle: 'WESTERN SUBURBS DOPPLER ARRAY',
+    badge: 'WEST CORRIDOR',
+    range: 'RANGE 60 KM · BANDRA TO BORIVALI',
+    coverage: 'Wards H, K, P, R (Western Corridor)',
+    rainfall: '32.6 mm/hr (Heavy Showers)',
+    wind: '25 km/h · W',
+    advisory: 'YELLOW WATCH',
+    advisoryColor: 'text-amber-700 dark:text-amber-300',
+    radarsSynced: 'IMD Western Suburbs S-Band Array',
+    blips: [
+      { id: 'b-bandra', name: 'Bandra Carter Rd & Khar', ward: 'Ward H/W', top: '46%', left: '38%', color: 'bg-amber-400', intensity: 'Heavy · 36 mm/h', pulse: true },
+      { id: 'b-andheri', name: 'Andheri SV Rd Subway', ward: 'Ward K/W', top: '34%', left: '38%', color: 'bg-rose-400', intensity: 'Heavy · 41 mm/h', pulse: true },
+      { id: 'b-borivali', name: 'Borivali National Park', ward: 'Ward R/C', top: '18%', left: '42%', color: 'bg-emerald-400', intensity: 'Moderate · 22 mm/h', pulse: false },
+    ],
+  },
+];
+
 export const WaterTelemetrySection = () => {
   const { isDark } = useTheme();
   const { t } = useLanguage();
   const [selectedStation, setSelectedStation] = useState(WATER_STATIONS[0]);
+  const [selectedRadarZone, setSelectedRadarZone] = useState('all');
+  const [hoveredBlip, setHoveredBlip] = useState(null);
   const [lastSync, setLastSync] = useState('14:24:10 IST');
+
+  const activeRadar = MUMBAI_RADAR_REGIONS.find((r) => r.id === selectedRadarZone) || MUMBAI_RADAR_REGIONS[0];
 
   const handleRefresh = () => {
     sound.play('click');
@@ -267,26 +352,50 @@ export const WaterTelemetrySection = () => {
           </div>
         </div>
 
-        {/* Right Column (4 cols): Santacruz Doppler Radar & Arabian Sea Tidal Clock */}
+        {/* Right Column (4 cols): All-Mumbai Doppler Radar Network & Arabian Sea Tidal Clock */}
         <div className="lg:col-span-4 space-y-6">
           
-          {/* ── Card 1: Santacruz Doppler Radar ── */}
+          {/* ── Card 1: All-Mumbai Doppler Radar Network ── */}
           <div className="rounded-3xl bg-white dark:bg-neutral-900/80 border border-neutral-200 dark:border-white/15 p-5 backdrop-blur-2xl shadow-sm dark:shadow-xl relative overflow-hidden group">
             {/* Top Glow */}
             <div className="absolute -top-12 -right-12 w-36 h-36 bg-teal-500/10 dark:bg-teal-500/20 rounded-full blur-2xl pointer-events-none" />
 
+            {/* Header */}
             <div className="flex items-center justify-between pb-3 border-b border-neutral-200 dark:border-white/10 text-xs font-mono">
               <span className="font-bold text-neutral-900 dark:text-white flex items-center gap-2">
                 <Radio size={14} className="text-emerald-600 dark:text-emerald-400 animate-pulse" />
-                {t('water.radarTitle', 'SANTACRUZ DOPPLER RADAR')}
+                {t('water.radarTitle', 'ALL-MUMBAI DOPPLER RADAR NETWORK')}
               </span>
               <span className="text-[10px] text-emerald-800 bg-emerald-100 border border-emerald-300 dark:text-emerald-400 dark:bg-emerald-500/15 dark:border-emerald-400/30 px-2 py-0.5 rounded-full font-bold">
-                SCANNING
+                {activeRadar.badge}
               </span>
             </div>
 
+            {/* Interactive Mumbai Region Zone Selector */}
+            <div className="pt-3 pb-1 flex items-center gap-1.5 overflow-x-auto no-scrollbar">
+              {MUMBAI_RADAR_REGIONS.map((region) => {
+                const isActive = selectedRadarZone === region.id;
+                return (
+                  <button
+                    key={region.id}
+                    onClick={() => {
+                      sound.play('click');
+                      setSelectedRadarZone(region.id);
+                    }}
+                    className={`px-2.5 py-1 rounded-lg text-[10px] font-mono font-semibold transition-all shrink-0 cursor-pointer ${
+                      isActive
+                        ? 'bg-teal-500/15 dark:bg-teal-400/20 text-teal-800 dark:text-teal-300 border border-teal-500/30 font-bold shadow-xs'
+                        : 'bg-neutral-100 dark:bg-white/5 text-neutral-600 dark:text-white/60 hover:text-neutral-900 dark:hover:text-white border border-transparent'
+                    }`}
+                  >
+                    {region.label}
+                  </button>
+                );
+              })}
+            </div>
+
             {/* Simulated High-Tech Rotating Radar Screen */}
-            <div className="relative w-full aspect-square max-w-[260px] mx-auto my-4 rounded-full border-2 border-teal-500/40 bg-slate-950 flex items-center justify-center overflow-hidden shadow-inner">
+            <div className="relative w-full aspect-square max-w-[260px] mx-auto my-3 rounded-full border-2 border-teal-500/40 bg-slate-950 flex items-center justify-center overflow-hidden shadow-inner">
               
               {/* Concentric Range Rings */}
               <div className="absolute inset-4 rounded-full border border-teal-500/20 pointer-events-none" />
@@ -296,6 +405,18 @@ export const WaterTelemetrySection = () => {
               {/* Crosshair Axes */}
               <div className="absolute inset-x-0 top-1/2 h-px bg-teal-500/20" />
               <div className="absolute inset-y-0 left-1/2 w-px bg-teal-500/20" />
+
+              {/* Cardinal Directions */}
+              <span className="absolute top-1 left-1/2 -translate-x-1/2 text-[8px] font-mono text-teal-400/40 font-bold">N</span>
+              <span className="absolute bottom-1 left-1/2 -translate-x-1/2 text-[8px] font-mono text-teal-400/40 font-bold">S</span>
+              <span className="absolute left-1.5 top-1/2 -translate-y-1/2 text-[8px] font-mono text-teal-400/40 font-bold">W</span>
+              <span className="absolute right-1.5 top-1/2 -translate-y-1/2 text-[8px] font-mono text-teal-400/40 font-bold">E</span>
+
+              {/* Mumbai Peninsula Coastline Faint Outline */}
+              <svg viewBox="0 0 100 100" className="absolute inset-0 w-full h-full pointer-events-none opacity-25 text-teal-400 stroke-current fill-none stroke-[0.75]">
+                {/* Simplified contour of Mumbai Salsette Island & South Mumbai peninsula */}
+                <path d="M 46,82 C 45,78 44,72 43,65 C 42,60 38,55 38,48 C 38,42 40,36 40,28 C 40,22 43,15 44,12 C 48,15 54,20 56,28 C 58,35 62,42 60,50 C 58,56 52,62 50,70 C 49,76 48,80 46,82 Z" />
+              </svg>
 
               {/* 360-Degree Rotating Radar Sweep Beam */}
               <div className="absolute inset-0 animate-radar-sweep pointer-events-none">
@@ -307,29 +428,56 @@ export const WaterTelemetrySection = () => {
                 />
               </div>
 
-              {/* Storm Cell Radar Blips (Simulated Mumbai Coastline) */}
-              <div className="absolute top-1/3 left-1/3 w-3 h-3 rounded-full bg-emerald-400/70 blur-xs animate-ping" />
-              <div className="absolute top-1/2 right-1/4 w-4 h-4 rounded-full bg-amber-400/80 blur-xs" />
-              <div className="absolute bottom-1/3 left-1/2 w-2.5 h-2.5 rounded-full bg-rose-400/80 blur-xs" />
+              {/* Dynamic Storm Blips across Mumbai Wards */}
+              {activeRadar.blips.map((blip) => (
+                <div
+                  key={blip.id}
+                  onMouseEnter={() => setHoveredBlip(blip)}
+                  onMouseLeave={() => setHoveredBlip(null)}
+                  style={{ top: blip.top, left: blip.left }}
+                  className="absolute -translate-x-1/2 -translate-y-1/2 cursor-pointer z-20 group/blip"
+                >
+                  <div className={`w-2.5 h-2.5 rounded-full ${blip.color} blur-[0.5px] ${blip.pulse ? 'animate-ping' : ''}`} />
+                  <div className={`w-2 h-2 rounded-full ${blip.color} absolute top-0.5 left-0.5 shadow-[0_0_8px_currentColor]`} />
+                </div>
+              ))}
 
-              {/* Center Radar Node */}
-              <div className="w-2.5 h-2.5 rounded-full bg-teal-300 shadow-[0_0_10px_#2dd4bf] relative z-10" />
-              <span className="absolute bottom-2 text-[9px] font-mono text-teal-400/80 font-bold">{t('water.radarRange', 'RANGE 50 KM')}</span>
+              {/* Hover Tooltip inside Radar Display */}
+              {hoveredBlip && (
+                <div className="absolute top-3 inset-x-3 bg-neutral-900/95 border border-teal-400/50 rounded-lg p-1.5 text-center pointer-events-none z-30 backdrop-blur-md shadow-lg transition-all animate-in fade-in zoom-in-95">
+                  <span className="text-[10px] font-mono font-bold text-teal-300 block leading-tight">{hoveredBlip.name}</span>
+                  <span className="text-[9px] font-mono text-white/80">{hoveredBlip.ward} · {hoveredBlip.intensity}</span>
+                </div>
+              )}
+
+              {/* Center Radar Node: BMC Disaster Management HQ */}
+              <div className="w-2.5 h-2.5 rounded-full bg-teal-300 shadow-[0_0_12px_#2dd4bf] relative z-10" />
+              
+              {/* Bottom Range Text */}
+              <span className="absolute bottom-2 text-[8px] font-mono text-teal-400/80 font-bold tracking-wider">
+                {activeRadar.range}
+              </span>
             </div>
 
             {/* Radar Telemetry Specs */}
             <div className="space-y-2 pt-2 border-t border-neutral-200 dark:border-white/10 text-[11px] font-mono">
               <div className="flex justify-between text-neutral-600 dark:text-white/70">
                 <span>{t('water.rainfallIntensity', 'Rainfall Intensity:')}</span>
-                <span className="text-teal-700 dark:text-teal-300 font-bold">{t('water.heavyRain', '38.4 mm/hr (Heavy)')}</span>
+                <span className="text-teal-700 dark:text-teal-300 font-bold">{activeRadar.rainfall}</span>
               </div>
               <div className="flex justify-between text-neutral-600 dark:text-white/70">
                 <span>{t('water.windSpeed', 'Wind Speed / Direction:')}</span>
-                <span className="text-neutral-900 dark:text-white font-semibold">24 km/h · WSW</span>
+                <span className="text-neutral-900 dark:text-white font-semibold">{activeRadar.wind}</span>
               </div>
               <div className="flex justify-between text-neutral-600 dark:text-white/70">
                 <span>{t('water.stormAdvisory', 'IMD Storm Advisory:')}</span>
-                <span className="text-amber-700 dark:text-amber-300 font-bold">{t('water.yellowWatch', 'YELLOW WATCH')}</span>
+                <span className={`font-bold ${activeRadar.advisoryColor}`}>{activeRadar.advisory}</span>
+              </div>
+              <div className="flex justify-between text-neutral-500 dark:text-white/50 text-[10px] pt-1 border-t border-dashed border-neutral-200 dark:border-white/10">
+                <span>{t('water.radarCoverage', 'Radar Network:')}</span>
+                <span className="text-neutral-700 dark:text-white/80 font-medium truncate max-w-[190px]" title={activeRadar.radarsSynced}>
+                  {activeRadar.radarsSynced}
+                </span>
               </div>
             </div>
           </div>
