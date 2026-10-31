@@ -62,60 +62,7 @@ export const Footer = () => {
           : 'bg-slate-100 border-neutral-200 text-neutral-600'
       }`}
     >
-      {/* ── 1. Top Emergency Helpline Ribbon ── */}
-      <div
-        className={`border-b transition-colors ${
-          isDark
-            ? 'bg-neutral-900/60 border-white/10'
-            : 'bg-white border-neutral-200 shadow-xs'
-        }`}
-      >
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3.5 flex flex-col lg:flex-row items-center justify-between gap-4">
-          <div className="flex items-center gap-2.5 shrink-0">
-            <span className="relative flex h-2.5 w-2.5">
-              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-rose-400 opacity-75" />
-              <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-rose-500" />
-            </span>
-            <span className="font-mono text-xs font-bold uppercase tracking-wider text-rose-600 dark:text-rose-400 flex items-center gap-1.5">
-              <Siren size={14} />
-              {t('footer.emergencyQuickAccess', 'Mumbai Emergency Quick Access')}
-            </span>
-            <span className="hidden sm:inline text-xs opacity-40">|</span>
-            <span className="hidden sm:inline text-xs text-neutral-500 dark:text-neutral-400">
-              {t('footer.hotlinesDesc', 'Direct municipal emergency response hotlines')}
-            </span>
-          </div>
-
-          <div className="grid grid-cols-2 gap-2 sm:gap-2.5 w-full sm:w-auto">
-            {EMERGENCY_NUMBERS.map((e) => (
-              <a
-                key={e.num}
-                href={`tel:${e.num}`}
-                onClick={() => sound.play('click')}
-                className={`group px-3 py-1.5 sm:px-3.5 sm:py-2 rounded-xl border text-xs font-mono transition-all duration-200 flex items-center justify-between gap-2.5 cursor-pointer active:scale-[0.98] min-w-0 sm:min-w-[220px] ${
-                  isDark
-                    ? 'bg-white/[0.04] hover:bg-rose-500/10 border-white/10 hover:border-rose-500/40 text-neutral-200 hover:text-white shadow-sm'
-                    : 'bg-white hover:bg-rose-50 border-neutral-200 hover:border-rose-300 text-neutral-800 hover:text-rose-700 shadow-xs'
-                }`}
-                title={`${e.label} · ${e.desc}`}
-              >
-                <div className="flex items-center gap-2 min-w-0">
-                  <span className="text-[10px] font-bold px-1.5 py-0.5 rounded bg-rose-500/15 text-rose-600 dark:text-rose-400 border border-rose-500/25 shrink-0 tracking-tight">
-                    {e.badge}
-                  </span>
-                  <span className="font-black text-sm text-rose-600 dark:text-rose-400 shrink-0">
-                    {e.num}
-                  </span>
-                  <span className="text-[11px] sm:text-xs font-sans font-medium text-neutral-700 dark:text-neutral-200 group-hover:text-rose-600 dark:group-hover:text-rose-300 transition-colors truncate">
-                    {e.label}
-                  </span>
-                </div>
-                <Phone size={12} className="shrink-0 text-neutral-400 dark:text-neutral-500 group-hover:text-rose-500 transition-colors hidden sm:inline-block opacity-60 group-hover:opacity-100" />
-              </a>
-            ))}
-          </div>
-        </div>
-      </div>
+{/* Emergency hotlines consolidated in main emergency protocol box above */}
 
       {/* ── 2. Main Footer Multi-Column Grid ── */}
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-14">

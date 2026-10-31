@@ -69,10 +69,84 @@ export const LandingPage = () => {
   const handleSimulate = () => {
     sound.play('click');
     setIsSimulating(true);
-    setTimeout(() => {
-      setIsSimulating(false);
-      sound.play('pop');
-    }, 1200);
+
+    if (typeof window !== 'undefined' && 'speechSynthesis' in window) {
+      window.speechSynthesis.cancel();
+
+      const textToSpeak = currentScenario.audioText;
+      const utterance = new SpeechSynthesisUtterance(textToSpeak);
+
+      const langMap = {
+        mr: 'mr-IN',
+        hi: 'hi-IN',
+        en: 'en-IN',
+      };
+      const targetLang = langMap[simLang] || 'en-IN';
+      utterance.lang = targetLang;
+
+      // Select matching voice
+      const voices = window.speechSynthesis.getVoices();
+      const voice = voices.find((v) => v.lang === targetLang || v.lang.startsWith(targetLang.slice(0, 2)));
+      if (voice) {
+        utterance.voice = voice;
+      }
+
+      utterance.rate = 0.92;
+      utterance.pitch = 1.0;
+      utterance.volume = 1.0;
+
+      utterance.onstart = () => {
+        setIsSimulating(true);
+      };
+
+      utterance.onend = () => {
+        setIsSimulating(false);
+        sound.play('pop');
+      };
+
+      utterance.onerror = () => {
+        setIsSimulating(false);
+        sound.play('pop');
+      };
+
+      // Play walkie-talkie / radio mic beep chime before speaking
+      try {
+        const AudioCtx = window.AudioContext || window.webkitAudioContext;
+        if (AudioCtx) {
+          const ctx = new AudioCtx();
+          const osc = ctx.createOscillator();
+          const gain = ctx.createGain();
+          osc.type = 'triangle';
+          osc.frequency.setValueAtTime(600, ctx.currentTime);
+          osc.frequency.setValueAtTime(1050, ctx.currentTime + 0.08);
+          gain.gain.setValueAtTime(0.10, ctx.currentTime);
+          gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.14);
+          osc.connect(gain);
+          gain.connect(ctx.destination);
+          osc.start();
+          osc.stop(ctx.currentTime + 0.15);
+        }
+      } catch {}
+
+      window.speechSynthesis.speak(utterance);
+
+      // Safety timeout in case speech synthesis stalls
+      const maxMs = Math.max(3500, textToSpeak.length * 85);
+      setTimeout(() => {
+        setIsSimulating((prev) => {
+          if (prev) {
+            sound.play('pop');
+            return false;
+          }
+          return false;
+        });
+      }, maxMs);
+    } else {
+      setTimeout(() => {
+        setIsSimulating(false);
+        sound.play('pop');
+      }, 2200);
+    }
   };
 
   const SIM_SCENARIOS = {
@@ -200,10 +274,10 @@ export const LandingPage = () => {
 
       {/* ── SECTION 3: Weather Intelligence Bar ── */}
       {weatherData && (
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 !mt-6 sm:!mt-8">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 !mt-2 sm:!mt-3 !mb-1 sm:!mb-2">
           <div
             className={classNames(
-              'rounded-3xl p-5 text-xs flex flex-col sm:flex-row sm:items-center justify-between gap-4 shadow-2xl backdrop-blur-xl border transition-colors',
+              'rounded-3xl px-5 py-3 sm:py-3.5 text-xs flex flex-col sm:flex-row sm:items-center justify-between gap-4 shadow-xl backdrop-blur-xl border transition-colors',
               isDark
                 ? 'bg-gradient-to-r from-neutral-900/90 via-neutral-900/95 to-neutral-900/90 border-emerald-500/25'
                 : 'bg-white/95 border-neutral-200/80 shadow-[0_10px_30px_rgba(0,0,0,0.06)]'
@@ -266,13 +340,13 @@ export const LandingPage = () => {
       )}
 
       {/* ── SECTION 3.5: BMC Water & Flood Command Telemetry (Dedicated High-Tech Water UI) ── */}
-      <div className="!mt-3 sm:!mt-5">
+      <div className="!mt-1 sm:!mt-2">
         <WaterTelemetrySection />
       </div>
 
       {/* ── SECTION 4: Zero-Touch Triage Architecture & Interactive Simulation ── */}
-      <section className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <Reveal className="text-center max-w-2xl mx-auto px-4 mb-10">
+      <section className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 !mt-4 sm:!mt-6">
+        <Reveal className="text-center max-w-2xl mx-auto px-4 mb-6 sm:mb-8">
           <p className={classNames(
             "text-xs font-mono font-bold tracking-[.3em] uppercase flex items-center justify-center gap-2",
             isDark ? "text-emerald-400" : "text-emerald-700"
@@ -516,6 +590,10 @@ export const LandingPage = () => {
                   key={l}
                   onClick={() => {
                     sound.play('click');
+                    if (typeof window !== 'undefined' && 'speechSynthesis' in window) {
+                      window.speechSynthesis.cancel();
+                    }
+                    setIsSimulating(false);
                     setSimLang(l);
                   }}
                   className={`px-4 py-2 rounded-xl text-xs font-bold transition-all cursor-pointer ${simLang === l
@@ -1043,19 +1121,53 @@ export const LandingPage = () => {
             </p>
           </div>
 
-          <div className="flex flex-wrap items-center justify-center gap-3 shrink-0">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 shrink-0 w-full lg:w-auto">
+            {/* 1. BMC Disaster 1916 */}
             <a
               href="tel:1916"
-              className="bg-red-600 hover:bg-red-700 text-white px-6 py-3.5 rounded-xl font-bold text-sm shadow-lg shadow-red-600/30 flex items-center gap-2 transition-all cursor-pointer active:scale-95"
+              className="bg-red-600 hover:bg-red-700 text-white px-5 py-3 rounded-xl font-bold text-xs sm:text-sm shadow-lg shadow-red-600/30 flex items-center justify-between gap-3 transition-all cursor-pointer active:scale-95 border border-red-500/50"
             >
-              <Phone size={16} />
-              <span>{t('hero.callDisaster', 'Dial BMC Disaster 1916')}</span>
+              <div className="flex items-center gap-2">
+                <Phone size={15} className="shrink-0" />
+                <span>{t('hero.callDisaster', 'BMC Disaster 1916')}</span>
+              </div>
+              <span className="text-[10px] font-mono font-bold bg-white/20 px-1.5 py-0.5 rounded">24x7</span>
             </a>
+
+            {/* 2. Medical / Ambulance 108 */}
             <a
               href="tel:108"
-              className="bg-neutral-800 hover:bg-neutral-700 text-neutral-200 border border-neutral-700 px-5 py-3.5 rounded-xl font-bold text-sm transition-all cursor-pointer active:scale-95"
+              className="bg-neutral-800 hover:bg-neutral-700 text-neutral-200 border border-neutral-700 hover:border-neutral-600 px-5 py-3 rounded-xl font-bold text-xs sm:text-sm shadow-md flex items-center justify-between gap-3 transition-all cursor-pointer active:scale-95"
             >
-              {t('emergency.medical108', 'Medical / Ambulance 108')}
+              <div className="flex items-center gap-2">
+                <Phone size={15} className="shrink-0 text-emerald-400" />
+                <span>{t('emergency.medical108', 'Ambulance 108')}</span>
+              </div>
+              <span className="text-[10px] font-mono font-bold bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 px-1.5 py-0.5 rounded">EMS</span>
+            </a>
+
+            {/* 3. Mumbai Police 100 */}
+            <a
+              href="tel:100"
+              className="bg-sky-950/90 hover:bg-sky-900 text-sky-100 border border-sky-800/80 hover:border-sky-600 px-5 py-3 rounded-xl font-bold text-xs sm:text-sm shadow-md flex items-center justify-between gap-3 transition-all cursor-pointer active:scale-95"
+            >
+              <div className="flex items-center gap-2">
+                <Phone size={15} className="shrink-0 text-sky-400" />
+                <span>{t('emergency.police100', 'Mumbai Police 100')}</span>
+              </div>
+              <span className="text-[10px] font-mono font-bold bg-sky-500/20 text-sky-300 border border-sky-500/30 px-1.5 py-0.5 rounded">POLICE</span>
+            </a>
+
+            {/* 4. Power & Grid Fire 1912 */}
+            <a
+              href="tel:1912"
+              className="bg-amber-950/90 hover:bg-amber-900 text-amber-100 border border-amber-800/80 hover:border-amber-600 px-5 py-3 rounded-xl font-bold text-xs sm:text-sm shadow-md flex items-center justify-between gap-3 transition-all cursor-pointer active:scale-95"
+            >
+              <div className="flex items-center gap-2">
+                <Phone size={15} className="shrink-0 text-amber-400" />
+                <span>{t('emergency.grid1912', 'Power & Grid Fire 1912')}</span>
+              </div>
+              <span className="text-[10px] font-mono font-bold bg-amber-500/20 text-amber-300 border border-amber-500/30 px-1.5 py-0.5 rounded">GRID</span>
             </a>
           </div>
         </div>

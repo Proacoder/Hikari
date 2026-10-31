@@ -121,6 +121,7 @@ export const TRANSLATIONS = {
     'emergency.fire101': 'Fire & Rescue 101',
     'emergency.medical108': 'Medical / Ambulance 108',
     'emergency.police100': 'Mumbai Police 100 / 112',
+    'emergency.grid1912': 'Power & Grid Fire 1912',
     'emergency.protocol': '24/7 BMC RAPID RESPONSE PROTOCOL',
     // FAQ
     'faq.eyebrow': 'QUESTIONS & ANSWERS',
@@ -504,6 +505,7 @@ export const TRANSLATIONS = {
     'emergency.fire101': 'अग्निशामक दल १०१',
     'emergency.medical108': 'वैद्यकीय / रुग्णवाहिका १०८',
     'emergency.police100': 'मुंबई पोलीस १०० / ११२',
+    'emergency.grid1912': 'वीज पुरवठा व आग १९१२',
     'emergency.protocol': '२४/७ मनपा तातडीची प्रतिसाद यंत्रणा',
     // FAQ
     'faq.eyebrow': 'नेहमी विचारले जाणारे प्रश्न',
@@ -887,6 +889,7 @@ export const TRANSLATIONS = {
     'emergency.fire101': 'अग्निशमन सेवा 101',
     'emergency.medical108': 'चिकित्सा / एम्बुलेंस 108',
     'emergency.police100': 'मुंबई पुलिस 100 / 112',
+    'emergency.grid1912': 'बिजली संकट व आग 1912',
     'emergency.protocol': '24/7 बीएमसी आपातकालीन प्रतिक्रिया प्रोटोकॉल',
     // FAQ
     'faq.eyebrow': 'अक्सर पूछे जाने वाले प्रश्न',
