@@ -73,7 +73,7 @@ export const createComplaint = async (formData) => {
     await mockDelay();
     const uploadedImage = (typeof formData.get === 'function' && (formData.get('imageUrl') || formData.get('image')))
       || (formData.imageUrl || formData.image);
-    const defaultImg = 'https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=600&q=80';
+    const defaultImg = 'https://images.unsplash.com/photo-1515162816999-a0c47dc192f7?w=800&auto=format&fit=crop&q=80';
 
     const lat = (typeof formData.get === 'function'
       ? Number(formData.get('latitude') || formData.get('lat'))

@@ -6,6 +6,24 @@ import {
 import { calculateDistanceKm } from '../../utils/geoUtils';
 import toast from 'react-hot-toast';
 
+export const RESOLVED_CATEGORY_IMAGES = {
+  Pothole: 'https://images.unsplash.com/photo-1621905252507-b35492cc74b4?w=800&auto=format&fit=crop&q=80',
+  Garbage: 'https://images.unsplash.com/photo-1513694203232-719a280e022f?w=800&auto=format&fit=crop&q=80',
+  Drainage: 'https://images.unsplash.com/photo-1509316975850-ff9c5deb0cd9?w=800&auto=format&fit=crop&q=80',
+  Streetlight: 'https://images.unsplash.com/photo-1507034589631-9433cc6bc453?w=800&auto=format&fit=crop&q=80',
+  'Water Leakage': 'https://images.unsplash.com/photo-1584467735871-8e85353a8413?w=800&auto=format&fit=crop&q=80',
+  Other: 'https://images.unsplash.com/photo-1513694203232-719a280e022f?w=800&auto=format&fit=crop&q=80',
+};
+
+export const DEFECT_CATEGORY_FALLBACKS = {
+  Pothole: 'https://images.unsplash.com/photo-1515162816999-a0c47dc192f7?w=800&auto=format&fit=crop&q=80',
+  Garbage: 'https://images.unsplash.com/photo-1530587191325-3db32d826c18?w=800&auto=format&fit=crop&q=80',
+  Drainage: 'https://images.unsplash.com/photo-1547683905-f686c993aae5?w=800&auto=format&fit=crop&q=80',
+  Streetlight: 'https://images.unsplash.com/photo-1518893883800-45cd0954574b?w=800&auto=format&fit=crop&q=80',
+  'Water Leakage': 'https://images.unsplash.com/photo-1585829365295-ab7cd400c167?w=800&auto=format&fit=crop&q=80',
+  Other: 'https://images.unsplash.com/photo-1590069261209-f8e9b8642343?w=800&auto=format&fit=crop&q=80',
+};
+
 export const FieldInspectionModal = ({ complaint, officer, isOpen, onClose, onResolveSuccess }) => {
   if (!isOpen || !complaint) return null;
 
@@ -20,9 +38,23 @@ export const FieldInspectionModal = ({ complaint, officer, isOpen, onClose, onRe
 };
 
 const FieldInspectionModalContent = ({ complaint, officer, onClose, onResolveSuccess }) => {
-  const [afterImage, setAfterImage] = useState(
-    complaint.resolvedImageUrl || 'https://images.unsplash.com/photo-1541888946425-d0fbb186156f?w=800&auto=format&fit=crop&q=80'
-  );
+  const getInitialAfter = (cmp) => {
+    if (cmp?.resolvedImageUrl && !cmp.resolvedImageUrl.includes('photo-1541888946425-d0fbb')) {
+      return cmp.resolvedImageUrl;
+    }
+    return RESOLVED_CATEGORY_IMAGES[cmp?.category] || RESOLVED_CATEGORY_IMAGES.Pothole;
+  };
+  const [afterImage, setAfterImage] = useState(() => getInitialAfter(complaint));
+
+  useEffect(() => {
+    if (complaint) {
+      setAfterImage(getInitialAfter(complaint));
+    }
+  }, [complaint]);
+
+  const rawBefore = complaint.imageUrl;
+  const isRandomOrBroken = !rawBefore || rawBefore.includes('photo-1558618666') || rawBefore.includes('photo-1541888946425-d0fbb') || (rawBefore.endsWith('.png') && rawBefore.includes('/uploads/'));
+  const beforeImage = isRandomOrBroken ? (DEFECT_CATEGORY_FALLBACKS[complaint.category] || DEFECT_CATEGORY_FALLBACKS.Pothole) : rawBefore;
   const [sliderPos, setSliderPos] = useState(50);
   const [materials, setMaterials] = useState([
     { item: 'Cold Mix Asphalt / Macadam', qty: '45 kg', cost: '₹1,350' },
@@ -172,6 +204,7 @@ const FieldInspectionModalContent = ({ complaint, officer, onClose, onResolveSuc
                 src={afterImage}
                 alt="After Repair"
                 className="absolute inset-0 w-full h-full object-cover"
+                onError={(e) => { e.currentTarget.src = RESOLVED_CATEGORY_IMAGES[complaint.category] || RESOLVED_CATEGORY_IMAGES.Pothole; }}
               />
               <div className="absolute top-3 right-3 bg-emerald-600 text-white font-bold px-2.5 py-1 rounded-lg text-[10px] shadow-lg flex items-center gap-1">
                 <CheckCircle2 size={12} /> AFTER REPAIR (Field Inspection)
@@ -183,10 +216,11 @@ const FieldInspectionModalContent = ({ complaint, officer, onClose, onResolveSuc
                 style={{ width: `${sliderPos}%` }}
               >
                 <img
-                  src={complaint.imageUrl || 'https://images.unsplash.com/photo-1515162816999-a0c47dc192f7?w=800&auto=format&fit=crop&q=80'}
+                  src={beforeImage}
                   alt="Before Repair"
                   className="absolute inset-0 w-full h-full object-cover max-w-none"
                   style={{ width: '100%', height: '100%' }}
+                  onError={(e) => { e.currentTarget.src = DEFECT_CATEGORY_FALLBACKS[complaint.category] || DEFECT_CATEGORY_FALLBACKS.Pothole; }}
                 />
                 <div className="absolute top-3 left-3 bg-red-600 text-white font-bold px-2.5 py-1 rounded-lg text-[10px] shadow-lg flex items-center gap-1">
                   <AlertTriangle size={12} /> BEFORE (Reported Defect)
@@ -215,29 +249,52 @@ const FieldInspectionModalContent = ({ complaint, officer, onClose, onResolveSuc
             </div>
 
             {/* After Photo Selector */}
-            <div className="flex items-center gap-2 pt-1 text-[11px]">
-              <span className="font-semibold text-neutral-600">After Photo:</span>
+            <div className="flex flex-wrap items-center gap-2 pt-1 text-[11px]">
+              <span className="font-semibold text-neutral-600 dark:text-neutral-300 shrink-0">After Photo:</span>
               <input
                 type="text"
                 value={afterImage}
                 onChange={(e) => setAfterImage(e.target.value)}
-                placeholder="https://... URL of completed work photo"
-                className="flex-1 rounded-lg border border-neutral-200 px-2.5 py-1 text-xs focus:ring-1 focus:ring-brand-500"
+                placeholder="After repair image URL..."
+                className="flex-1 min-w-[200px] px-2.5 py-1 text-xs border border-neutral-300 dark:border-neutral-700 rounded-lg bg-white dark:bg-neutral-800 text-neutral-800 dark:text-neutral-200 focus:outline-none focus:ring-1 focus:ring-brand-500"
               />
-              <button
-                type="button"
-                onClick={() => setAfterImage('https://images.unsplash.com/photo-1584467735871-8e85353a8413?w=800&auto=format&fit=crop&q=80')}
-                className="px-2 py-1 bg-neutral-100 hover:bg-neutral-200 text-neutral-700 rounded text-[10px] font-semibold cursor-pointer shrink-0"
-              >
-                Pothole Fixed
-              </button>
-              <button
-                type="button"
-                onClick={() => setAfterImage('https://images.unsplash.com/photo-1541888946425-d0fbb186156f?w=800&auto=format&fit=crop&q=80')}
-                className="px-2 py-1 bg-neutral-100 hover:bg-neutral-200 text-neutral-700 rounded text-[10px] font-semibold cursor-pointer shrink-0"
-              >
-                Drain Cleaned
-              </button>
+              <div className="flex items-center gap-1.5 flex-wrap">
+                <button
+                  type="button"
+                  onClick={() => setAfterImage(RESOLVED_CATEGORY_IMAGES.Pothole)}
+                  className="px-2.5 py-1 bg-neutral-100 hover:bg-neutral-200 dark:bg-neutral-800 dark:hover:bg-neutral-700 text-neutral-700 dark:text-neutral-200 rounded text-[10px] font-semibold cursor-pointer shrink-0 transition-colors"
+                >
+                  Pothole Fixed
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setAfterImage(RESOLVED_CATEGORY_IMAGES.Drainage)}
+                  className="px-2.5 py-1 bg-neutral-100 hover:bg-neutral-200 dark:bg-neutral-800 dark:hover:bg-neutral-700 text-neutral-700 dark:text-neutral-200 rounded text-[10px] font-semibold cursor-pointer shrink-0 transition-colors"
+                >
+                  Drain Cleaned
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setAfterImage(RESOLVED_CATEGORY_IMAGES.Garbage)}
+                  className="px-2.5 py-1 bg-neutral-100 hover:bg-neutral-200 dark:bg-neutral-800 dark:hover:bg-neutral-700 text-neutral-700 dark:text-neutral-200 rounded text-[10px] font-semibold cursor-pointer shrink-0 transition-colors"
+                >
+                  Garbage Swept
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setAfterImage(RESOLVED_CATEGORY_IMAGES.Streetlight)}
+                  className="px-2.5 py-1 bg-neutral-100 hover:bg-neutral-200 dark:bg-neutral-800 dark:hover:bg-neutral-700 text-neutral-700 dark:text-neutral-200 rounded text-[10px] font-semibold cursor-pointer shrink-0 transition-colors"
+                >
+                  Streetlight Fixed
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setAfterImage(RESOLVED_CATEGORY_IMAGES['Water Leakage'])}
+                  className="px-2.5 py-1 bg-neutral-100 hover:bg-neutral-200 dark:bg-neutral-800 dark:hover:bg-neutral-700 text-neutral-700 dark:text-neutral-200 rounded text-[10px] font-semibold cursor-pointer shrink-0 transition-colors"
+                >
+                  Pipe Sealed
+                </button>
+              </div>
             </div>
           </div>
 

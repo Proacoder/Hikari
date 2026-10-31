@@ -20,7 +20,7 @@ import { LeafletMap } from '../components/map/LeafletMap';
 import { SkeletonKpiCard, SkeletonRow } from '../components/common/Skeleton';
 import { useAuth } from '../context/AuthContext';
 import { useNotifications } from '../context/NotificationContext';
-import { FieldInspectionModal } from '../components/officer/FieldInspectionModal';
+import { FieldInspectionModal, DEFECT_CATEGORY_FALLBACKS } from '../components/officer/FieldInspectionModal';
 import { formatDate } from '../utils/formatters';
 import { useTheme } from '../context/ThemeContext';
 import toast from 'react-hot-toast';
@@ -30,6 +30,13 @@ import {
 } from 'recharts';
 
 // ── Helpers ────────────────────────────────────────────────────────────────────
+
+const getCleanEvidenceUrl = (url, category) => {
+  if (!url || url.includes('photo-1558618666') || (url.endsWith('.png') && url.includes('/uploads/'))) {
+    return DEFECT_CATEGORY_FALLBACKS[category] || DEFECT_CATEGORY_FALLBACKS.Pothole;
+  }
+  return url;
+};
 
 const daysAgo = (iso) => {
   if (!iso) return 'Recent';
@@ -138,7 +145,7 @@ const ImageLightbox = ({ src, title, onClose }) => (
         </button>
       </div>
       <div className="rounded-2xl overflow-hidden bg-black/40 border border-white/10 shadow-2xl">
-        <img src={src} alt={title} className="w-full object-contain max-h-[75vh]" />
+        <img src={src} alt={title} onError={(e) => { e.currentTarget.src = DEFECT_CATEGORY_FALLBACKS.Pothole; }} className="w-full object-contain max-h-[75vh]" />
       </div>
       <div className="flex flex-col sm:flex-row items-center justify-between gap-2 mt-3 text-xs">
         <p className="text-white/60">Citizen Photographic Evidence · Inspected by Ward Officer</p>
@@ -191,14 +198,14 @@ const ComplaintDetailModal = ({ complaint, onClose, onUpdate, onInspect }) => {
   return (
     <>
       {lightbox && complaint.imageUrl && (
-        <ImageLightbox src={complaint.imageUrl} title={complaint.title} onClose={() => setLightbox(false)} />
+        <ImageLightbox src={getCleanEvidenceUrl(complaint.imageUrl, complaint.category)} title={complaint.title} onClose={() => setLightbox(false)} />
       )}
       <Modal open={!!complaint} onClose={onClose} title={`Complaint Review · ${complaint.id}`}>
         <div className="space-y-4 text-xs">
           {/* Image evidence section */}
           {complaint.imageUrl ? (
             <div className="relative rounded-xl overflow-hidden h-48 bg-neutral-100 group cursor-pointer border border-neutral-200 shadow-sm" onClick={() => setLightbox(true)}>
-              <img src={complaint.imageUrl} alt={complaint.title} className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105" />
+              <img src={getCleanEvidenceUrl(complaint.imageUrl, complaint.category)} alt={complaint.title} onError={(e) => { e.currentTarget.src = DEFECT_CATEGORY_FALLBACKS[complaint.category] || DEFECT_CATEGORY_FALLBACKS.Pothole; }} className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105" />
               <div className="absolute inset-0 bg-black/0 group-hover:bg-black/30 transition-all flex items-center justify-center">
                 <div className="opacity-0 group-hover:opacity-100 transition-opacity bg-white/95 text-neutral-800 rounded-xl px-3 py-1.5 flex items-center gap-1.5 font-semibold text-xs shadow-md">
                   <ZoomIn size={14} className="text-brand-600" /> Click to Inspect Full Image
@@ -301,7 +308,7 @@ const ComplaintRow = ({ item, onView, onInspect }) => (
       <div className="flex items-center gap-3">
         {item.imageUrl ? (
           <div className="w-10 h-10 rounded-xl overflow-hidden bg-neutral-100 dark:bg-neutral-800 shrink-0 border border-neutral-200 dark:border-neutral-700 shadow-sm">
-            <img src={item.imageUrl} alt="" className="w-full h-full object-cover" />
+            <img src={getCleanEvidenceUrl(item.imageUrl, item.category)} alt="" onError={(e) => { e.currentTarget.src = DEFECT_CATEGORY_FALLBACKS[item.category] || DEFECT_CATEGORY_FALLBACKS.Pothole; }} className="w-full h-full object-cover" />
           </div>
         ) : (
           <div className="w-10 h-10 rounded-xl bg-neutral-100 dark:bg-neutral-800 flex items-center justify-center text-neutral-400 dark:text-neutral-500 shrink-0">

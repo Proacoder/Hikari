@@ -962,7 +962,7 @@ async def create_complaint(
     # Validate severity range
     severity = max(0, min(100, severity))
 
-    image_url = imageUrl or "https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=600&q=80"
+    image_url = imageUrl or "https://images.unsplash.com/photo-1515162816999-a0c47dc192f7?w=800&auto=format&fit=crop&q=80"
 
     contents = None
     # Handle file upload
@@ -1099,7 +1099,7 @@ async def create_complaint_json(
     ).first()
 
     complaint_id = f"cmp-{int(datetime.now().timestamp())}-{uuid.uuid4().hex[:4]}"
-    image_url = body.imageUrl or "https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=600&q=80"
+    image_url = body.imageUrl or "https://images.unsplash.com/photo-1515162816999-a0c47dc192f7?w=800&auto=format&fit=crop&q=80"
 
     # Evaluate semantic and spatial duplicates
     dup_res = get_duplicate_service().evaluate_candidates(

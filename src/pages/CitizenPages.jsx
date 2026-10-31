@@ -291,8 +291,8 @@ export const CitizenDashboard = () => {
           </span>
         </div>
         <BeforeAfterSlider
-          beforeUrl="https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=800&q=80"
-          afterUrl="https://images.unsplash.com/photo-1544620347-c4fd4a3d5957?w=800&q=80"
+          beforeUrl="https://images.unsplash.com/photo-1515162816999-a0c47dc192f7?w=800&auto=format&fit=crop&q=80"
+          afterUrl="https://images.unsplash.com/photo-1621905252507-b35492cc74b4?w=800&auto=format&fit=crop&q=80"
           title="Major Crater Restored at Andheri-Kurla Junction"
           wardName="Ward K/E – Andheri East (BMC Road Maintenance Dept)"
           resolvedDate="14 Oct 2026 · Closed in 18 hrs"
@@ -758,7 +758,7 @@ export const ReportIssuePage = () => {
         longitude: formData.longitude,
         ward: formData.ward,
         landmark: formData.landmark,
-        imageUrl: (aiPrediction?.annotatedImage) || formData.imageUrl || 'https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=600&q=80',
+        imageUrl: (aiPrediction?.annotatedImage) || formData.imageUrl || 'https://images.unsplash.com/photo-1515162816999-a0c47dc192f7?w=800&auto=format&fit=crop&q=80',
         severity: aiPrediction?.severity || 65,
         confidence: aiPrediction?.confidence || '94.0%',
         duplicateLinkedTo: dupCheck?.is_duplicate ? dupCheck.parent_complaint_id : null,
