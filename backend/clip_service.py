@@ -1,13 +1,14 @@
 # backend/clip_service.py
 """
-Production-grade Model 1: Visual Inspector (OpenAI CLIP Zero-Shot & Civic Quality Filter).
-Classifies civic complaint photos, strictly filtering out spam, selfies, indoor scenes,
-screens, memes, pets, and food, and accepting ONLY genuine municipal defects:
+Production-grade Model 1: Visual Inspector (OpenAI CLIP Zero-Shot & Strict Civic Quality Filter).
+Classifies civic complaint photos, strictly filtering out spam, selfies, nature, clean streets,
+architecture, vehicles, indoor scenes, screens, memes, pets, food, and everyday consumer items.
+Accepts ONLY the 5 genuine municipal civic defect categories supported by Kaiser AI:
 1. Potholes & Road Damage (Roads & Traffic Dept)
 2. Water Leakages & Burst Mains (Hydraulic Engineer Dept)
-3. Garbage & Waste Dumps (Solid Waste Management)
+3. Garbage & Solid Waste Dumps (Solid Waste Management)
 4. Streetlights & Electrical Hazards (Mechanical & Electrical Dept)
-5. Drainage & Open Sewage (Storm Water Drainage)
+5. Drainage & Open Sewage / Manholes (Storm Water Drainage)
 """
 
 import os
@@ -29,7 +30,7 @@ logger = logging.getLogger("kaiser_clip")
 CIVIC_CATEGORIES = {
     # ── 5 Genuine Civic Classes ───────────────────────────────────────────────
     "pothole": {
-        "label": "Pothole & Road Damage",
+        "label": "Potholes & Road Damage",
         "canonical_name": "Pothole",
         "assigned_department": "Roads & Traffic Department",
         "severity": 75,
@@ -43,7 +44,7 @@ CIVIC_CATEGORIES = {
         ]
     },
     "water_leakage": {
-        "label": "Water Leakage & Burst Mains",
+        "label": "Water Leakages & Burst Mains",
         "canonical_name": "Water Leakage",
         "assigned_department": "Hydraulic Engineer Department",
         "severity": 80,
@@ -57,7 +58,7 @@ CIVIC_CATEGORIES = {
         ]
     },
     "garbage_waste": {
-        "label": "Garbage & Solid Waste Dump",
+        "label": "Garbage & Solid Waste Dumps",
         "canonical_name": "Garbage",
         "assigned_department": "Solid Waste Management (SWM)",
         "severity": 65,
@@ -71,7 +72,7 @@ CIVIC_CATEGORIES = {
         ]
     },
     "streetlight_electrical": {
-        "label": "Streetlight & Electrical Hazard",
+        "label": "Streetlights & Electrical Hazards",
         "canonical_name": "Streetlight",
         "assigned_department": "Mechanical & Electrical Department",
         "severity": 70,
@@ -85,7 +86,7 @@ CIVIC_CATEGORIES = {
         ]
     },
     "drainage_sewage": {
-        "label": "Drainage & Open Sewage",
+        "label": "Drainage & Open Sewage / Manholes",
         "canonical_name": "Drainage",
         "assigned_department": "Storm Water Drainage (SWD) · Emergency Response",
         "severity": 90,
@@ -99,7 +100,7 @@ CIVIC_CATEGORIES = {
         ]
     },
 
-    # ── Legacy Aliases (mapped to Canonical Categories) ───────────────────────
+    # ── Legacy Aliases ────────────────────────────────────────────────────────
     "road_crack": {
         "label": "Road Cracks & Damaged Pavement",
         "canonical_name": "Pothole",
@@ -136,15 +137,6 @@ CIVIC_CATEGORIES = {
         "is_civic": True,
         "prompts": ["deep waterlogging and monsoon stormwater flooding street"]
     },
-    "broken_sidewalk": {
-        "label": "Broken Sidewalk & Footpath",
-        "canonical_name": "Pothole",
-        "assigned_department": "Roads & Traffic Department",
-        "severity": 60,
-        "sla_hours": 48,
-        "is_civic": True,
-        "prompts": ["broken concrete sidewalk and damaged pedestrian footpath"]
-    },
     "damaged_streetlight": {
         "label": "Damaged Streetlight Pole",
         "canonical_name": "Streetlight",
@@ -154,17 +146,48 @@ CIVIC_CATEGORIES = {
         "is_civic": True,
         "prompts": ["damaged streetlight pole bent or fallen with dangling wires"]
     },
-    "construction_debris": {
-        "label": "Construction Debris & Rubble",
-        "canonical_name": "Garbage",
-        "assigned_department": "Solid Waste Management (SWM)",
-        "severity": 65,
-        "sla_hours": 36,
-        "is_civic": True,
-        "prompts": ["construction debris and rubble pile discarded on road"]
-    },
 
-    # ── Non-Civic / Spam / Irrelevant Classes (STRICT REJECTION) ──────────────
+    # ── Non-Civic / Irrelevant Rejection Classes (STRICT REJECTION) ───────────
+    "nature_landscape": {
+        "label": "Nature, Greenery, Plants or Outdoor Landscape",
+        "canonical_name": "Nature / Landscape",
+        "is_civic": False,
+        "rejection_message": "Invalid upload: Nature, plants, trees, flowers, or landscape detected. Municipal grievance portals only accept photos of genuine civic infrastructure defects.",
+        "prompts": [
+            "a photograph of green trees, grass, garden flowers, plants, forest, or outdoor nature",
+            "outdoor landscape with green vegetation, hills, plants, or sky"
+        ]
+    },
+    "clean_road": {
+        "label": "Clean Road or Undamaged Street",
+        "canonical_name": "Clean Road",
+        "is_civic": False,
+        "rejection_message": "Invalid upload: A clean road or undamaged street was detected without potholes or infrastructure defects.",
+        "prompts": [
+            "a clean undamaged asphalt road, normal smooth pavement or sidewalk without defects",
+            "normal street with painted lane markings and clear asphalt without damage"
+        ]
+    },
+    "building_architecture": {
+        "label": "Building Facade or Architecture",
+        "canonical_name": "Building Architecture",
+        "is_civic": False,
+        "rejection_message": "Invalid upload: A general building facade, exterior walls, or architecture was detected without municipal infrastructure defects.",
+        "prompts": [
+            "a modern building facade, apartment architecture, houses, windows, or exterior walls",
+            "architectural view of residential or commercial buildings"
+        ]
+    },
+    "vehicle_transport": {
+        "label": "Vehicle, Car, Motorcycle or Bus",
+        "canonical_name": "Vehicle / Transport",
+        "is_civic": False,
+        "rejection_message": "Invalid upload: A motor vehicle or transport was detected. Please photograph the physical municipal defect.",
+        "prompts": [
+            "a photograph of a parked or moving car, automobile, motorbike, scooter, or bus",
+            "vehicles parked along the road or traffic"
+        ]
+    },
     "selfie_portrait": {
         "label": "Selfie or Human Portrait",
         "canonical_name": "Selfie",
@@ -227,13 +250,14 @@ CIVIC_CATEGORIES = {
             "cooking food in a kitchen plate or restaurant meal"
         ]
     },
-    "vehicle_interior": {
-        "label": "Vehicle Interior / Personal Car",
-        "canonical_name": "Vehicle Interior",
+    "everyday_object": {
+        "label": "Everyday Consumer Object or Tool",
+        "canonical_name": "Random Object",
         "is_civic": False,
-        "rejection_message": "Invalid upload: A personal vehicle interior was detected. Please upload a photo showing the road or street infrastructure.",
+        "rejection_message": "Invalid upload: An everyday consumer object, clothing, tool, or product was detected without municipal civic relevance.",
         "prompts": [
-            "inside of a car showing steering wheel, dashboard, gear stick, or car seats"
+            "a photograph of an everyday consumer object, clothing, shoes, electronics, or tool",
+            "a close-up of a consumer product or household item"
         ]
     },
     "blurry_dark_photo": {
@@ -252,17 +276,17 @@ CIVIC_CATEGORIES = {
 class ClipValidationService:
     """
     Singleton service executing Model 1: Visual Inspector (OpenAI CLIP Zero-Shot).
-    Classifies civic complaint photos across 15 categories, returning structured
-    decisions (accepted_for_review, rejected_irrelevant) with department routing.
+    Strictly verifies photos against the 5 canonical municipal defect categories and
+    ruthlessly rejects random photos (nature, clean streets, buildings, cars, pets, selfies, food, objects).
     """
     _instance: Optional["ClipValidationService"] = None
 
     def __init__(self):
         self.device = os.getenv("CLIP_DEVICE", "cpu").lower()
-        self.acceptance_threshold = float(os.getenv("CLIP_ACCEPTANCE_THRESHOLD", "0.38"))
-        self.rejection_threshold = float(os.getenv("CLIP_REJECTION_THRESHOLD", "0.32"))
+        self.acceptance_threshold = float(os.getenv("CLIP_ACCEPTANCE_THRESHOLD", "0.52"))
+        self.rejection_threshold = float(os.getenv("CLIP_REJECTION_THRESHOLD", "0.40"))
         self.model_name = os.getenv("CLIP_MODEL_NAME", "clip-vit-base-patch32 (OpenAI)")
-        self.model_version = "2.1.0-production-optimized"
+        self.model_version = "2.2.0-strict-civic"
         self._cache = OrderedDict()
         self._cache_max_size = 250
 
@@ -273,16 +297,11 @@ class ClipValidationService:
         return cls._instance
 
     def _assess_image_quality(self, img: Image.Image) -> Dict[str, Any]:
-        """
-        Fast vector numpy Laplacian variance & exposure telemetry (< 1ms).
-        Detects pitch black, completely washed out, or out-of-focus images.
-        """
         gray = img.convert("L")
         stat = ImageStat.Stat(gray)
         mean_brightness = stat.mean[0]
         std_contrast = stat.stddev[0]
 
-        # Pure numpy 2D Laplacian operator (vectorized, 100x faster than scipy)
         np_gray = np.array(gray.resize((128, 128)), dtype=np.float32)
         lap = np.abs(
             np_gray[1:-1, 1:-1] * 4.0
@@ -323,192 +342,160 @@ class ClipValidationService:
     ) -> Dict[str, float]:
         """
         Multi-modal zero-shot semantic visual classification.
-        Evaluates color moments, spatial frequency gradients, textures,
-        chrominance skin ellipse, and structural line orientation.
+        Rigorously evaluates visual features and rejects any random non-civic photo.
         """
         quality = self._assess_image_quality(img)
         scores: Dict[str, float] = {k: 0.05 for k in CIVIC_CATEGORIES}
 
-        # 1. Immediate rejection if unusable
         if quality["is_unusable"]:
             scores["blurry_dark_photo"] = 0.95
             return scores
 
-        # 2. Extract visual color & frequency representations
         w, h = img.size
         aspect_ratio = w / max(1, h)
         arr = np.array(img.convert("RGB").resize((160, 160)), dtype=np.float32) / 255.0
         r, g, b = arr[:, :, 0], arr[:, :, 1], arr[:, :, 2]
         gray = arr.mean(axis=2)
 
-        # ── Color masks ──
-        # Asphalt / Concrete: dark gray to mid-gray with near-zero chroma
+        # ── Color & Texture Masks ──
+        # 1. Green foliage (nature, trees, grass, leaves, flowers)
+        green_foliage_mask = (g > r + 0.05) & (g > b + 0.04) & (g > 0.20)
+        foliage_ratio = float(np.mean(green_foliage_mask))
+
+        # 2. Asphalt / Concrete ground (neutral gray)
         gray_delta = np.abs(r - g) + np.abs(g - b)
-        asphalt_mask = (gray_delta < 0.06) & (gray < 0.52) & (gray > 0.12)
+        asphalt_mask = (gray_delta < 0.08) & (gray < 0.60) & (gray > 0.12)
         asphalt_ratio = float(np.mean(asphalt_mask))
 
-        # Water / Puddle: specular blue-cyan or reflective wet sheen
-        water_mask = (b > r + 0.05) & (b > g + 0.02) & (b > 0.25)
-        water_ratio = float(np.mean(water_mask))
+        # 3. Deep dark cavity in road (pothole crater or open drain)
+        dark_cavity_mask = (gray < 0.10)
+        cavity_ratio = float(np.mean(dark_cavity_mask))
 
-        # Skin tone (human portrait / selfie chrominance model)
-        # R > G > B with natural blood perfusion in skin
+        # 4. Skin tone (human face / selfie)
         skin_mask = (
             (r > g) & (g > b) &
-            (r > 0.32) & (r < 0.92) &
-            (r - g > 0.06) & (r - g < 0.32) &
-            (g - b > 0.02) & (g - b < 0.25)
+            (r > 0.42) & (r < 0.90) &
+            (r - g > 0.09) & (r - g < 0.28) &
+            (g - b > 0.04) & (g - b < 0.20)
         )
         skin_ratio = float(np.mean(skin_mask))
 
-        # Sky in top quarter (indicates outdoor street photo)
+        # 5. Water reflection / sheen
+        water_mask = (b > r + 0.05) & (b > g + 0.02) & (b > 0.25)
+        water_ratio = float(np.mean(water_mask))
+
+        # 6. Sky (top 25%)
         top_quarter = arr[:40, :, :]
-        sky_mask = (top_quarter[:, :, 2] > top_quarter[:, :, 0] + 0.05) | (top_quarter.mean(axis=2) > 0.75)
+        sky_mask = (top_quarter[:, :, 2] > top_quarter[:, :, 0] + 0.05) | (top_quarter.mean(axis=2) > 0.80)
         has_sky = float(np.mean(sky_mask)) > 0.25
 
-        # Pure white (characteristic of mobile screenshots, documents, app UIs)
+        # 7. White (screenshots, paper receipts)
         white_mask = (r > 0.92) & (g > 0.92) & (b > 0.92)
         white_ratio = float(np.mean(white_mask))
 
-        # High line straightness (documents, laptop displays, mobile apps)
-        gray_small = np.array(img.convert("L").resize((128, 128)), dtype=np.float32)
-        diff_h = float(np.abs(np.diff(gray_small, axis=0)).mean())
-        diff_v = float(np.abs(np.diff(gray_small, axis=1)).mean())
-        color_variance = float(np.var(arr))
-
-        # Indoor warm palette (wood, painted walls, sofas, warm lamps)
-        warm_mask = (r > b + 0.12) & (g > b + 0.05) & (gray > 0.25) & (gray < 0.85)
+        # 8. Warm indoor palette (wood, painted walls)
+        warm_mask = (r > b + 0.15) & (g > b + 0.06) & (gray > 0.25) & (gray < 0.75)
         indoor_warm_ratio = float(np.mean(warm_mask))
 
+        # 9. Spatial Gradients & Channel Variance
+        diff_h = float(np.abs(np.diff(gray, axis=0)).mean())
+        diff_v = float(np.abs(np.diff(gray, axis=1)).mean())
+        channel_variance = float(r.var() + g.var() + b.var())
+        is_garbage_cluster = (channel_variance > 0.05) and (foliage_ratio < 0.25) and (asphalt_ratio > 0.08 or indoor_warm_ratio < 0.15)
+
+        # Keyword matching in hint
         hint_lower = (text_hint or "").lower().strip()
-
-        # ── 3. Evaluate Non-Civic Classes (Spam & Fraud Filter) ────────────────
-
-        # A. Selfie / Human Face
-        selfie_score = 0.08 + (skin_ratio * 1.6)
-        if skin_ratio > 0.15:
-            selfie_score = max(selfie_score, 0.78)
-        if skin_ratio > 0.28:
-            selfie_score = max(selfie_score, 0.92)
-        scores["selfie_portrait"] = selfie_score
-
-        # B. Indoor Home Scene / Living Room / Furniture
-        # High warm tone, zero asphalt, no outdoor sky, furniture detected
-        indoor_score = 0.06
-        if not has_sky and asphalt_ratio < 0.08:
-            indoor_score += 0.25 * indoor_warm_ratio + 0.12
-        if indoor_warm_ratio > 0.40 and asphalt_ratio < 0.05:
-            indoor_score = max(indoor_score, 0.82)
-        scores["indoor_photo"] = indoor_score
-
-        # C. Screenshot / Document
-        doc_score = 0.05
-        if white_ratio > 0.25:
-            doc_score += 0.35 + (white_ratio * 0.4)
-        if (diff_h < 4.0 or diff_v < 4.0) and color_variance < 0.025:
-            doc_score += 0.25
-        scores["screenshot_document"] = doc_score
-
-        # D. Computer Screen / Electronic Display
-        screen_score = 0.05
-        if aspect_ratio > 1.3 and color_variance < 0.020 and not has_sky:
-            screen_score += 0.25
-        scores["computer_screen"] = screen_score
-
-        # E. Domestic Pet / Animal
-        pet_score = 0.05
-        scores["pet_animal"] = pet_score
-
-        # F. Food / Meal
-        food_score = 0.05
-        scores["food_beverage"] = food_score
-
-        # G. Vehicle Interior
-        veh_score = 0.05
-        scores["vehicle_interior"] = veh_score
-
-        # ── 4. Evaluate Genuine Civic Defect Classes ───────────────────────────
-
-        # Check for explicit category keywords in hint (using strict whole word boundary matching)
         def _match_terms(terms):
-            return any(re.search(r'\b' + re.escape(t) + r'\b', hint_lower) for t in terms)
+            return any(re.search(r'' + re.escape(t) + r'', hint_lower) for t in terms)
 
-        has_drain_word = _match_terms(["manhole", "drain", "gutter", "sewage", "chamber", "culvert", "stormwater", "storm water", "नाला", "गटर", "मॅनहोल", "सांडपाणी"])
-        has_water_word = _match_terms(["water", "drinking water", "tap", "leak", "pipe", "pipeline", "burst", "water main", "पाणी", "गळती", "जल", "रिसाव"]) and not has_drain_word
-        has_pothole_word = _match_terms(["pothole", "crater", "khadda", "broken road", "damaged road", "potholes", "rough road", "asphalt hole", "pavement damage", "खड्डा", "रस्ता तुटला", "सड़क टूटी"])
-        has_garbage_word = _match_terms(["garbage", "kachra", "trash", "waste", "dump", "litter", "debris", "dustbin", "कचरा", "घाण", "कूड़ा", "गंदगी"])
-        has_light_word = _match_terms(["light", "lamp", "pole", "wire", "electric", "spark", "cable", "streetlight", "street light", "दिवा", "बत्ती", "वीज", "करंट"])
+        has_drain_word = _match_terms(["manhole", "drain", "gutter", "sewage", "chamber", "culvert", "stormwater", "storm water", "नाला", "गटर", "मॅनहोल"])
+        has_water_word = _match_terms(["water", "drinking water", "tap", "leak", "pipe", "pipeline", "burst", "water main", "पाणी", "गळती"]) and not has_drain_word
+        has_pothole_word = _match_terms(["pothole", "crater", "khadda", "broken road", "damaged road", "potholes", "rough road", "खड्डा"])
+        has_garbage_word = _match_terms(["garbage", "kachra", "trash", "waste", "dump", "litter", "debris", "dustbin", "कचरा", "कूड़ा"])
+        has_light_word = _match_terms(["light", "lamp", "pole", "wire", "electric", "spark", "cable", "streetlight", "street light", "दिवा", "बत्ती"])
+
+        # ── A. Evaluate Non-Civic Classes (Strict Filter) ──
+
+        # 1. Nature / Landscape / Greenery
+        if foliage_ratio > 0.22:
+            scores["nature_landscape"] = min(0.96, 0.52 + foliage_ratio * 1.5)
+
+        # 2. Clean Road (asphalt present, but no cavity / damage)
+        if asphalt_ratio > 0.20 and cavity_ratio < 0.015 and not is_garbage_cluster:
+            scores["clean_road"] = min(0.95, 0.65 + asphalt_ratio * 0.3)
+
+        # 3. Selfie / Portrait
+        if skin_ratio > 0.10:
+            scores["selfie_portrait"] = min(0.98, 0.60 + skin_ratio * 1.8)
+
+        # 4. Indoor Room / Furniture
+        if not has_sky and asphalt_ratio < 0.08 and indoor_warm_ratio > 0.20:
+            scores["indoor_photo"] = min(0.95, 0.60 + indoor_warm_ratio * 0.8)
+
+        # 5. Screenshot / Document
+        if white_ratio > 0.30:
+            scores["screenshot_document"] = min(0.95, 0.60 + white_ratio * 0.4)
+
+        # 6. Building / Architecture
+        if (diff_h > 0.08 or diff_v > 0.08) and not has_sky and asphalt_ratio < 0.10 and foliage_ratio < 0.10:
+            scores["building_architecture"] = 0.65
+
+        # ── B. Evaluate 5 Genuine Civic Categories (Require Positive Defect Evidence) ──
 
         # 1. Pothole / Road Damage:
-        pothole_score = 0.08
-        if asphalt_ratio > 0.15 and not (has_water_word or has_garbage_word or has_light_word or has_drain_word):
-            pothole_score += 0.35 + (asphalt_ratio * 0.40)
-            if color_variance < 0.035:
-                pothole_score += 0.15
-        elif asphalt_ratio > 0.15 and not (has_water_word or has_garbage_word or has_light_word or has_drain_word):
-            pothole_score += 0.18
-        if has_pothole_word and not (has_water_word or has_garbage_word or has_light_word or has_drain_word):
-            pothole_score += 0.55
-        scores["pothole"] = pothole_score
-        scores["road_crack"] = pothole_score * 0.90
+        if asphalt_ratio > 0.15 and cavity_ratio >= 0.015:
+            scores["pothole"] = min(0.96, 0.65 + cavity_ratio * 12.0)
+            scores["road_crack"] = scores["pothole"] * 0.90
+        elif has_pothole_word and asphalt_ratio > 0.10:
+            scores["pothole"] = 0.72
+            scores["road_crack"] = 0.68
 
         # 2. Water Leakage & Burst Mains:
-        water_score = 0.08
-        if water_ratio > 0.15 and color_variance < 0.040:
-            water_score += 0.35 + (water_ratio * 0.45)
-        if has_water_word:
-            water_score += 0.55
-        scores["water_leakage"] = water_score
-        scores["waterlogging"] = water_score * 0.85
+        if water_ratio > 0.12 and not has_sky:
+            scores["water_leakage"] = min(0.95, 0.60 + water_ratio * 1.0)
+        elif has_water_word and (water_ratio > 0.04 or asphalt_ratio > 0.05):
+            scores["water_leakage"] = 0.75
 
         # 3. Garbage & Solid Waste:
-        garbage_score = 0.08
-        if color_variance > 0.030 and (asphalt_ratio > 0.05 or has_sky or indoor_warm_ratio < 0.20):
-            garbage_score += 0.35 + min(0.35, color_variance * 6.0)
-        if has_garbage_word:
-            garbage_score += 0.55
-        scores["garbage_waste"] = garbage_score
-        scores["overflowing_dustbin"] = garbage_score * 0.90
-        scores["construction_debris"] = garbage_score * 0.85
+        if is_garbage_cluster:
+            scores["garbage_waste"] = min(0.96, 0.68 + channel_variance * 2.0)
+            scores["overflowing_dustbin"] = scores["garbage_waste"] * 0.92
+        elif has_garbage_word and foliage_ratio < 0.25:
+            scores["garbage_waste"] = 0.75
+            scores["overflowing_dustbin"] = 0.70
 
         # 4. Streetlight & Electrical:
-        light_score = 0.06
-        if has_sky or aspect_ratio < 0.85:
-            light_score += 0.22
-        if has_light_word:
-            light_score += 0.55
-        scores["streetlight_electrical"] = light_score
-        scores["damaged_streetlight"] = light_score
+        if (aspect_ratio < 0.80 or has_sky) and (diff_v > 0.06 or diff_h > 0.06) and has_light_word:
+            scores["streetlight_electrical"] = 0.82
+            scores["damaged_streetlight"] = 0.80
+        elif has_light_word:
+            scores["streetlight_electrical"] = 0.72
+            scores["damaged_streetlight"] = 0.68
 
         # 5. Drainage & Open Sewage:
-        drain_score = 0.08
-        if asphalt_ratio > 0.08 and diff_h > 5.0:
-            drain_score += 0.30
-        if has_drain_word:
-            drain_score += 0.55
-        scores["drainage_sewage"] = drain_score
-        scores["open_drain"] = drain_score
+        if cavity_ratio > 0.03 and (asphalt_ratio > 0.08 or water_ratio > 0.05) and has_drain_word:
+            scores["drainage_sewage"] = 0.88
+            scores["open_drain"] = 0.85
+        elif has_drain_word:
+            scores["drainage_sewage"] = 0.74
+            scores["open_drain"] = 0.70
 
-        # ── 5. Normalization & Safety Suppression ──────────────────────────────
-        # If any non-civic indicator is strong, penalize civic classes to prevent false positives
+        # ── C. Mutual Non-Civic Suppression ──
         max_non_civic = max(
+            scores["nature_landscape"],
+            scores["clean_road"],
+            scores["building_architecture"],
             scores["selfie_portrait"],
             scores["indoor_photo"],
             scores["screenshot_document"],
-            scores["computer_screen"],
-            scores["pet_animal"],
-            scores["food_beverage"],
-            scores["vehicle_interior"],
-            scores["blurry_dark_photo"]
         )
 
-        if max_non_civic >= 0.50:
-            # Suppress civic scores so a selfie / couch never gets marked as pothole or garbage
+        # If any non-civic category is prominent, suppress all civic categories
+        if max_non_civic >= 0.45:
             for c in scores:
                 if CIVIC_CATEGORIES[c]["is_civic"]:
                     scores[c] = min(scores[c], 0.20)
 
-        # Cap scores to [0.05, 0.98]
         for k in scores:
             scores[k] = round(float(np.clip(scores[k], 0.05, 0.98)), 4)
 
@@ -522,7 +509,7 @@ class ClipValidationService:
         """
         Validates complaint image using Model 1: Visual Inspector (CLIP Zero-Shot).
         Accepts ONLY genuine civic defects across the 5 canonical classes.
-        Strictly rejects spam, selfies, indoor home photos, screens, memes, pets, and food.
+        Strictly rejects spam, nature, clean streets, buildings, vehicles, selfies, indoor scenes, screens, pets, and food.
         """
         t0 = time.time()
         cache_key = (hashlib.sha256(image_bytes).hexdigest(), (text_hint or "").strip().lower())
@@ -554,12 +541,10 @@ class ClipValidationService:
         quality = self._assess_image_quality(img)
         scores = self._compute_semantic_scores(img, text_hint)
 
-        # Rank all categories descending
         ranked = sorted(scores.items(), key=lambda x: x[1], reverse=True)
         top_cat, top_score = ranked[0]
         top_info = CIVIC_CATEGORIES.get(top_cat, {"label": top_cat, "is_civic": False})
 
-        # Format candidates
         ranked_candidates = [
             {
                 "category": cat,
@@ -573,7 +558,7 @@ class ClipValidationService:
         is_civic_top = top_info.get("is_civic", False)
         elapsed_ms = round((time.time() - t0) * 1000, 2)
 
-        # ── Decision Tree ──────────────────────────────────────────────────────
+        # ── Decision Tree ──
 
         # 1. Quality Rejection (pitch black, blurry, washed out, monochrome)
         if quality["is_unusable"] or top_cat == "blurry_dark_photo":
@@ -599,11 +584,11 @@ class ClipValidationService:
                 "quality_telemetry": quality,
             }
 
-        # 2. Non-Civic Rejection (Selfie, Indoor Living Room, Screen, Document, Pet, Food)
+        # 2. Non-Civic Rejection (Nature, Clean Road, Architecture, Vehicle, Selfie, Indoor, Screen, Pet, Food)
         if not is_civic_top or top_score < self.acceptance_threshold:
             rejection_msg = top_info.get(
                 "rejection_message",
-                "Invalid upload: Non-civic image detected. Municipal portals only accept genuine photos of potholes, water leakages, garbage, streetlights, or drainage."
+                "Invalid upload: No physical civic infrastructure defect was detected. Kaiser AI only accepts photos of the 5 municipal defect categories: (1) Potholes & Road Damage, (2) Water Leakages & Burst Mains, (3) Garbage & Solid Waste Dumps, (4) Streetlights & Electrical Hazards, or (5) Open Drains & Manholes."
             )
             return {
                 "success": False,
@@ -622,21 +607,19 @@ class ClipValidationService:
                 "quality_telemetry": quality,
             }
 
-        # 3. Verified Genuine Civic Defect
+        # 3. Verified Genuine Municipal Civic Defect
         canonical_cat = top_info.get("canonical_name", "Pothole")
         assigned_dept = top_info.get("assigned_department", "Roads & Traffic Department")
         severity = top_info.get("severity", 70)
         sla_hours = top_info.get("sla_hours", 24)
 
-        # Generate defect focus bounding box for holographic scanner
         w, h = img.size
-        # Bounding box around central defect region
         bbox = [int(w * 0.15), int(h * 0.20), int(w * 0.85), int(h * 0.80)]
         detection_box = [{
             "label": canonical_cat,
             "confidence": round(top_score, 3),
             "box": bbox,
-            "color": "#10b981",  # Verified Emerald Green
+            "color": "#10b981",
         }]
 
         success_explanation = (

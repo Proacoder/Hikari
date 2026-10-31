@@ -1,8 +1,8 @@
 import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
 
 const ThemeContext = createContext({
-  theme: 'dark',
-  isDark: true,
+  theme: 'light',
+  isDark: false,
   toggleTheme: () => {},
   setTheme: () => {},
 });
@@ -10,14 +10,15 @@ const ThemeContext = createContext({
 export const ThemeProvider = ({ children }) => {
   const [theme, setThemeState] = useState(() => {
     try {
-      const stored = localStorage.getItem('kaiser_theme');
-      if (stored === 'light' || stored === 'dark') return stored;
-      if (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) {
-        return 'dark';
+      const userChoice = localStorage.getItem('kaiser_theme_user_set');
+      if (userChoice === 'true') {
+        const stored = localStorage.getItem('kaiser_theme');
+        if (stored === 'light' || stored === 'dark') return stored;
       }
-      return 'dark'; // Default platform aesthetic
+      // Light mode is the default mode
+      return 'light';
     } catch {
-      return 'dark';
+      return 'light';
     }
   });
 
@@ -34,6 +35,7 @@ export const ThemeProvider = ({ children }) => {
     }
     try {
       localStorage.setItem('kaiser_theme', newTheme);
+      localStorage.setItem('kaiser_theme_user_set', 'true');
     } catch {
       // Ignore localStorage errors in private mode
     }

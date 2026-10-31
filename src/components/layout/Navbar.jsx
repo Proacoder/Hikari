@@ -1,7 +1,7 @@
 // ─── Sovereign Civic Adaptive Navbar (Light & Dark Mode) ───────────────────────
 import { useState, useEffect, useRef, useLayoutEffect, useMemo } from 'react';
 import { Link, NavLink, useNavigate, useLocation } from 'react-router-dom';
-import { Menu, X, Globe, ChevronDown, Bell, Search, Volume2, VolumeX, Sun, Moon } from 'lucide-react';
+import { Menu, X, Globe, ChevronDown, Bell, Search, Volume2, VolumeX, Sun, Moon, LogOut } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 import { useLanguage } from '../../context/LanguageContext';
 import { useNotifications } from '../../context/NotificationContext';
@@ -28,7 +28,7 @@ export const Navbar = () => {
   const langRef = useRef(null);
   const location = useLocation();
   const isHome = location.pathname === '/';
-  const navIsDark = isDark || (isHome && !scrolled);
+  const navIsDark = isDark;
 
   const userInitials = useMemo(() => {
     if (!user) return '';
@@ -112,10 +112,10 @@ export const Navbar = () => {
               : 'bg-white/90 backdrop-blur-xl border-neutral-200/80 text-neutral-900 shadow-[0_8px_24px_rgba(0,0,0,0.06)]'
         )}
       >
-        <div className="px-3 sm:px-5">
+        <div className="px-3 sm:px-6">
           <div className={classNames('flex items-center justify-between transition-all duration-300', scrolled ? 'h-14' : 'h-16')}>
             {/* Logo */}
-            <Link to="/" className="flex items-center gap-2.5 shrink-0 group mr-4 sm:mr-6 lg:mr-8 xl:mr-10" onClick={() => sound.play('click')}>
+            <Link to="/" className="flex items-center gap-2.5 shrink-0 group mr-2 sm:mr-4 lg:mr-6" onClick={() => sound.play('click')}>
               <div className="relative w-10 h-10 rounded-xl bg-white shadow-brand flex items-center justify-center p-0.5 overflow-hidden group-hover:scale-105 group-hover:rotate-2 transition-all duration-300">
                 <img src="/kaiser-mark.png" alt="Kaiser AI" className="w-full h-full object-contain" />
                 <span className="absolute inset-0 bg-gradient-to-tr from-transparent via-white/70 to-transparent translate-x-[-120%] group-hover:translate-x-[120%] transition-transform duration-700" />
@@ -172,7 +172,7 @@ export const Navbar = () => {
                 title="Spotlight Search (Ctrl+K)"
               >
                 <Search size={14} className={navIsDark ? 'text-white/70' : 'text-neutral-500'} />
-                <span className="hidden xl:inline font-semibold whitespace-nowrap">{t('nav.quickFind', 'Quick Find')}</span>
+                <span className="hidden 2xl:inline font-semibold whitespace-nowrap">{t('nav.quickFind', 'Quick Find')}</span>
                 <kbd className={classNames(
                   'hidden 2xl:inline-block px-1.5 py-0.5 text-[9px] font-mono font-bold rounded border shadow-xs',
                   navIsDark ? 'border-white/20 bg-white/15 text-white/80' : 'border-neutral-300 bg-white text-neutral-600'
@@ -348,17 +348,17 @@ export const Navbar = () => {
                     {t('nav.dashboard', 'Dashboard')}
                   </button>
 
-                  <div className={classNames('flex items-center gap-2 pl-2 border-l shrink-0', navIsDark ? 'border-white/20' : 'border-neutral-200')}>
+                  <div className={classNames('flex items-center gap-1.5 pl-2 border-l shrink-0', navIsDark ? 'border-white/20' : 'border-neutral-200')}>
                     <button
                       onClick={() => navigate(dashboardPath)}
                       className={classNames(
-                        'flex items-center p-1 rounded-xl transition-all cursor-pointer group shrink-0',
-                        navIsDark ? 'hover:bg-white/10' : 'hover:bg-neutral-100'
+                        'flex items-center p-0.5 rounded-full transition-all cursor-pointer group shrink-0 ring-2 ring-emerald-500/30',
+                        navIsDark ? 'hover:ring-emerald-400' : 'hover:ring-emerald-600'
                       )}
                       title={`Logged in as ${user.name || user.email} (${user.role || 'Citizen'})`}
                       aria-label="User Profile"
                     >
-                      <div className="w-8 h-8 rounded-full bg-gradient-to-tr from-emerald-500 to-teal-400 text-neutral-950 flex items-center justify-center font-bold text-xs shrink-0 shadow-sm ring-2 ring-emerald-500/30">
+                      <div className="w-7 h-7 rounded-full bg-gradient-to-tr from-emerald-500 to-teal-400 text-neutral-950 flex items-center justify-center font-bold text-xs shrink-0 shadow-sm">
                         {userInitials}
                       </div>
                     </button>
@@ -366,12 +366,15 @@ export const Navbar = () => {
                     <button
                       onClick={handleLogout}
                       className={classNames(
-                        'text-xs font-semibold px-2.5 py-1.5 rounded-xl transition-colors cursor-pointer whitespace-nowrap shrink-0',
-                        navIsDark ? 'text-white/70 hover:text-rose-400 hover:bg-rose-500/10' : 'text-neutral-600 hover:text-rose-600 hover:bg-rose-50'
+                        'flex items-center gap-1 text-xs font-semibold px-2.5 py-1 rounded-xl transition-colors cursor-pointer whitespace-nowrap shrink-0',
+                        navIsDark
+                          ? 'text-white/80 hover:text-rose-400 hover:bg-rose-500/15'
+                          : 'text-neutral-700 hover:text-rose-600 hover:bg-rose-50'
                       )}
                       title={t('nav.signOut', 'Sign Out')}
                     >
-                      {t('nav.signOut', 'Sign Out')}
+                      <LogOut size={13} className="shrink-0" />
+                      <span>{t('nav.signOut', 'Sign Out')}</span>
                     </button>
                   </div>
                 </div>

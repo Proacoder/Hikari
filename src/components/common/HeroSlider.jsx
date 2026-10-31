@@ -131,7 +131,7 @@ export const HeroSlider = ({ stats, weather }) => {
 
   const slides = [
     {
-      img: '/hero/slide-1.jpg',
+      img: '/hero/mumbai-night-skyline.jpg',
       eyebrow: t('hero.slide1.eyebrow', 'SOVEREIGN AI-DRIVEN CIVIC GOVERNANCE'),
       l1: t('hero.slide1.l1', 'Fix Mumbai'),
       l2: t('hero.slide1.l2', 'one report at a time.'),
@@ -146,7 +146,7 @@ export const HeroSlider = ({ stats, weather }) => {
       ],
     },
     {
-      img: '/hero/slide-2.jpg',
+      img: '/hero/mumbai-night-skyline.jpg',
       eyebrow: t('hero.slide2.eyebrow', 'REAL-TIME 24 WARDS GIS TELEMETRY'),
       l1: t('hero.slide2.l1', 'Every ward.'),
       l2: t('hero.slide2.l2', 'Every issue. Live.'),
@@ -161,7 +161,7 @@ export const HeroSlider = ({ stats, weather }) => {
       ],
     },
     {
-      img: '/hero/slide-3.jpg',
+      img: '/hero/mumbai-night-skyline.jpg',
       eyebrow: t('hero.slide3.eyebrow', 'MONSOON READINESS & FLOOD TELEMETRY'),
       l1: t('hero.slide3.l1', 'Flood alerts'),
       l2: t('hero.slide3.l2', 'before the water arrives.'),
@@ -176,7 +176,7 @@ export const HeroSlider = ({ stats, weather }) => {
       ],
     },
     {
-      img: '/hero/slide-4.jpg',
+      img: '/hero/mumbai-night-skyline.jpg',
       eyebrow: t('hero.slide4.eyebrow', 'CITIZEN INCENTIVES & CLEAN WARDS'),
       l1: t('hero.slide4.l1', 'Be the citizen'),
       l2: t('hero.slide4.l2', 'Mumbai deserves.'),
@@ -191,7 +191,7 @@ export const HeroSlider = ({ stats, weather }) => {
       ],
     },
     {
-      img: '/hero/slide-5.jpg',
+      img: '/hero/mumbai-night-skyline.jpg',
       eyebrow: t('hero.slide5.eyebrow', 'TIME-BOUND ACCOUNTABILITY'),
       l1: t('hero.slide5.l1', 'Real SLAs.'),
       l2: t('hero.slide5.l2', 'Real accountability.'),
@@ -282,14 +282,7 @@ export const HeroSlider = ({ stats, weather }) => {
               <img src={s.img} alt="" className="kb w-full h-full object-cover" />
             </div>
 
-            {/* Flash Transition */}
-            {active && (
-              <div
-                key={cycle}
-                className="absolute inset-0 bg-white/20 pointer-events-none"
-                style={{ animation: 'flash .75s ease-out forwards' }}
-              />
-            )}
+{/* Seamless smooth slide transition */}
 
             {/* Deep Cinematic Contrast Gradients */}
             <div className="absolute inset-0 bg-gradient-to-r from-neutral-950/90 via-neutral-950/65 to-neutral-950/20" />
