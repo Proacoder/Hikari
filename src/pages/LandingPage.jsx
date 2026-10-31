@@ -409,8 +409,8 @@ export const LandingPage = () => {
       </div>
 
       {/* ── SECTION 4: Zero-Touch Triage Architecture & Interactive Simulation ── */}
-      <section className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mt-5 sm:mt-6">
-        <Reveal className="text-center max-w-2xl mx-auto px-4 mb-6 sm:mb-8">
+      <section className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mt-10 sm:mt-14 lg:mt-16">
+        <Reveal className="text-center max-w-2xl mx-auto px-4 mb-10 sm:mb-12 lg:mb-14">
           <p className={classNames(
             "text-xs font-mono font-bold tracking-[.3em] uppercase flex items-center justify-center gap-2",
             isDark ? "text-emerald-400" : "text-emerald-700"

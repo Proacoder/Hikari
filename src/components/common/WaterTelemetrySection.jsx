@@ -109,7 +109,7 @@ export const WaterTelemetrySection = () => {
   };
 
   return (
-    <section className="relative w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-0 pb-1 sm:pb-2 select-none">
+    <section className="relative w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-0 pb-3 sm:pb-5 select-none">
       
       {/* ── Section Header with Cyber Accent ── */}
       <div className="flex flex-col md:flex-row md:items-end justify-between gap-4 pb-4 border-b border-neutral-200 dark:border-white/10">
