@@ -102,7 +102,7 @@ export const Navbar = () => {
       
       <div
         className={classNames(
-          'w-full max-w-[1100px] xl:max-w-[1180px] mx-auto rounded-2xl border transition-all duration-300',
+          'w-full max-w-[1140px] xl:max-w-[1220px] 2xl:max-w-[1260px] mx-auto rounded-2xl border transition-all duration-300',
           navIsDark
             ? scrolled
               ? 'bg-neutral-950/92 backdrop-blur-xl border-white/20 text-white shadow-[0_16px_40px_rgba(0,0,0,0.7)]'
@@ -374,13 +374,12 @@ export const Navbar = () => {
                   </div>
                 </div>
               ) : (
-                <div className="flex flex-col items-stretch justify-center gap-0.5 sm:gap-1 shrink-0 pl-1.5 sm:pl-2 border-l border-neutral-200/80 dark:border-white/15 my-auto">
-                  {/* Row 1: Sign In */}
+                <div className="flex items-center gap-1.5 sm:gap-2 shrink-0 pl-2 lg:pl-2.5 border-l border-neutral-200/80 dark:border-white/15 my-auto">
                   <Link
                     to="/login"
                     onClick={() => sound.play('click')}
                     className={classNames(
-                      'px-2.5 py-0.5 rounded-md text-[10.5px] font-bold text-center transition-colors leading-tight whitespace-nowrap',
+                      'px-2.5 py-1.5 rounded-xl text-xs font-semibold transition-all whitespace-nowrap shrink-0',
                       navIsDark
                         ? 'text-white/85 hover:text-white hover:bg-white/10'
                         : 'text-neutral-700 hover:text-neutral-950 hover:bg-neutral-100'
@@ -388,11 +387,10 @@ export const Navbar = () => {
                   >
                     {t('nav.signIn', 'Sign In')}
                   </Link>
-                  {/* Row 2: Sign Up */}
                   <Link
                     to="/register"
                     onClick={() => sound.play('click')}
-                    className="glow-btn relative overflow-hidden px-2.5 py-1 rounded-md bg-gradient-to-r from-emerald-500 via-brand-500 to-teal-400 text-neutral-950 font-black text-[10px] tracking-wider uppercase shadow-[0_0_12px_rgba(52,211,153,0.35)] hover:scale-[1.02] active:scale-95 transition-all text-center leading-tight whitespace-nowrap"
+                    className="glow-btn relative overflow-hidden px-3.5 py-1.5 rounded-xl bg-gradient-to-r from-emerald-500 via-brand-500 to-teal-400 text-neutral-950 font-black text-xs tracking-wider uppercase shadow-[0_0_14px_rgba(52,211,153,0.35)] hover:scale-105 active:scale-95 transition-all whitespace-nowrap shrink-0"
                   >
                     {t('nav.signUp', 'Sign Up')}
                   </Link>
