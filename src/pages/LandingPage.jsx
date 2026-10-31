@@ -620,7 +620,7 @@ export const LandingPage = () => {
       </section>
 
       {/* ── SECTION 5: NEW! Interactive Multilingual Voice & AI Triage Simulator ── */}
-      <section className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mt-6 sm:mt-8">
+      <section className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mt-12 sm:mt-16 lg:mt-20">
         <div className={classNames(
           "rounded-3xl p-6 sm:p-10 shadow-2xl relative overflow-hidden transition-all",
           isDark
@@ -772,7 +772,7 @@ export const LandingPage = () => {
       </section>
 
       {/* ── SECTION 6: NEW! Mumbai 24 Wards Performance Matrix & SLA Leaderboard ── */}
-      <section className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mt-6 sm:mt-8">
+      <section className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mt-12 sm:mt-16 lg:mt-20">
         <div className="flex flex-col md:flex-row md:items-end justify-between gap-4 mb-8">
           <div>
             <div className="inline-flex items-center gap-2 text-xs font-mono font-bold tracking-widest text-emerald-500 uppercase mb-2">
@@ -878,7 +878,7 @@ export const LandingPage = () => {
       </section>
 
       {/* ── SECTION 7: Live Ward Complaints Feed ── */}
-      <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-4">
+      <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mt-12 sm:mt-16 lg:mt-20">
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-6">
           <div>
             <div className="flex items-center gap-2 mb-1">
@@ -1042,7 +1042,7 @@ export const LandingPage = () => {
       </section>
 
       {/* ── SECTION 8: NEW! Civic Gamification & Rewards Showcase ── */}
-      <section className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mt-6 sm:mt-8">
+      <section className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mt-12 sm:mt-16 lg:mt-20">
         <div className={classNames(
           "grid lg:grid-cols-12 gap-8 items-center rounded-3xl border p-6 sm:p-10 shadow-2xl relative overflow-hidden transition-all",
           isDark
@@ -1114,7 +1114,7 @@ export const LandingPage = () => {
       </section>
 
       {/* ── SECTION 9: NEW! Frequently Asked Questions (Interactive Accordion) ── */}
-      <section className="relative max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
+      <section className="relative max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 mt-16 sm:mt-20 lg:mt-24">
         <Reveal className="text-center max-w-2xl mx-auto px-4 mb-10">
           <p className="text-xs font-mono font-bold tracking-[.3em] text-emerald-500 uppercase flex items-center justify-center gap-2">
             <HelpCircleIcon />
@@ -1170,7 +1170,7 @@ export const LandingPage = () => {
       </section>
 
       {/* ── SECTION 10: Emergency Response Helpline Protocol ── */}
-      <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mt-14 sm:mt-18 lg:mt-20">
         <div className="bg-gradient-to-r from-neutral-950 via-neutral-900 to-neutral-950 text-white rounded-3xl p-6 sm:p-10 border border-neutral-800 shadow-2xl flex flex-col lg:flex-row items-center justify-between gap-8 relative overflow-hidden">
           <div className="space-y-3 text-center lg:text-left">
             <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-red-500/20 border border-red-500/30 text-red-400 font-mono text-[10px] font-bold uppercase tracking-wider">
