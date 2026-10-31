@@ -57,6 +57,30 @@ export const CURATED_CIVIC_BULLETINS = [
     imageUrl: 'https://images.unsplash.com/photo-1515162816999-a0c47dc192f7?w=600&q=80',
     description: 'Ward engineering squads adopt cold-mix quick mastic asphalt technology to accelerate grievance closures for reported road defects.',
   },
+  {
+    title: 'BMC Water Supply Pipeline Modernization: New 1800mm Tansa Main Connection in Western Suburbs',
+    source: 'BMC Hydraulic Engineering Dept',
+    publishedAt: '2026-10-25T08:00:00Z',
+    url: 'https://www.mcgm.gov.in',
+    imageUrl: 'https://images.unsplash.com/photo-1541888946425-d0fbb186c5f7?w=600&q=80',
+    description: 'Upgrades to the primary municipal water distribution pipelines ensure steady potable water pressure across Bandra, Andheri, and Borivali.',
+  },
+  {
+    title: 'Clean Mumbai Campaign: BMC Deploys 120 Automated Mechanical Sweepers Across Island City',
+    source: 'BMC Solid Waste Management',
+    publishedAt: '2026-10-24T12:30:00Z',
+    url: 'https://www.mcgm.gov.in',
+    imageUrl: 'https://images.unsplash.com/photo-1618477388954-7852f32655ec?w=600&q=80',
+    description: 'New electric waste compactors and automated street scrubbers initiate nighttime cleaning corridors across Marine Drive, Colaba, and Dadar.',
+  },
+  {
+    title: 'IMD Doppler Radar Telemetry: Automated Sump Dewatering Stations Operational Along Mithi River',
+    source: 'BMC Disaster Management',
+    publishedAt: '2026-10-23T15:45:00Z',
+    url: 'https://www.mcgm.gov.in',
+    imageUrl: 'https://images.unsplash.com/photo-1509114397022-ed747cca3f65?w=600&q=80',
+    description: '64 high-capacity submersible dewatering pumps placed on active standby with real-time water depth sensors connected to 1916 Control Room.',
+  },
 ];
 
 export const CitizenDashboard = () => {
@@ -1491,8 +1515,8 @@ export const CitizenProfilePage = () => {
 // ── Civic News Portal Page ───────────────────────────────────────────────────
 export const CivicNewsPage = () => {
   const { t } = useLanguage();
-  const [articles, setArticles] = useState([]);
-  const [loading, setLoading] = useState(true);
+  const [articles, setArticles] = useState(CURATED_CIVIC_BULLETINS);
+  const [loading, setLoading] = useState(false);
   const [refreshing, setRefreshing] = useState(false);
   const [search, setSearch] = useState('');
   const [activeCategory, setActiveCategory] = useState('all');

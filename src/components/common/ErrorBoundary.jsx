@@ -11,12 +11,25 @@ export class ErrorBoundary extends React.Component {
     return { hasError: true, error };
   }
 
+  componentDidMount() {
+    window.addEventListener('popstate', this.handleReset);
+  }
+
+  componentWillUnmount() {
+    window.removeEventListener('popstate', this.handleReset);
+  }
+
+  handleReset = () => {
+    this.setState({ hasError: false, error: null, errorInfo: null });
+  };
+
   componentDidCatch(error, errorInfo) {
     console.error('ErrorBoundary caught an unhandled error:', error, errorInfo);
     this.setState({ errorInfo });
   }
 
   handleReload = () => {
+    this.setState({ hasError: false, error: null, errorInfo: null });
     window.location.reload();
   };
 
