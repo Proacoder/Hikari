@@ -23,6 +23,7 @@ const CitizenDashboard = lazy(() => import('./pages/CitizenPages').then(m => ({ 
 const ReportIssuePage = lazy(() => import('./pages/CitizenPages').then(m => ({ default: m.ReportIssuePage })));
 const MyComplaintsPage = lazy(() => import('./pages/CitizenPages').then(m => ({ default: m.MyComplaintsPage })));
 const IssueMapPage = lazy(() => import('./pages/CitizenPages').then(m => ({ default: m.IssueMapPage })));
+const CivicNewsPage = lazy(() => import('./pages/CitizenPages').then(m => ({ default: m.CivicNewsPage })));
 const CitizenProfilePage = lazy(() => import('./pages/CitizenPages').then(m => ({ default: m.CitizenProfilePage })));
 const ComplaintDetailPage = lazy(() => import('./pages/citizen/ComplaintDetailPage').then(m => ({ default: m.ComplaintDetailPage })));
 
