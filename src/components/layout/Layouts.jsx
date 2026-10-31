@@ -30,7 +30,7 @@ export const PublicLayout = () => {
     <div
       className={classNames(
         'flex flex-col min-h-screen transition-colors duration-300',
-        isDark || isHome
+        isDark
           ? 'bg-neutral-950 text-neutral-100 selection:bg-emerald-500/30 selection:text-emerald-200'
           : 'bg-slate-50 text-neutral-900 selection:bg-emerald-500/20 selection:text-emerald-800'
       )}

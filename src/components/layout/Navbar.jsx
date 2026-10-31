@@ -27,6 +27,8 @@ export const Navbar = () => {
   const navRef = useRef(null);
   const langRef = useRef(null);
   const location = useLocation();
+  const isHome = location.pathname === '/';
+  const navIsDark = isDark || (isHome && !scrolled);
 
   useEffect(() => {
     const handleOutsideClick = (e) => {
@@ -88,13 +90,13 @@ export const Navbar = () => {
       <div
         className={classNames(
           'max-w-7xl mx-auto rounded-2xl border transition-all duration-300',
-          isDark
+          navIsDark
             ? scrolled
               ? 'bg-neutral-950/92 backdrop-blur-xl border-white/20 text-white shadow-[0_16px_40px_rgba(0,0,0,0.7)]'
-              : 'bg-neutral-950/75 backdrop-blur-md border-white/15 text-white shadow-[0_8px_32px_rgba(0,0,0,0.45)]'
+              : 'bg-neutral-950/65 backdrop-blur-xl border-white/25 text-white shadow-[0_8px_32px_rgba(0,0,0,0.45)]'
             : scrolled
               ? 'bg-white/95 backdrop-blur-xl border-neutral-200/90 text-neutral-900 shadow-[0_16px_40px_rgba(0,0,0,0.12)]'
-              : 'bg-white/95 backdrop-blur-xl border-neutral-200/90 text-neutral-900 shadow-[0_12px_36px_rgba(0,0,0,0.25)]'
+              : 'bg-white/90 backdrop-blur-xl border-neutral-200/80 text-neutral-900 shadow-[0_8px_24px_rgba(0,0,0,0.06)]'
         )}
       >
         <div className="px-3 sm:px-5">
@@ -105,7 +107,7 @@ export const Navbar = () => {
                 <img src="/kaiser-mark.png" alt="Kaiser AI" className="w-full h-full object-contain" />
                 <span className="absolute inset-0 bg-gradient-to-tr from-transparent via-white/70 to-transparent translate-x-[-120%] group-hover:translate-x-[120%] transition-transform duration-700" />
               </div>
-              <span className={classNames('font-display font-extrabold text-lg tracking-tight', isDark ? 'text-white' : 'text-neutral-900')}>
+              <span className={classNames('font-display font-extrabold text-lg tracking-tight', navIsDark ? 'text-white' : 'text-neutral-900')}>
                 Kaiser<span className="bg-gradient-to-r from-emerald-500 to-teal-400 bg-clip-text text-transparent ml-0.5">AI</span>
               </span>
             </Link>
@@ -116,7 +118,7 @@ export const Navbar = () => {
                 aria-hidden
                 className={classNames(
                   'absolute top-0 bottom-0 rounded-xl transition-all duration-300 ease-out',
-                  isDark ? 'bg-white/10 shadow-xs border border-white/10' : 'bg-neutral-100/90 shadow-xs border border-neutral-200/60'
+                  navIsDark ? 'bg-white/10 shadow-xs border border-white/10' : 'bg-neutral-100/90 shadow-xs border border-neutral-200/60'
                 )}
                 style={{ left: pill.left, width: pill.width, opacity: pill.show ? 1 : 0 }}
               />
@@ -130,8 +132,8 @@ export const Navbar = () => {
                     classNames(
                       'relative z-10 px-3 lg:px-4 py-2 rounded-xl text-sm font-semibold transition-colors duration-200 whitespace-nowrap shrink-0 inline-block',
                       isActive
-                        ? isDark ? 'text-emerald-400 font-bold' : 'text-emerald-600 font-bold'
-                        : isDark ? 'text-white/80 hover:text-white' : 'text-neutral-600 hover:text-neutral-950'
+                        ? navIsDark ? 'text-emerald-400 font-bold' : 'text-emerald-600 font-bold'
+                        : navIsDark ? 'text-white/80 hover:text-white' : 'text-neutral-600 hover:text-neutral-950'
                     )
                   }
                 >
@@ -150,17 +152,17 @@ export const Navbar = () => {
                 }}
                 className={classNames(
                   'flex items-center gap-2 px-2.5 py-1.5 text-xs rounded-xl transition-all shadow-xs cursor-pointer active:scale-95',
-                  isDark
+                  navIsDark
                     ? 'border border-white/15 bg-white/10 hover:bg-white/15 text-white/90 hover:text-white'
                     : 'border border-neutral-200/80 bg-neutral-100/80 hover:bg-neutral-200/70 text-neutral-700'
                 )}
                 title="Spotlight Search (Ctrl+K)"
               >
-                <Search size={14} className={isDark ? 'text-white/70' : 'text-neutral-500'} />
+                <Search size={14} className={navIsDark ? 'text-white/70' : 'text-neutral-500'} />
                 <span className="hidden xl:inline font-semibold whitespace-nowrap">{t('nav.quickFind', 'Quick Find')}</span>
                 <kbd className={classNames(
                   'hidden 2xl:inline-block px-1.5 py-0.5 text-[9px] font-mono font-bold rounded border shadow-xs',
-                  isDark ? 'border-white/20 bg-white/15 text-white/80' : 'border-neutral-300 bg-white text-neutral-600'
+                  navIsDark ? 'border-white/20 bg-white/15 text-white/80' : 'border-neutral-300 bg-white text-neutral-600'
                 )}>
                   Ctrl K
                 </kbd>
@@ -174,18 +176,18 @@ export const Navbar = () => {
                 }}
                 className={classNames(
                   'p-2 rounded-xl transition-colors cursor-pointer',
-                  isDark ? 'text-white/70 hover:text-white hover:bg-white/10' : 'text-neutral-600 hover:text-neutral-900 hover:bg-neutral-100'
+                  navIsDark ? 'text-white/70 hover:text-white hover:bg-white/10' : 'text-neutral-600 hover:text-neutral-900 hover:bg-neutral-100'
                 )}
                 title={soundOn ? 'Sound Effects Active (Click to mute)' : 'Sound Effects Muted (Click to enable)'}
               >
-                {soundOn ? <Volume2 size={16} className={isDark ? 'text-emerald-400' : 'text-emerald-600'} /> : <VolumeX size={16} className={isDark ? 'text-white/40' : 'text-neutral-400'} />}
+                {soundOn ? <Volume2 size={16} className={navIsDark ? 'text-emerald-400' : 'text-emerald-600'} /> : <VolumeX size={16} className={navIsDark ? 'text-white/40' : 'text-neutral-400'} />}
               </button>
 
               {/* ── Sovereign Theme Mode Switcher (Light / Dark) ── */}
               <div
                 className={classNames(
                   'relative flex items-center p-1 rounded-full border transition-all duration-300 backdrop-blur-xl',
-                  isDark
+                  navIsDark
                     ? 'border-white/15 bg-neutral-900/90 shadow-[inset_0_1px_3px_rgba(0,0,0,0.5)]'
                     : 'border-neutral-200/90 bg-neutral-100/95 shadow-[inset_0_1px_3px_rgba(0,0,0,0.06)]'
                 )}
@@ -257,11 +259,11 @@ export const Navbar = () => {
                   }}
                   className={classNames(
                     'flex items-center gap-1.5 px-2.5 py-1.5 text-xs rounded-xl transition-colors cursor-pointer font-semibold',
-                    isDark ? 'text-white/80 hover:text-white hover:bg-white/10' : 'text-neutral-700 hover:text-neutral-900 hover:bg-neutral-100'
+                    navIsDark ? 'text-white/80 hover:text-white hover:bg-white/10' : 'text-neutral-700 hover:text-neutral-900 hover:bg-neutral-100'
                   )}
                   aria-label="Select language"
                 >
-                  <Globe size={14} className={isDark ? 'text-emerald-400' : 'text-emerald-600'} />
+                  <Globe size={14} className={navIsDark ? 'text-emerald-400' : 'text-emerald-600'} />
                   <span className="hidden sm:inline">{currentLangObj.native}</span>
                   <ChevronDown size={12} className={classNames('transition-transform', langOpen && 'rotate-180')} />
                 </button>
@@ -311,7 +313,7 @@ export const Navbar = () => {
                     onClick={toggleDrawer}
                     className={classNames(
                       'relative p-2 rounded-xl transition-colors cursor-pointer shrink-0',
-                      isDark ? 'text-white/80 hover:text-white hover:bg-white/10' : 'text-neutral-700 hover:text-neutral-900 hover:bg-neutral-100'
+                      navIsDark ? 'text-white/80 hover:text-white hover:bg-white/10' : 'text-neutral-700 hover:text-neutral-900 hover:bg-neutral-100'
                     )}
                     aria-label="Notifications"
                   >
@@ -327,18 +329,18 @@ export const Navbar = () => {
                     onClick={() => navigate(dashboardPath)}
                     className={classNames(
                       'hidden lg:inline-flex items-center px-3 py-1.5 rounded-xl text-xs font-semibold transition-colors cursor-pointer shrink-0 whitespace-nowrap',
-                      isDark ? 'text-white hover:bg-white/10' : 'text-neutral-800 hover:bg-neutral-100'
+                      navIsDark ? 'text-white hover:bg-white/10' : 'text-neutral-800 hover:bg-neutral-100'
                     )}
                   >
                     {t('nav.dashboard', 'Dashboard')}
                   </button>
 
-                  <div className={classNames('flex items-center gap-2 pl-2 border-l shrink-0', isDark ? 'border-white/20' : 'border-neutral-200')}>
+                  <div className={classNames('flex items-center gap-2 pl-2 border-l shrink-0', navIsDark ? 'border-white/20' : 'border-neutral-200')}>
                     <button
                       onClick={() => navigate(dashboardPath)}
                       className={classNames(
                         'flex items-center gap-2 px-2 py-1 rounded-xl transition-all cursor-pointer group text-left',
-                        isDark ? 'hover:bg-white/10' : 'hover:bg-neutral-100'
+                        navIsDark ? 'hover:bg-white/10' : 'hover:bg-neutral-100'
                       )}
                       title={`Logged in as ${user.name || user.email} (${user.role || 'Citizen'})`}
                     >
@@ -346,10 +348,10 @@ export const Navbar = () => {
                         {user.avatarInitials || (user.name ? user.name.slice(0, 2).toUpperCase() : 'U')}
                       </div>
                       <div className="flex flex-col text-left leading-tight max-w-[120px] lg:max-w-[160px] shrink-0">
-                        <span className={classNames('text-xs font-bold truncate whitespace-nowrap group-hover:text-emerald-400 transition-colors', isDark ? 'text-white' : 'text-neutral-900')}>
+                        <span className={classNames('text-xs font-bold truncate whitespace-nowrap group-hover:text-emerald-400 transition-colors', navIsDark ? 'text-white' : 'text-neutral-900')}>
                           {user.name || user.email?.split('@')[0] || 'User'}
                         </span>
-                        <span className={classNames('text-[10px] uppercase font-semibold tracking-wider truncate', isDark ? 'text-emerald-400/80' : 'text-emerald-600')}>
+                        <span className={classNames('text-[10px] uppercase font-semibold tracking-wider truncate', navIsDark ? 'text-emerald-400/80' : 'text-emerald-600')}>
                           {user.role || 'Citizen'}
                         </span>
                       </div>
@@ -359,7 +361,7 @@ export const Navbar = () => {
                       onClick={handleLogout}
                       className={classNames(
                         'text-xs font-semibold px-2 py-1.5 rounded-lg transition-colors cursor-pointer whitespace-nowrap shrink-0',
-                        isDark ? 'text-white/60 hover:text-rose-400 hover:bg-rose-500/10' : 'text-neutral-500 hover:text-rose-600 hover:bg-rose-50'
+                        navIsDark ? 'text-white/60 hover:text-rose-400 hover:bg-rose-500/10' : 'text-neutral-500 hover:text-rose-600 hover:bg-rose-50'
                       )}
                       title={t('nav.signOut', 'Sign Out')}
                     >
@@ -374,7 +376,7 @@ export const Navbar = () => {
                     onClick={() => sound.play('click')}
                     className={classNames(
                       'text-xs font-semibold px-3 py-2 rounded-xl transition-colors whitespace-nowrap',
-                      isDark ? 'text-white/90 hover:text-white hover:bg-white/10' : 'text-neutral-700 hover:text-neutral-900 hover:bg-neutral-100'
+                      navIsDark ? 'text-white/90 hover:text-white hover:bg-white/10' : 'text-neutral-700 hover:text-neutral-900 hover:bg-neutral-100'
                     )}
                   >
                     {t('nav.signIn', 'Sign In')}
@@ -558,7 +560,7 @@ export const Navbar = () => {
                       {user.avatarInitials || (user.name ? user.name.slice(0, 2).toUpperCase() : 'U')}
                     </div>
                     <div className="flex flex-col text-left">
-                      <span className={classNames('text-sm font-bold', isDark ? 'text-white' : 'text-neutral-900')}>
+                      <span className={classNames('text-sm font-bold', navIsDark ? 'text-white' : 'text-neutral-900')}>
                         {user.name || user.email?.split('@')[0] || 'User'}
                       </span>
                       <span className={classNames('text-xs font-semibold capitalize', isDark ? 'text-emerald-400' : 'text-emerald-600')}>
