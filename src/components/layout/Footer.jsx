@@ -4,7 +4,7 @@ import { Link } from 'react-router-dom';
 import {
   Shield, Phone, Mail, MapPin, ExternalLink, Waves,
   Radio, CheckCircle2, ArrowUpRight, ChevronRight,
-  Building2, Siren, Headphones, Cpu, AlertTriangle
+  Building2, Headphones, Cpu, AlertTriangle
 } from 'lucide-react';
 import { useTheme } from '../../context/ThemeContext';
 import { useLanguage } from '../../context/LanguageContext';
@@ -43,12 +43,7 @@ const KEY_WARDS = [
   },
 ];
 
-const EMERGENCY_NUMBERS = [
-  { label: 'Disaster Central (24x7)', num: '1916', desc: 'BMC Flood & Disaster Helpline', badge: 'BMC 24x7' },
-  { label: 'Medical Emergency', num: '108', desc: 'Ambulance & Cardiac Dispatch', badge: 'EMS' },
-  { label: 'Mumbai Police', num: '100', desc: 'City Police Command Control', badge: 'POLICE' },
-  { label: 'Power & Grid Fire', num: '1912', desc: 'BEST / MSEDCL Isolation', badge: 'GRID' },
-];
+
 
 export const Footer = () => {
   const { isDark } = useTheme();
@@ -62,7 +57,7 @@ export const Footer = () => {
           : 'bg-slate-100 border-neutral-200 text-neutral-600'
       }`}
     >
-{/* Emergency hotlines consolidated in main emergency protocol box above */}
+
 
       {/* ── 2. Main Footer Multi-Column Grid ── */}
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-14">
