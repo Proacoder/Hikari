@@ -131,7 +131,7 @@ export const HeroSlider = ({ stats, weather }) => {
 
   const slides = [
     {
-      img: '/hero/slide-1.jpg',
+      img: '/hero/mumbai-night-skyline.jpg',
       eyebrow: t('hero.slide1.eyebrow', 'SOVEREIGN AI-DRIVEN CIVIC GOVERNANCE'),
       l1: t('hero.slide1.l1', 'Fix Mumbai'),
       l2: t('hero.slide1.l2', 'one report at a time.'),
@@ -146,7 +146,7 @@ export const HeroSlider = ({ stats, weather }) => {
       ],
     },
     {
-      img: '/hero/slide-2.jpg',
+      img: '/hero/mumbai-night-skyline.jpg',
       eyebrow: t('hero.slide2.eyebrow', 'REAL-TIME 24 WARDS GIS TELEMETRY'),
       l1: t('hero.slide2.l1', 'Every ward.'),
       l2: t('hero.slide2.l2', 'Every issue. Live.'),
@@ -161,7 +161,7 @@ export const HeroSlider = ({ stats, weather }) => {
       ],
     },
     {
-      img: '/hero/slide-3.jpg',
+      img: '/hero/mumbai-night-skyline.jpg',
       eyebrow: t('hero.slide3.eyebrow', 'MONSOON READINESS & FLOOD TELEMETRY'),
       l1: t('hero.slide3.l1', 'Flood alerts'),
       l2: t('hero.slide3.l2', 'before the water arrives.'),
@@ -176,7 +176,7 @@ export const HeroSlider = ({ stats, weather }) => {
       ],
     },
     {
-      img: '/hero/slide-4.jpg',
+      img: '/hero/mumbai-night-skyline.jpg',
       eyebrow: t('hero.slide4.eyebrow', 'CITIZEN INCENTIVES & CLEAN WARDS'),
       l1: t('hero.slide4.l1', 'Be the citizen'),
       l2: t('hero.slide4.l2', 'Mumbai deserves.'),
@@ -191,13 +191,13 @@ export const HeroSlider = ({ stats, weather }) => {
       ],
     },
     {
-      img: '/hero/slide-5.jpg',
+      img: '/hero/mumbai-night-skyline.jpg',
       eyebrow: t('hero.slide5.eyebrow', 'TIME-BOUND ACCOUNTABILITY'),
       l1: t('hero.slide5.l1', 'Real SLAs.'),
       l2: t('hero.slide5.l2', 'Real accountability.'),
       caption: t('hero.slide5.caption', `${rate} CITIZEN RESOLUTION RATE`),
       desc: t('hero.slide5.desc', 'Every civic work order carries a strict countdown SLA. Escalations are automatic, and every closed ticket requires photographic before-and-after proof before sign-off.'),
-      cta: { to: '/how-it-works', label: t('nav.howItWorks', 'How It Works') },
+      cta: { to: '/app/report', label: t('hero.reportBtn', 'Report Civic Issue') },
       rows: [
         ['SLA 24H · ROADS', 'TURNAROUND 18.2H', 'ASSIGNED'],
         ['SLA 48H · DRAINAGE', 'INSPECTION DONE', 'RESOLVED'],
@@ -268,7 +268,8 @@ export const HeroSlider = ({ stats, weather }) => {
         const d = e.changedTouches[0].clientX - touchX.current;
         if (Math.abs(d) > 50) go(index + (d < 0 ? 1 : -1));
       }}
-      className="relative w-full min-h-[92vh] lg:min-h-screen bg-neutral-950 text-white overflow-hidden isolate flex flex-col justify-between pt-20 sm:pt-24 pb-8 select-none"
+      className="relative w-full min-h-[92vh] lg:min-h-screen bg-neutral-950 text-white overflow-hidden isolate flex flex-col justify-between pt-20 sm:pt-24 pb-8 select-none bg-cover bg-center"
+      style={{ backgroundImage: "url('/hero/mumbai-night-skyline.jpg')" }}
       aria-roledescription="carousel"
       aria-label="Kaiser AI full background hero"
     >
@@ -291,8 +292,8 @@ export const HeroSlider = ({ stats, weather }) => {
             )}
 
             {/* Deep Cinematic Contrast Gradients */}
-            <div className="absolute inset-0 bg-gradient-to-r from-neutral-950/95 via-neutral-950/75 to-neutral-950/30" />
-            <div className="absolute inset-0 bg-gradient-to-t from-neutral-950 via-neutral-950/40 to-neutral-950/60" />
+            <div className="absolute inset-0 bg-gradient-to-r from-neutral-950/90 via-neutral-950/65 to-neutral-950/20" />
+            <div className="absolute inset-0 bg-gradient-to-t from-neutral-950 via-neutral-950/30 to-neutral-950/50" />
             <div className="absolute inset-0 bg-[radial-gradient(circle_at_75%_35%,rgba(52,211,153,0.15),transparent_55%)] pointer-events-none" />
             <div className="absolute inset-0 bg-[radial-gradient(circle_at_25%_65%,rgba(14,165,233,0.12),transparent_55%)] pointer-events-none" />
           </div>
