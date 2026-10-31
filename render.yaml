@@ -1,0 +1,28 @@
+# ==============================================================================
+# Kaiser AI — Render Blueprint (render.yaml)
+# Unified Full-Stack Municipal Governance & AI Vision Platform
+# ==============================================================================
+services:
+  - type: web
+    name: kaiser-ai
+    runtime: docker
+    dockerfilePath: Dockerfile
+    dockerContext: .
+    plan: free
+    region: oregon
+    healthCheckPath: /api/health
+    envVars:
+      - key: PORT
+        value: 5000
+      - key: PYTHONUNBUFFERED
+        value: "1"
+      - key: CLIP_DEVICE
+        value: cpu
+      - key: JWT_SECRET
+        generateValue: true
+      - key: DATABASE_URL
+        value: sqlite:///./kaiser_civic.db
+      - key: VITE_MOCK_MODE
+        value: "false"
+      - key: ALLOWED_ORIGINS
+        value: ""

@@ -27,15 +27,16 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     libglib2.0-0 \
     && rm -rf /var/lib/apt/lists/*
 
-# Install Python requirements
+# Install Python requirements with CPU-optimized wheels for fast building
 COPY backend/requirements.txt ./
-RUN pip install --no-cache-dir -r requirements.txt
+RUN pip install --no-cache-dir --extra-index-url https://download.pytorch.org/whl/cpu -r requirements.txt
 
 # Copy backend application and database layer (ML router is inside backend)
 COPY backend/ ./backend/
 
-# Copy compiled React static bundle from Stage 1
+# Copy compiled React static bundle and public assets from Stage 1
 COPY --from=frontend-builder /app/dist ./dist
+COPY --from=frontend-builder /app/public ./public
 
 # Create persistent storage folder for grievance uploads
 RUN mkdir -p /app/backend/uploads

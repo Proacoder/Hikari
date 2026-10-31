@@ -4,7 +4,7 @@
  * Sentence-BERT & DBSCAN spatial deduplication, and monsoon risk forecasting.
  */
 
-const ML_SERVICE_URL = import.meta.env.VITE_ML_SERVICE_URL || 'http://127.0.0.1:5000/api/ml';
+const ML_SERVICE_URL = import.meta.env.VITE_ML_SERVICE_URL || (typeof window !== 'undefined' && window.location.origin ? `${window.location.origin}/api/ml` : 'http://127.0.0.1:5000/api/ml');
 
 
 /**

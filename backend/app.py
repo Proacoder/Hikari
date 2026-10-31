@@ -121,7 +121,7 @@ if _raw_origins:
 else:
     app.add_middleware(
         CORSMiddleware,
-        allow_origin_regex=r"^https?://([a-zA-Z0-9-]+\.)*(vercel\.app|localhost|127\.0\.0\.1)(:\d+)?$",
+        allow_origin_regex=r"^https?://([a-zA-Z0-9-]+\.)*(vercel\.app|onrender\.com|localhost|127\.0\.0\.1)(:\d+)?$",
         allow_credentials=True,
         allow_methods=["*"],
         allow_headers=["*"],
@@ -2164,8 +2164,11 @@ if os.path.exists(frontend_dist):
 
     @app.get("/{full_path:path}")
     async def serve_spa(full_path: str):
-        if full_path.startswith("api/") or full_path.startswith("uploads/"):
+        if full_path.startswith("api/") or full_path.startswith("uploads/") or full_path.startswith("civic/"):
             raise HTTPException(status_code=404, detail="API route not found")
+        static_file = os.path.join(frontend_dist, full_path)
+        if full_path and os.path.isfile(static_file):
+            return FileResponse(static_file)
         index_file = os.path.join(frontend_dist, "index.html")
         if os.path.exists(index_file):
             return FileResponse(index_file)
