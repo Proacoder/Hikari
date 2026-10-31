@@ -1,5 +1,5 @@
 // ─── Sovereign Civic Adaptive Navbar (Light & Dark Mode) ───────────────────────
-import { useState, useEffect, useRef, useLayoutEffect } from 'react';
+import { useState, useEffect, useRef, useLayoutEffect, useMemo } from 'react';
 import { Link, NavLink, useNavigate, useLocation } from 'react-router-dom';
 import { Menu, X, Globe, ChevronDown, Bell, Search, Volume2, VolumeX, Sun, Moon } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
@@ -29,6 +29,19 @@ export const Navbar = () => {
   const location = useLocation();
   const isHome = location.pathname === '/';
   const navIsDark = isDark || (isHome && !scrolled);
+
+  const userInitials = useMemo(() => {
+    if (!user) return '';
+    if (user.avatarInitials) return user.avatarInitials;
+    if (user.name) {
+      const parts = user.name.trim().split(/\s+/);
+      if (parts.length >= 2) {
+        return (parts[0][0] + parts[1][0]).toUpperCase();
+      }
+      return user.name.slice(0, 2).toUpperCase();
+    }
+    return user.email ? user.email.slice(0, 2).toUpperCase() : 'U';
+  }, [user]);
 
   useEffect(() => {
     const handleOutsideClick = (e) => {
@@ -339,29 +352,22 @@ export const Navbar = () => {
                     <button
                       onClick={() => navigate(dashboardPath)}
                       className={classNames(
-                        'flex items-center gap-2 px-2 py-1 rounded-xl transition-all cursor-pointer group text-left',
+                        'flex items-center p-1 rounded-xl transition-all cursor-pointer group shrink-0',
                         navIsDark ? 'hover:bg-white/10' : 'hover:bg-neutral-100'
                       )}
                       title={`Logged in as ${user.name || user.email} (${user.role || 'Citizen'})`}
+                      aria-label="User Profile"
                     >
                       <div className="w-8 h-8 rounded-full bg-gradient-to-tr from-emerald-500 to-teal-400 text-neutral-950 flex items-center justify-center font-bold text-xs shrink-0 shadow-sm ring-2 ring-emerald-500/30">
-                        {user.avatarInitials || (user.name ? user.name.slice(0, 2).toUpperCase() : 'U')}
-                      </div>
-                      <div className="flex flex-col text-left leading-tight max-w-[120px] lg:max-w-[160px] shrink-0">
-                        <span className={classNames('text-xs font-bold truncate whitespace-nowrap group-hover:text-emerald-400 transition-colors', navIsDark ? 'text-white' : 'text-neutral-900')}>
-                          {user.name || user.email?.split('@')[0] || 'User'}
-                        </span>
-                        <span className={classNames('text-[10px] uppercase font-semibold tracking-wider truncate', navIsDark ? 'text-emerald-400/80' : 'text-emerald-600')}>
-                          {user.role || 'Citizen'}
-                        </span>
+                        {userInitials}
                       </div>
                     </button>
 
                     <button
                       onClick={handleLogout}
                       className={classNames(
-                        'text-xs font-semibold px-2 py-1.5 rounded-lg transition-colors cursor-pointer whitespace-nowrap shrink-0',
-                        navIsDark ? 'text-white/60 hover:text-rose-400 hover:bg-rose-500/10' : 'text-neutral-500 hover:text-rose-600 hover:bg-rose-50'
+                        'text-xs font-semibold px-2.5 py-1.5 rounded-xl transition-colors cursor-pointer whitespace-nowrap shrink-0',
+                        navIsDark ? 'text-white/70 hover:text-rose-400 hover:bg-rose-500/10' : 'text-neutral-600 hover:text-rose-600 hover:bg-rose-50'
                       )}
                       title={t('nav.signOut', 'Sign Out')}
                     >
