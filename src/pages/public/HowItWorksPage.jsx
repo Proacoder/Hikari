@@ -1,9 +1,10 @@
 // ─── Sovereign Civic Adaptive How It Works Page (Light & Dark) ───────────────────
-import React from 'react';
+import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
 import {
   Camera, Cpu, CheckCircle2, Shield, ArrowRight,
-  Sparkles, Clock, MapPin, Zap, Check, ChevronRight
+  Sparkles, Clock, MapPin, Zap, Check, ChevronRight,
+  AlertTriangle, Droplets, Trash2, Lightbulb, HelpCircle, ChevronDown, Flame, Layers
 } from 'lucide-react';
 import { sound } from '../../utils/soundEffects';
 import { useTheme } from '../../context/ThemeContext';
@@ -13,6 +14,9 @@ import { classNames } from '../../utils/formatters';
 export const HowItWorksPage = () => {
   const { isDark } = useTheme();
   const { t } = useLanguage();
+  const [selectedCat, setSelectedCat] = useState('pothole');
+  const [openFaq, setOpenFaq] = useState(null);
+
   const steps = [
     {
       num: '01',
@@ -81,6 +85,123 @@ export const HowItWorksPage = () => {
       border: 'border-purple-500/30',
       badge: 'text-purple-300 bg-purple-500/15 border-purple-400/30',
       iconBg: 'bg-purple-500/20 text-purple-300 border-purple-400/40',
+    },
+  ];
+
+  const DEFECT_MATRIX = [
+    {
+      id: 'pothole',
+      name: 'Pothole & Road Cavity',
+      icon: AlertTriangle,
+      color: 'amber',
+      sla: '24 Hours',
+      badgeClass: 'text-amber-500 bg-amber-500/15 border-amber-500/30',
+      dept: 'BMC Roads & Traffic Department (AE Roads)',
+      aiModel: 'OpenAI CLIP Zero-Shot Surface Texture & Depth Estimator',
+      crewEquipment: 'Cold-mix asphalt, vibratory plate compactor, infrared thermal binder',
+      auditRequirement: 'Sub-meter before/after photographic overlay verification from identical coordinates',
+      description: 'Automated severity scoring factors traffic volume, arterial highway hierarchy, and proximity to schools/hospitals to prevent accidents and vehicular damage.',
+    },
+    {
+      id: 'waterlogging',
+      name: 'Waterlogging & Flood Risk',
+      icon: Droplets,
+      color: 'sky',
+      sla: '12 Hours (Monsoon Emergency)',
+      badgeClass: 'text-sky-500 bg-sky-500/15 border-sky-500/30',
+      dept: 'Stormwater Drains (SWD) Department',
+      aiModel: 'Multimodal Flood Boundary Segmentation & Ultrasonic Sump Telemetry',
+      crewEquipment: 'Submersible dewatering pumps (1,800 L/s), suction jetting trucks, culvert screens',
+      auditRequirement: 'Water recession confirmation & drain desilting completion log',
+      description: 'Monsoon-critical flashpoints trigger instant alerts to local dewatering pump stations and emergency flood mitigation teams across all 24 wards.',
+    },
+    {
+      id: 'garbage',
+      name: 'Garbage Dump & Waste Overflow',
+      icon: Trash2,
+      color: 'emerald',
+      sla: '24 Hours',
+      badgeClass: 'text-emerald-500 bg-emerald-500/15 border-emerald-500/30',
+      dept: 'Solid Waste Management (SWM) Department',
+      aiModel: 'ViT Waste Volume Estimation & Debris Perimeter Classifier',
+      crewEquipment: 'Hydraulic compactor trucks, mechanical street sweepers, disinfectant spray',
+      auditRequirement: 'Cleared ground photo & weighbridge transfer slip confirmation',
+      description: 'Detects illegal commercial dumping and public bin overflows, dispatching designated compaction vehicles with GPS route tracking.',
+    },
+    {
+      id: 'streetlight',
+      name: 'Broken / Dark Streetlights',
+      icon: Lightbulb,
+      color: 'yellow',
+      sla: '48 Hours',
+      badgeClass: 'text-yellow-600 dark:text-yellow-400 bg-yellow-500/15 border-yellow-500/30',
+      dept: 'Municipal Electrical & Infrastructure Division',
+      aiModel: 'Lux Luminance Defect Analysis & GIS Pole ID Triangulation',
+      crewEquipment: 'Hydraulic bucket hoist truck, replacement LED luminaires, circuit breakers',
+      auditRequirement: 'Night illumination photographic proof & feeder circuit continuity test',
+      description: 'Eliminates dangerous dark spots along pedestrian corridors, arterial roads, and school zones to safeguard citizens at night.',
+    },
+    {
+      id: 'drainage',
+      name: 'Open Manholes & Broken Drains',
+      icon: Shield,
+      color: 'rose',
+      sla: '6 Hours (Life-Safety Priority)',
+      badgeClass: 'text-rose-500 bg-rose-500/15 border-rose-500/30',
+      dept: 'Drainage Engineering & Central Disaster Response Cell',
+      aiModel: 'High-Contrast Hole Geometry & Uncovered Sump Edge Detector',
+      crewEquipment: 'Heavy-duty ductile iron covers, reflective hazard barriers, safety cordons',
+      auditRequirement: 'Immediate hazard cordon within 60 mins + locked lid photo audit',
+      description: 'Highest hazard classification in Mumbai. Automatically bypasses standard triage and triggers immediate life-safety dispatch.',
+    },
+  ];
+
+  const currentDefect = DEFECT_MATRIX.find((d) => d.id === selectedCat) || DEFECT_MATRIX[0];
+
+  const COMPARISONS = [
+    {
+      stage: '1. Issue Submission',
+      traditional: 'Physical ward office visit, paper complaint forms, or long tele-queue delays.',
+      kaiser: 'Instant 60-second mobile submission with sub-meter GPS auto-ward polygon detection.',
+    },
+    {
+      stage: '2. Triage & Defect Classification',
+      traditional: 'Subjective manual clerk sorting taking 3 to 7 business days to log.',
+      kaiser: 'Sub-second OpenAI CLIP Zero-Shot vision classifying defect and 1-100 severity in <2 seconds.',
+    },
+    {
+      stage: '3. Engineering Dispatch',
+      traditional: 'Physical registry books hand-delivered to ward officers with zero tracking.',
+      kaiser: 'Direct automated mobile routing to designated Ward Junior Engineer with live GPS ticket assignment.',
+    },
+    {
+      stage: '4. Resolution Turnaround (SLA)',
+      traditional: '15 to 45 days average turnaround with frequent jurisdiction buck-passing.',
+      kaiser: 'Strict 6h to 48h dynamic SLA countdown with auto-escalation to Ward Assistant Commissioner.',
+    },
+    {
+      stage: '5. Verification & Accountability',
+      traditional: 'Closed on paper without photographic proof or citizen inspection.',
+      kaiser: 'Mandatory before/after photographic audit with 48-hour citizen sign-off & one-click re-open.',
+    },
+  ];
+
+  const FAQS = [
+    {
+      q: 'How does Kaiser AI ensure photos are authentic and not downloaded from the internet?',
+      a: 'Our Vision Transformer (ViT) pipeline inspects image metadata, EXIF geotags, and synthetic image artifacts, immediately blocking non-civic photos, duplicates, and internet images before tickets are created.',
+    },
+    {
+      q: 'Can I report civic grievances in Marathi or Hindi?',
+      a: 'Yes! Citizens can record voice notes or type descriptions in Marathi, Hindi, or English. Kaiser AI multilingual NLP automatically extracts defect categories, severity, and location landmarks.',
+    },
+    {
+      q: 'What happens if a ward engineer fails to resolve an issue within the SLA?',
+      a: 'If a ticket reaches 75% of its SLA timer without on-ground movement, an automated amber alert is sent. At 100%, it auto-escalates directly to the Ward Assistant Commissioner and is flagged in red on the public city dashboard.',
+    },
+    {
+      q: 'Do I get notified when my issue is resolved?',
+      a: 'Yes, instantly via browser notification, SMS, or dashboard alert with side-by-side photographic proof of the completed repair. You then have 48 hours to confirm satisfaction or request a re-inspection with one click.',
     },
   ];
 
@@ -185,6 +306,229 @@ export const HowItWorksPage = () => {
             </div>
           );
         })}
+      </section>
+
+      {/* ── SECTION: Interactive Defect Triage & SLA Matrix (Replaces Hotline Strip) ── */}
+      <section className="relative max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 pt-16">
+        <div className={classNames(
+          'rounded-3xl p-6 sm:p-10 border backdrop-blur-2xl relative overflow-hidden transition-all',
+          isDark
+            ? 'bg-gradient-to-b from-neutral-900/90 to-neutral-950 border-emerald-500/25 shadow-2xl'
+            : 'bg-white border-neutral-200 shadow-soft-xl'
+        )}>
+          {/* Subtle Ambient Glow */}
+          <div className="absolute top-0 right-1/4 w-80 h-80 bg-emerald-500/10 rounded-full blur-3xl pointer-events-none" />
+
+          {/* Section Header */}
+          <div className="text-center max-w-2xl mx-auto mb-8 space-y-2">
+            <div className={classNames(
+              'inline-flex items-center gap-2 px-3 py-1 rounded-full text-xs font-mono font-bold tracking-wider uppercase border',
+              isDark ? 'bg-emerald-500/10 border-emerald-500/30 text-emerald-400' : 'bg-emerald-50 border-emerald-300 text-emerald-700'
+            )}>
+              <Layers size={13} />
+              <span>AUTOMATED MUNICIPAL DISPATCH ARCHITECTURE</span>
+            </div>
+            <h2 className={classNames('font-display text-2xl sm:text-3xl font-extrabold tracking-tight', isDark ? 'text-white' : 'text-neutral-900')}>
+              How Kaiser AI Triages Mumbai's 5 Core Civic Defects
+            </h2>
+            <p className={classNames('text-xs sm:text-sm leading-relaxed', isDark ? 'text-white/70' : 'text-neutral-600')}>
+              Click each civic hazard category to inspect the underlying neural vision model, responsible municipal ward department, equipment dispatch, and verified SLA countdown.
+            </p>
+          </div>
+
+          {/* Category Tabs */}
+          <div className="flex flex-wrap items-center justify-center gap-2 mb-8">
+            {DEFECT_MATRIX.map((cat) => {
+              const Icon = cat.icon;
+              const active = cat.id === selectedCat;
+              return (
+                <button
+                  key={cat.id}
+                  onClick={() => {
+                    sound.play('click');
+                    setSelectedCat(cat.id);
+                  }}
+                  className={classNames(
+                    'flex items-center gap-2 px-3.5 py-2 rounded-2xl text-xs font-bold transition-all cursor-pointer select-none active:scale-95',
+                    active
+                      ? isDark
+                        ? 'bg-emerald-500 text-neutral-950 shadow-md shadow-emerald-500/20 scale-[1.02]'
+                        : 'bg-emerald-600 text-white shadow-md shadow-emerald-600/25 scale-[1.02]'
+                      : isDark
+                        ? 'bg-neutral-800/80 hover:bg-neutral-800 text-white/80 hover:text-white border border-white/10'
+                        : 'bg-neutral-100 hover:bg-neutral-200 text-neutral-700 hover:text-neutral-900 border border-neutral-200'
+                  )}
+                >
+                  <Icon size={14} className={active ? 'text-neutral-950' : 'text-neutral-400'} />
+                  <span>{cat.name}</span>
+                </button>
+              );
+            })}
+          </div>
+
+          {/* Active Category Detail Panel */}
+          <div className={classNames(
+            'rounded-2xl p-6 sm:p-8 border transition-all animate-fade-in relative overflow-hidden',
+            isDark ? 'bg-neutral-950/80 border-white/10' : 'bg-slate-50/80 border-neutral-200'
+          )}>
+            <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 pb-5 border-b border-neutral-200 dark:border-white/10">
+              <div className="flex items-center gap-3">
+                <div className={classNames('w-12 h-12 rounded-2xl border flex items-center justify-center shrink-0 shadow-sm', isDark ? 'bg-neutral-900 border-white/15' : 'bg-white border-neutral-200')}>
+                  <currentDefect.icon size={24} className={isDark ? 'text-emerald-400' : 'text-emerald-600'} />
+                </div>
+                <div>
+                  <h3 className={classNames('font-display text-lg sm:text-xl font-bold', isDark ? 'text-white' : 'text-neutral-900')}>
+                    {currentDefect.name}
+                  </h3>
+                  <span className={classNames('text-xs font-mono font-medium', isDark ? 'text-white/60' : 'text-neutral-500')}>
+                    Municipal Ward Department: <strong className={isDark ? 'text-white' : 'text-neutral-800'}>{currentDefect.dept}</strong>
+                  </span>
+                </div>
+              </div>
+
+              <div className="flex items-center gap-2">
+                <span className={classNames('text-[11px] font-mono font-bold px-3 py-1.5 rounded-full border shadow-xs tracking-wider uppercase', currentDefect.badgeClass)}>
+                  Target SLA: {currentDefect.sla}
+                </span>
+              </div>
+            </div>
+
+            <p className={classNames('text-xs sm:text-sm leading-relaxed mt-4', isDark ? 'text-white/80' : 'text-neutral-700')}>
+              {currentDefect.description}
+            </p>
+
+            <div className="grid sm:grid-cols-3 gap-4 mt-6 pt-5 border-t border-neutral-200 dark:border-white/10 text-xs">
+              <div className={classNames('p-3.5 rounded-xl border', isDark ? 'bg-neutral-900/60 border-white/10' : 'bg-white border-neutral-200')}>
+                <span className={classNames('block font-mono text-[10px] uppercase font-bold tracking-wider mb-1', isDark ? 'text-white/50' : 'text-neutral-500')}>
+                  Neural Vision Model
+                </span>
+                <span className={classNames('font-medium leading-snug block', isDark ? 'text-white/90' : 'text-neutral-900')}>
+                  {currentDefect.aiModel}
+                </span>
+              </div>
+
+              <div className={classNames('p-3.5 rounded-xl border', isDark ? 'bg-neutral-900/60 border-white/10' : 'bg-white border-neutral-200')}>
+                <span className={classNames('block font-mono text-[10px] uppercase font-bold tracking-wider mb-1', isDark ? 'text-white/50' : 'text-neutral-500')}>
+                  Dispatched Crew Gear
+                </span>
+                <span className={classNames('font-medium leading-snug block', isDark ? 'text-white/90' : 'text-neutral-900')}>
+                  {currentDefect.crewEquipment}
+                </span>
+              </div>
+
+              <div className={classNames('p-3.5 rounded-xl border', isDark ? 'bg-neutral-900/60 border-white/10' : 'bg-white border-neutral-200')}>
+                <span className={classNames('block font-mono text-[10px] uppercase font-bold tracking-wider mb-1', isDark ? 'text-white/50' : 'text-neutral-500')}>
+                  Mandatory Audit Proof
+                </span>
+                <span className={classNames('font-medium leading-snug block', isDark ? 'text-white/90' : 'text-neutral-900')}>
+                  {currentDefect.auditRequirement}
+                </span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* ── SECTION: Traditional BMC vs. Kaiser AI Comparison Matrix ── */}
+      <section className="relative max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 pt-16">
+        <div className="text-center max-w-2xl mx-auto mb-8 space-y-2">
+          <div className={classNames(
+            'inline-flex items-center gap-2 px-3 py-1 rounded-full text-xs font-mono font-bold tracking-wider uppercase border',
+            isDark ? 'bg-emerald-500/10 border-emerald-500/30 text-emerald-400' : 'bg-emerald-50 border-emerald-300 text-emerald-700'
+          )}>
+            <Clock size={13} />
+            <span>MUNICIPAL TRANSFORMATION BENCHMARK</span>
+          </div>
+          <h2 className={classNames('font-display text-2xl sm:text-3xl font-extrabold tracking-tight', isDark ? 'text-white' : 'text-neutral-900')}>
+            Traditional BMC Grievance System vs. Kaiser AI
+          </h2>
+          <p className={classNames('text-xs sm:text-sm leading-relaxed', isDark ? 'text-white/70' : 'text-neutral-600')}>
+            How our automated sovereign pipeline eliminates bureaucratic friction, jurisdiction dead-ends, and unverified paperwork closures.
+          </p>
+        </div>
+
+        <div className={classNames(
+          'rounded-3xl border overflow-hidden shadow-2xl backdrop-blur-xl',
+          isDark ? 'bg-neutral-900/80 border-white/10' : 'bg-white border-neutral-200'
+        )}>
+          <div className="grid grid-cols-12 text-xs font-mono font-bold uppercase tracking-wider p-4 border-b border-neutral-200 dark:border-white/10 bg-neutral-100 dark:bg-neutral-950/70">
+            <div className="col-span-3 text-neutral-500 dark:text-neutral-400">Pipeline Stage</div>
+            <div className="col-span-4 text-rose-600 dark:text-rose-400">Legacy Municipal System</div>
+            <div className="col-span-5 text-emerald-600 dark:text-emerald-400">Kaiser AI Sovereign Pipeline</div>
+          </div>
+
+          <div className="divide-y divide-neutral-200 dark:divide-white/10 text-xs sm:text-sm">
+            {COMPARISONS.map((row, i) => (
+              <div key={i} className="grid grid-cols-12 p-4 sm:p-5 items-start gap-3 hover:bg-neutral-500/5 transition-colors">
+                <div className={classNames('col-span-3 font-semibold text-xs font-mono', isDark ? 'text-white/80' : 'text-neutral-900')}>
+                  {row.stage}
+                </div>
+                <div className={classNames('col-span-4 text-xs leading-relaxed', isDark ? 'text-rose-300/80' : 'text-rose-700')}>
+                  {row.traditional}
+                </div>
+                <div className={classNames('col-span-5 text-xs font-medium leading-relaxed flex items-start gap-2', isDark ? 'text-emerald-300' : 'text-emerald-800')}>
+                  <Check size={14} className="shrink-0 mt-0.5 text-emerald-500" />
+                  <span>{row.kaiser}</span>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* ── SECTION: Frequently Asked Questions ── */}
+      <section className="relative max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 pt-16">
+        <div className="text-center max-w-2xl mx-auto mb-8 space-y-2">
+          <div className={classNames(
+            'inline-flex items-center gap-2 px-3 py-1 rounded-full text-xs font-mono font-bold tracking-wider uppercase border',
+            isDark ? 'bg-emerald-500/10 border-emerald-500/30 text-emerald-400' : 'bg-emerald-50 border-emerald-300 text-emerald-700'
+          )}>
+            <HelpCircle size={13} />
+            <span>COMMONLY ASKED QUESTIONS</span>
+          </div>
+          <h2 className={classNames('font-display text-2xl sm:text-3xl font-extrabold tracking-tight', isDark ? 'text-white' : 'text-neutral-900')}>
+            Frequently Asked Questions
+          </h2>
+          <p className={classNames('text-xs sm:text-sm leading-relaxed', isDark ? 'text-white/70' : 'text-neutral-600')}>
+            Everything you need to know about our municipal AI validation, ward SLA countdowns, and resolution proof.
+          </p>
+        </div>
+
+        <div className="space-y-3">
+          {FAQS.map((faq, idx) => {
+            const isOpen = openFaq === idx;
+            return (
+              <div
+                key={idx}
+                className={classNames(
+                  'rounded-2xl border transition-all overflow-hidden',
+                  isDark
+                    ? isOpen ? 'bg-neutral-900/90 border-emerald-500/40 shadow-lg' : 'bg-neutral-900/50 border-white/10 hover:border-white/20'
+                    : isOpen ? 'bg-white border-emerald-500/40 shadow-md' : 'bg-white border-neutral-200 hover:border-neutral-300 shadow-xs'
+                )}
+              >
+                <button
+                  type="button"
+                  onClick={() => {
+                    sound.play('click');
+                    setOpenFaq(isOpen ? null : idx);
+                  }}
+                  className="w-full p-4 sm:p-5 text-left flex items-center justify-between gap-4 cursor-pointer select-none"
+                >
+                  <span className={classNames('font-bold text-sm sm:text-base', isDark ? 'text-white' : 'text-neutral-900')}>
+                    {faq.q}
+                  </span>
+                  <ChevronDown size={18} className={classNames('shrink-0 text-emerald-500 transition-transform duration-200', isOpen && 'rotate-180')} />
+                </button>
+                {isOpen && (
+                  <div className={classNames('px-4 sm:px-5 pb-5 text-xs sm:text-sm leading-relaxed border-t border-neutral-200 dark:border-white/10 pt-3', isDark ? 'text-white/70' : 'text-neutral-600')}>
+                    {faq.a}
+                  </div>
+                )}
+              </div>
+            );
+          })}
+        </div>
       </section>
 
       {/* ── Ready to Report CTA ── */}
