@@ -211,8 +211,8 @@ CURATED_MUMBAI_BULLETINS = [
 _CIVIC_NEWS_CACHE = {"timestamp": 0.0, "query": "", "data": None}
 
 CIVIC_IMAGE_MAP = [
-    ("water", "https://images.unsplash.com/photo-1541888946425-d0fbb186c5f7?w=600&q=80"),
-    ("drain", "https://images.unsplash.com/photo-1570125909232-eb263c188f7e?w=600&q=80"),
+    ("water", "https://images.unsplash.com/photo-1576435728678-68d0fbf94e91?w=600&q=80"),
+    ("drain", "https://images.unsplash.com/photo-1547683905-f686c993aae5?w=600&q=80"),
     ("pothole", "https://images.unsplash.com/photo-1515162816999-a0c47dc192f7?w=600&q=80"),
     ("road", "https://images.unsplash.com/photo-1545239351-ef35f43d514b?w=600&q=80"),
     ("traffic", "https://images.unsplash.com/photo-1506521781263-d8422e82f27a?w=600&q=80"),
@@ -230,7 +230,7 @@ def pick_image_for_civic_title(title: str) -> str:
     for kw, img_url in CIVIC_IMAGE_MAP:
         if kw in t:
             return img_url
-    return "https://images.unsplash.com/photo-1570125909232-eb263c188f7e?w=600&q=80"
+    return "https://images.unsplash.com/photo-1576435728678-68d0fbf94e91?w=600&q=80"
 
 
 async def _fetch_live_google_rss_civic_news(query: Optional[str] = None, limit: int = 12, timeout: float = 5.0) -> List[Dict[str, Any]]:

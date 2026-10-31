@@ -360,6 +360,17 @@ export const CitizenDashboard = () => {
                       alt={item.title}
                       className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-200"
                       referrerPolicy="no-referrer"
+                      onError={(e) => {
+                        e.currentTarget.onerror = null;
+                        const fallbacks = [
+                          '/hero/slide-1-sealink.jpg',
+                          '/hero/slide-2-gateway.jpg',
+                          '/hero/slide-3-cranes-dusk.jpg',
+                          '/hero/slide-4-skyline-spire.jpg',
+                          '/hero/slide-5-queens-necklace.jpg'
+                        ];
+                        e.currentTarget.src = fallbacks[idx % fallbacks.length];
+                      }}
                     />
                   </div>
                 )}
@@ -1916,10 +1927,21 @@ export const CivicNewsPage = () => {
             >
               <div className="relative w-full h-44 overflow-hidden bg-neutral-100">
                 <img
-                  src={item.imageUrl || 'https://images.unsplash.com/photo-1570125909232-eb263c188f7e?w=600&q=80'}
+                  src={item.imageUrl || '/hero/slide-1-sealink.jpg'}
                   alt={item.title}
                   className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
                   referrerPolicy="no-referrer"
+                  onError={(e) => {
+                    e.currentTarget.onerror = null;
+                    const fallbacks = [
+                      '/hero/slide-1-sealink.jpg',
+                      '/hero/slide-2-gateway.jpg',
+                      '/hero/slide-3-cranes-dusk.jpg',
+                      '/hero/slide-4-skyline-spire.jpg',
+                      '/hero/slide-5-queens-necklace.jpg'
+                    ];
+                    e.currentTarget.src = fallbacks[idx % fallbacks.length];
+                  }}
                 />
                 <div className="absolute top-3 left-3 bg-neutral-900/75 backdrop-blur-md text-white text-[10px] font-bold px-2 py-0.5 rounded-full uppercase tracking-wider">
                   {item.source || 'Civic Wire'}

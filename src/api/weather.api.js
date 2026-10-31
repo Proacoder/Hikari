@@ -47,7 +47,7 @@ export const CURATED_CIVIC_BULLETINS = [
     source: 'BMC Hydraulic Engineering Dept',
     publishedAt: '2026-10-25T08:00:00Z',
     url: 'https://www.mcgm.gov.in',
-    imageUrl: 'https://images.unsplash.com/photo-1541888946425-d0fbb186c5f7?w=600&q=80',
+    imageUrl: 'https://images.unsplash.com/photo-1576435728678-68d0fbf94e91?w=600&q=80',
     description: 'Upgrades to the primary municipal water distribution pipelines ensure steady potable water pressure across Bandra, Andheri, and Borivali.',
   },
   {
