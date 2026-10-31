@@ -24,21 +24,20 @@ export const HeroSlider = ({ stats, weather }) => {
 
   return (
     <section
-      className="relative w-full min-h-[92vh] lg:min-h-screen bg-neutral-950 text-white overflow-hidden isolate flex flex-col justify-between pt-20 sm:pt-24 pb-8 select-none bg-cover bg-center"
-      style={{ backgroundImage: "url('/hero/mumbai-night-skyline.jpg')" }}
+      className="relative w-full min-h-[92vh] lg:min-h-screen text-white overflow-hidden isolate flex flex-col justify-between pt-20 sm:pt-24 pb-8 select-none"
       aria-label="Kaiser AI Municipal Hero"
     >
-      {/* ── Static Background Image with Cinematic Gradient Overlays ── */}
-      <div className="absolute inset-0">
+      {/* ── Static Background Image with Clear Visibility ── */}
+      <div className="absolute inset-0 z-0">
         <img
-          src="/hero/mumbai-night-skyline.jpg"
+          src="/hero/mumbai-night-skyline.jpg?v=2"
           alt="Mumbai Night Skyline"
-          className="w-full h-full object-cover"
+          className="w-full h-full object-cover object-center"
         />
-        {/* Deep Contrast Overlays for text clarity while keeping skyline visible */}
-        <div className="absolute inset-0 bg-gradient-to-r from-neutral-950/92 via-neutral-950/65 to-neutral-950/25" />
-        <div className="absolute inset-0 bg-gradient-to-t from-neutral-950 via-neutral-950/35 to-neutral-950/50" />
-        <div className="absolute inset-0 bg-[radial-gradient(circle_at_75%_35%,rgba(52,211,153,0.12),transparent_55%)] pointer-events-none" />
+        {/* Gentle Left vignette for text clarity, keeping the skyline vivid & clearly visible */}
+        <div className="absolute inset-0 bg-gradient-to-r from-neutral-950/80 via-neutral-950/35 to-transparent pointer-events-none" />
+        {/* Soft edge fade into navbar and footer */}
+        <div className="absolute inset-0 bg-gradient-to-b from-neutral-950/45 via-transparent to-neutral-950/60 pointer-events-none" />
       </div>
 
       {/* ── Main Hero Content Grid ── */}
