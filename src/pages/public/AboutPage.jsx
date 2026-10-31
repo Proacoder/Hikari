@@ -564,41 +564,19 @@ export const AboutPage = () => {
             <div
               key={idx}
               className={classNames(
-                "rounded-3xl p-6 text-center space-y-4 border shadow-xl flex flex-col justify-between transition-all group",
+                "rounded-3xl p-6 text-center space-y-3.5 border shadow-xl transition-all group",
                 isDark
                   ? "bg-neutral-900/70 border-white/10 hover:border-emerald-400/50 backdrop-blur-xl"
                   : "bg-white border-neutral-200 hover:border-emerald-500 shadow-soft-lg hover:shadow-soft-xl"
               )}
             >
-              <div className="space-y-3">
-                <div className="w-16 h-16 rounded-2xl bg-gradient-to-tr from-emerald-500 via-teal-400 to-sky-400 text-neutral-950 font-black text-lg flex items-center justify-center mx-auto shadow-[0_0_20px_rgba(52,211,153,0.4)] group-hover:scale-105 transition-transform">
-                  {m.initials}
-                </div>
-                <div>
-                  <h3 className={classNames("font-bold text-base", isDark ? "text-white" : "text-neutral-900")}>{m.name}</h3>
-                  <p className={classNames("text-xs font-mono font-bold", isDark ? "text-emerald-400" : "text-emerald-600")}>{m.role}</p>
-                  <p className={classNames("text-[11px] mt-0.5", isDark ? "text-white/50" : "text-neutral-500")}>{m.domain}</p>
-                </div>
-                <p className={classNames(
-                  "text-xs leading-relaxed text-left pt-3 border-t",
-                  isDark ? "text-white/70 border-white/10" : "text-neutral-600 border-neutral-200"
-                )}>
-                  {m.bio}
-                </p>
+              <div className="w-16 h-16 rounded-2xl bg-gradient-to-tr from-emerald-500 via-teal-400 to-sky-400 text-neutral-950 font-black text-lg flex items-center justify-center mx-auto shadow-[0_0_20px_rgba(52,211,153,0.4)] group-hover:scale-105 transition-transform">
+                {m.initials}
               </div>
-              <div className="pt-2">
-                <span className={classNames(
-                  "inline-block px-3 py-1 rounded-full text-[10px] font-mono border transition-all",
-                  m.initials === 'AB'
-                    ? isDark
-                      ? "bg-emerald-500/15 text-emerald-300 border-emerald-400/40 shadow-[0_0_12px_rgba(52,211,153,0.2)] font-bold"
-                      : "bg-emerald-50 text-emerald-800 border-emerald-300 font-bold shadow-xs"
-                    : isDark
-                      ? "bg-white/5 text-white/60 border-white/10"
-                      : "bg-slate-100 text-neutral-600 border-neutral-200"
-                )}>
-                  {m.badge || 'Engineering Core'}
-                </span>
+              <div className="space-y-1">
+                <h3 className={classNames("font-bold text-base", isDark ? "text-white" : "text-neutral-900")}>{m.name}</h3>
+                <p className={classNames("text-xs font-mono font-bold", isDark ? "text-emerald-400" : "text-emerald-600")}>{m.role}</p>
+                <p className={classNames("text-[11px] mt-0.5", isDark ? "text-white/50" : "text-neutral-500")}>{m.domain}</p>
               </div>
             </div>
           ))}
