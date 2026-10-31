@@ -8,7 +8,7 @@ import { useLanguage } from '../../context/LanguageContext';
 const INTERVAL = 7000;
 
 // Ambient Water Reflection Wave Effect simulating water ripples reflecting city lights
-const WaterReflectionEffect = ({ activeSlide }) => {
+const WaterReflectionEffect = ({ isRainSlide }) => {
   return (
     <div className="absolute bottom-0 left-0 right-0 h-44 sm:h-56 pointer-events-none z-10 overflow-hidden">
       {/* Shimmer gradient reflecting city lights on water */}
@@ -30,8 +30,8 @@ const WaterReflectionEffect = ({ activeSlide }) => {
       <div className="absolute bottom-6 left-1/4 w-32 h-10 border border-emerald-400/30 rounded-full animate-ripple pointer-events-none" />
       <div className="absolute bottom-12 right-1/3 w-40 h-12 border border-sky-400/25 rounded-full animate-ripple pointer-events-none" style={{ animationDelay: '1.4s' }} />
 
-      {/* Rain animation for Slide 3 (Monsoon Readiness) */}
-      {activeSlide === 2 && (
+      {/* Rain animation for Monsoon Readiness slide */}
+      {Boolean(isRainSlide) && (
         <div className="fixed inset-0 overflow-hidden pointer-events-none z-10">
           {[6, 15, 24, 35, 45, 55, 65, 76, 85, 94].map((left, idx) => (
             <div
@@ -59,6 +59,7 @@ export const HeroSlider = ({ stats, weather }) => {
   const rate = stats?.resolvedRate ? `${stats.resolvedRate}%` : '91.4%';
 
   const slides = [
+    // 1. Sovereign AI-Driven Civic Governance (Sea Link)
     {
       img: '/hero/slide-1-sealink.jpg',
       eyebrow: t('hero.slide1.eyebrow', 'SOVEREIGN AI-DRIVEN CIVIC GOVERNANCE'),
@@ -74,21 +75,7 @@ export const HeroSlider = ({ stats, weather }) => {
         ['WD-L-0182', 'STREETLIGHT · 88.0%', 'RESOLVED'],
       ],
     },
-    {
-      img: '/hero/slide-2-gateway.jpg',
-      eyebrow: t('hero.slide2.eyebrow', 'REAL-TIME 24 WARDS GIS TELEMETRY'),
-      l1: t('hero.slide2.l1', 'Every ward.'),
-      l2: t('hero.slide2.l2', 'Every issue. Live.'),
-      caption: t('hero.slide2.caption', '24 BMC WARDS · INTERACTIVE MAP'),
-      desc: t('hero.slide2.desc', `Watch ${total} grievances unfold live across Mumbai's 24 administrative municipal wards — what is reported, what is under active repair, and what is verified resolved near you.`),
-      cta: { to: '/app/map', label: t('hero.mapBtn', 'Explore Live Map') },
-      rows: [
-        ['WARD K/E', '312 ACTIVE TICKETS', 'ASSIGNED'],
-        ['WARD H/W', '188 ACTIVE TICKETS', 'RESOLVED'],
-        ['WARD L', '241 ACTIVE TICKETS', 'ESCALATED'],
-        ['WARD G/N', '164 ACTIVE TICKETS', 'ASSIGNED'],
-      ],
-    },
+    // 3. Monsoon Readiness & Flood Telemetry (Sunset Towers)
     {
       img: '/hero/slide-3-cranes-dusk.jpg',
       eyebrow: t('hero.slide3.eyebrow', 'MONSOON READINESS & FLOOD TELEMETRY'),
@@ -104,6 +91,7 @@ export const HeroSlider = ({ stats, weather }) => {
         ['DRAIN-HINDMATA', 'PUMPS ONLINE (4/4)', 'ASSIGNED'],
       ],
     },
+    // 4. Citizen Incentives & Clean Wards (Golden Dome Skyline)
     {
       img: '/hero/slide-4-skyline-spire.jpg',
       eyebrow: t('hero.slide4.eyebrow', 'CITIZEN INCENTIVES & CLEAN WARDS'),
@@ -119,6 +107,23 @@ export const HeroSlider = ({ stats, weather }) => {
         ['WARD RANK #1', 'BANDRA WEST (H/W)', 'RESOLVED'],
       ],
     },
+    // 2. Real-Time 24 Wards GIS Telemetry (Gateway of India)
+    {
+      img: '/hero/slide-2-gateway.jpg',
+      eyebrow: t('hero.slide2.eyebrow', 'REAL-TIME 24 WARDS GIS TELEMETRY'),
+      l1: t('hero.slide2.l1', 'Every ward.'),
+      l2: t('hero.slide2.l2', 'Every issue. Live.'),
+      caption: t('hero.slide2.caption', '24 BMC WARDS · INTERACTIVE MAP'),
+      desc: t('hero.slide2.desc', `Watch ${total} grievances unfold live across Mumbai's 24 administrative municipal wards — what is reported, what is under active repair, and what is verified resolved near you.`),
+      cta: { to: '/app/map', label: t('hero.mapBtn', 'Explore Live Map') },
+      rows: [
+        ['WARD K/E', '312 ACTIVE TICKETS', 'ASSIGNED'],
+        ['WARD H/W', '188 ACTIVE TICKETS', 'RESOLVED'],
+        ['WARD L', '241 ACTIVE TICKETS', 'ESCALATED'],
+        ['WARD G/N', '164 ACTIVE TICKETS', 'ASSIGNED'],
+      ],
+    },
+    // 5. Time-Bound Accountability (Marine Drive Queen's Necklace)
     {
       img: '/hero/slide-5-queens-necklace.jpg',
       eyebrow: t('hero.slide5.eyebrow', 'TIME-BOUND ACCOUNTABILITY'),
@@ -222,7 +227,7 @@ export const HeroSlider = ({ stats, weather }) => {
 
 
       {/* ── Animated Water Surface Reflection Effect (Matches City Images) ── */}
-      <WaterReflectionEffect activeSlide={index} />
+      <WaterReflectionEffect isRainSlide={slides[index]?.eyebrow?.includes('MONSOON')} />
 
       {/* ── Main Hero Content Grid ── */}
       <div className="relative z-20 w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 my-auto flex-1 flex flex-col justify-center py-6 sm:py-10">
