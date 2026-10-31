@@ -173,12 +173,6 @@ export const Navbar = () => {
               >
                 <Search size={14} className={navIsDark ? 'text-white/70' : 'text-neutral-500'} />
                 <span className="font-semibold whitespace-nowrap">{t('nav.quickFind', 'Quick Find')}</span>
-                <kbd className={classNames(
-                  'hidden xl:inline-flex items-center text-[10px] font-mono font-bold px-1.5 py-0.5 rounded border leading-none',
-                  navIsDark ? 'bg-white/10 border-white/15 text-white/60' : 'bg-white border-neutral-300 text-neutral-500'
-                )}>
-                  Ctrl+K
-                </kbd>
               </button>
 
               {/* Sound Effects Toggle */}
