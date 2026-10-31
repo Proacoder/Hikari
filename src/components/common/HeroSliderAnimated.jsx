@@ -78,28 +78,12 @@ const NetworkCanvas = () => {
   return <canvas ref={ref} className="absolute inset-0 w-full h-full pointer-events-none z-10" />;
 };
 
-// Ambient Water Reflection Wave Effect simulating water ripples reflecting city lights
+// Ambient bottom gradient fade & monsoon rain telemetry animation (ocean wave animation removed)
 const WaterReflectionEffect = ({ activeSlide }) => {
   return (
-    <div className="absolute bottom-0 left-0 right-0 h-44 sm:h-56 pointer-events-none z-10 overflow-hidden">
-      {/* Shimmer gradient reflecting city lights on water */}
+    <div className="absolute bottom-0 left-0 right-0 h-28 sm:h-36 pointer-events-none z-10 overflow-hidden">
+      {/* Bottom shadow gradient for clean transition to the next section */}
       <div className="absolute inset-0 bg-gradient-to-t from-neutral-950 via-neutral-950/60 to-transparent" />
-
-      {/* Animated SVG Water Waves */}
-      <div className="absolute bottom-0 left-0 w-[200%] h-24 opacity-30 animate-water-wave">
-        <svg viewBox="0 0 1200 120" preserveAspectRatio="none" className="w-full h-full text-emerald-400 fill-current">
-          <path d="M0,0 C150,90 350,-40 500,50 C650,140 900,-20 1000,40 C1100,100 1150,20 1200,50 L1200,120 L0,120 Z" />
-        </svg>
-      </div>
-      <div className="absolute bottom-0 left-[-20%] w-[200%] h-20 opacity-20 animate-water-wave" style={{ animationDuration: '11s', animationDirection: 'reverse' }}>
-        <svg viewBox="0 0 1200 120" preserveAspectRatio="none" className="w-full h-full text-sky-400 fill-current">
-          <path d="M0,30 C200,110 400,-10 600,60 C800,130 950,10 1100,70 C1170,100 1190,40 1200,60 L1200,120 L0,120 Z" />
-        </svg>
-      </div>
-
-      {/* Ripple Rings */}
-      <div className="absolute bottom-6 left-1/4 w-32 h-10 border border-emerald-400/30 rounded-full animate-ripple pointer-events-none" />
-      <div className="absolute bottom-12 right-1/3 w-40 h-12 border border-sky-400/25 rounded-full animate-ripple pointer-events-none" style={{ animationDelay: '1.4s' }} />
 
       {/* Rain effect for Slide 3 (Monsoon) */}
       {activeSlide === 2 && (
