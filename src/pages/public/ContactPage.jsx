@@ -4,7 +4,7 @@ import { Link } from 'react-router-dom';
 import {
   Phone, Mail, MapPin, Building2, Search, CheckCircle2, Clock,
   AlertTriangle, Send, Copy, Check, ChevronRight, ArrowRight,
-  Sparkles, LifeBuoy
+  Sparkles, LifeBuoy, ShieldCheck, Zap
 } from 'lucide-react';
 import { Badge } from '../../components/common/Badge';
 import { MUMBAI_WARDS } from '../../utils/mockData';
@@ -587,11 +587,11 @@ export const ContactPage = () => {
           <div className="flex flex-col">
             {/* Headquarters Card */}
             <div className={classNames(
-              "rounded-3xl p-6 sm:p-8 space-y-6 border shadow-2xl transition-all h-full flex flex-col justify-between",
+              "rounded-3xl p-6 sm:p-7 space-y-4 border shadow-2xl transition-all h-full flex flex-col justify-between",
               isDark ? "bg-neutral-900/80 border-white/10 backdrop-blur-xl" : "bg-white border-neutral-200 shadow-soft-xl"
             )}>
-              <div className="space-y-5">
-                <div className="flex items-center justify-between">
+              <div className="space-y-4">
+                <div className="flex items-center justify-between pb-1">
                   <div className="flex items-center gap-3">
                     <div className={classNames(
                       "w-12 h-12 rounded-2xl border flex items-center justify-center shadow-lg",
@@ -612,7 +612,8 @@ export const ContactPage = () => {
                   </span>
                 </div>
 
-                <div className={classNames("space-y-3.5 text-xs border-t pt-4", isDark ? "text-white/70 border-white/10" : "text-neutral-600 border-neutral-200")}>
+                {/* Core Contact Rows */}
+                <div className={classNames("space-y-2.5 text-xs border-t pt-3.5", isDark ? "text-white/70 border-white/10" : "text-neutral-600 border-neutral-200")}>
                   <div className="flex items-start gap-2.5">
                     <MapPin size={16} className={isDark ? "text-emerald-400 shrink-0 mt-0.5" : "text-emerald-600 shrink-0 mt-0.5"} />
                     <span>
@@ -630,7 +631,7 @@ export const ContactPage = () => {
                     <span>
                       <strong className={isDark ? "text-white" : "text-neutral-900"}>Helpline & PBX:</strong>{" "}
                       <a href="tel:02222620251" className={isDark ? "text-emerald-400 hover:underline" : "text-emerald-600 hover:underline"}>022-2262-0251</a> /{" "}
-                      <a href="tel:1916" className={isDark ? "text-emerald-400 hover:underline" : "text-emerald-600 hover:underline"}>1916 (Toll-Free 24x7)</a>
+                      <a href="tel:1916" className={isDark ? "text-emerald-400 hover:underline font-bold" : "text-emerald-600 hover:underline font-bold"}>1916 (Toll-Free 24x7)</a>
                     </span>
                   </div>
                   <div className="flex items-start gap-2.5">
@@ -640,15 +641,88 @@ export const ContactPage = () => {
                     </span>
                   </div>
                 </div>
+
+                {/* 24x7 Emergency Quick Dispatch Grid */}
+                <div className={classNames("p-3.5 rounded-2xl border space-y-2", isDark ? "bg-neutral-950/60 border-white/10" : "bg-slate-50 border-neutral-200")}>
+                  <div className="flex items-center justify-between">
+                    <span className={classNames("text-[10px] font-mono uppercase font-bold tracking-wider flex items-center gap-1.5", isDark ? "text-emerald-400" : "text-emerald-700")}>
+                      <Zap size={12} className="text-amber-500 fill-current" /> 24x7 Emergency Dispatch Lines
+                    </span>
+                    <span className="text-[9px] font-mono px-2 py-0.5 rounded-full bg-emerald-500/15 text-emerald-400 border border-emerald-400/30 font-bold">
+                      LIVE 24x7
+                    </span>
+                  </div>
+                  <div className="grid grid-cols-2 gap-2 text-xs">
+                    <a href="tel:1916" className={classNames("p-2 rounded-xl border flex flex-col transition-all hover:scale-[1.02]", isDark ? "bg-neutral-900/90 border-white/10 hover:border-emerald-400/40" : "bg-white border-neutral-200 hover:border-emerald-500 shadow-2xs")}>
+                      <span className="text-[10px] text-neutral-500 dark:text-white/50 font-medium">Disaster Control</span>
+                      <span className="font-mono font-bold text-emerald-600 dark:text-emerald-400 text-sm">1916 (Toll-Free)</span>
+                    </a>
+                    <a href="tel:101" className={classNames("p-2 rounded-xl border flex flex-col transition-all hover:scale-[1.02]", isDark ? "bg-neutral-900/90 border-white/10 hover:border-rose-400/40" : "bg-white border-neutral-200 hover:border-rose-500 shadow-2xs")}>
+                      <span className="text-[10px] text-neutral-500 dark:text-white/50 font-medium">Fire Brigade</span>
+                      <span className="font-mono font-bold text-rose-600 dark:text-rose-400 text-sm">101</span>
+                    </a>
+                    <a href="tel:108" className={classNames("p-2 rounded-xl border flex flex-col transition-all hover:scale-[1.02]", isDark ? "bg-neutral-900/90 border-white/10 hover:border-sky-400/40" : "bg-white border-neutral-200 hover:border-sky-500 shadow-2xs")}>
+                      <span className="text-[10px] text-neutral-500 dark:text-white/50 font-medium">Ambulance</span>
+                      <span className="font-mono font-bold text-sky-600 dark:text-sky-400 text-sm">108</span>
+                    </a>
+                    <a href="tel:100" className={classNames("p-2 rounded-xl border flex flex-col transition-all hover:scale-[1.02]", isDark ? "bg-neutral-900/90 border-white/10 hover:border-amber-400/40" : "bg-white border-neutral-200 hover:border-amber-500 shadow-2xs")}>
+                      <span className="text-[10px] text-neutral-500 dark:text-white/50 font-medium">Police Control</span>
+                      <span className="font-mono font-bold text-amber-600 dark:text-amber-400 text-sm">100 / 112</span>
+                    </a>
+                  </div>
+                </div>
+
+                {/* Citizen Facilitation & RTI Counter Locations */}
+                <div className={classNames("p-3 rounded-2xl border space-y-1.5 text-xs", isDark ? "bg-neutral-950/40 border-white/10 text-white/70" : "bg-slate-50/80 border-neutral-200 text-neutral-600")}>
+                  <div className="flex items-center gap-1.5 font-bold text-neutral-900 dark:text-white text-xs">
+                    <Building2 size={13} className="text-teal-600 dark:text-teal-400" />
+                    <span>Headquarters Citizen Desks & RTI Counters</span>
+                  </div>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-[11px] pt-0.5">
+                    <div className="space-y-0.5">
+                      <span className="font-semibold text-neutral-900 dark:text-white block">Citizen Facilitation (CFC)</span>
+                      <span className="text-neutral-500 dark:text-white/50 block">Counters 1–8 · Mahapalika Marg</span>
+                    </div>
+                    <div className="space-y-0.5">
+                      <span className="font-semibold text-neutral-900 dark:text-white block">RTI & Public Information</span>
+                      <span className="text-neutral-500 dark:text-white/50 block">Annex Building, 3rd Floor, Rm 22</span>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Kaiser AI Resolution SLA Standards */}
+                <div className={classNames("p-3 rounded-2xl border space-y-1.5 text-xs", isDark ? "bg-emerald-950/20 border-emerald-500/25" : "bg-emerald-50/60 border-emerald-200")}>
+                  <div className="flex items-center justify-between">
+                    <span className="font-bold text-emerald-900 dark:text-emerald-300 flex items-center gap-1.5 text-xs">
+                      <ShieldCheck size={13} className="text-emerald-600 dark:text-emerald-400" />
+                      <span>Kaiser AI Resolution SLA Standards</span>
+                    </span>
+                    <span className="text-[9px] font-mono text-emerald-700 dark:text-emerald-400 font-bold">STRICT ESCALATION</span>
+                  </div>
+                  <div className="grid grid-cols-3 gap-1.5 pt-0.5 text-center font-mono">
+                    <div className={classNames("p-1.5 rounded-xl border", isDark ? "bg-neutral-900/80 border-emerald-500/20" : "bg-white border-emerald-200")}>
+                      <span className="block text-[9px] text-neutral-500 dark:text-white/50">Potholes</span>
+                      <span className="font-bold text-xs text-emerald-600 dark:text-emerald-400">&lt; 24h SLA</span>
+                    </div>
+                    <div className={classNames("p-1.5 rounded-xl border", isDark ? "bg-neutral-900/80 border-emerald-500/20" : "bg-white border-emerald-200")}>
+                      <span className="block text-[9px] text-neutral-500 dark:text-white/50">Flooding</span>
+                      <span className="font-bold text-xs text-amber-600 dark:text-amber-400">&lt; 12h SLA</span>
+                    </div>
+                    <div className={classNames("p-1.5 rounded-xl border", isDark ? "bg-neutral-900/80 border-emerald-500/20" : "bg-white border-emerald-200")}>
+                      <span className="block text-[9px] text-neutral-500 dark:text-white/50">Lighting</span>
+                      <span className="font-bold text-xs text-sky-600 dark:text-sky-400">&lt; 8h SLA</span>
+                    </div>
+                  </div>
+                </div>
               </div>
 
               {/* Citizen Hearing Banner (Lokshahi Din) */}
               <div className={classNames(
-                "p-4 rounded-2xl border space-y-2 text-xs mt-4",
+                "p-3.5 rounded-2xl border space-y-1.5 text-xs mt-2",
                 isDark ? "bg-sky-950/40 border-sky-500/30 text-sky-200" : "bg-sky-50 border-sky-200 text-sky-800"
               )}>
                 <div className={classNames("font-bold flex items-center gap-1.5 text-xs sm:text-sm", isDark ? "text-sky-300" : "text-sky-800")}>
-                  <LifeBuoy size={16} /> Citizen Lokshahi Din (Public Hearings)
+                  <LifeBuoy size={15} /> Citizen Lokshahi Din (Public Hearings)
                 </div>
                 <p className={classNames("text-[11px] leading-relaxed", isDark ? "text-sky-200/80" : "text-sky-700")}>
                   Every 1st Monday of the month from 10:00 AM to 12:00 PM, all 24 Assistant Commissioners personally hear unresolved civic grievances at their respective ward offices.
