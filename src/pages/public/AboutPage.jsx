@@ -107,32 +107,6 @@ export const AboutPage = () => {
     }
   ];
 
-  const team = [
-    {
-      name: 'Ayush Barve',
-      role: 'Chief AI Architect & Principal Systems Lead',
-      domain: 'Vision-Language Transformers, Autonomous NLP & Scalable Backend',
-      bio: 'Pioneered the core intelligence framework and high-performance backend infrastructure powering Kaiser AI. Architected the complete 3-tier deep learning intelligence suite: zero-shot OpenAI CLIP multimodal hazard recognition with sub-second spam rejection, high-throughput Swin/ViT deepfake authenticity verification, and Sentence-BERT + DBSCAN semantic deduplication clustering. Engineered the ultra-low latency, concurrent FastAPI microservices backbone with strict ACID database integrity, automated SLA escalation algorithms, and production-grade municipal resilience.',
-      initials: 'AB',
-      badge: 'Lead AI Architect'
-    },
-    {
-      name: 'Dharmik Desai',
-      role: 'Frontend Architect & Geospatial Systems Lead',
-      domain: 'Interactive GIS & Multilingual Voice UX',
-      bio: 'Spearheaded the sovereign frontend architecture and interactive GIS telemetry engine powering Kaiser AI across desktop and field devices. Designed the high-performance Leaflet 24-ward geospatial command map with sub-meter point-in-polygon ward routing, dynamic incident clustering, and real-time civic heatmaps. Engineered the accessible Web Speech audio grievance pipeline with real-time waveform visualization supporting conversational Marathi, Hindi, and English. Implemented the responsive theme architecture, tactile micro-interactions, spotlight command palette (Ctrl+K), and mobile-first field ergonomics to ensure inclusive civic access for all Mumbai residents.',
-      initials: 'DD',
-      badge: 'Geospatial & UI Lead'
-    },
-    {
-      name: 'Harsh Mane',
-      role: 'Cloud API & Systems Integration Lead',
-      domain: 'Municipal APIs & Multi-Portal Architecture',
-      bio: 'Architected the robust cloud integration fabric, external telemetry services, and multi-tier municipal portal ecosystem powering Kaiser AI. Integrated the NVIDIA NIM civic LLM assistant, real-time Open-Meteo weather telemetry, Greater Mumbai IMD radar grid streaming, and automated AQI monitoring pipelines. Engineered the role-based multi-portal architecture spanning Citizen, Ward Officer, and Municipal HQ command interfaces with strict DPDP Act 2023 privacy redaction, cryptographic JWT session security, and automated webhook dispatch. Curated foundational geospatial datasets and response SLA benchmarks across all 24 BMC administrative zones to synchronize municipal workflows.',
-      initials: 'HM',
-      badge: 'Integration Lead'
-    }
-  ];
 
   const faqs = [
     {
@@ -544,42 +518,6 @@ export const AboutPage = () => {
               </div>
             ))}
           </div>
-        </div>
-      </section>
-
-      {/* ── Multidisciplinary Team ── */}
-      <section className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 space-y-10">
-        <div className="text-center max-w-2xl mx-auto space-y-3">
-          <span className={classNames("font-mono text-xs font-bold uppercase tracking-widest", isDark ? "text-teal-300" : "text-teal-700")}>OUR TEAM & CONTRIBUTORS</span>
-          <h2 className={classNames("font-display text-2xl sm:text-4xl font-extrabold tracking-tight", isDark ? "text-white" : "text-neutral-950")}>
-            The Minds Behind Kaiser AI
-          </h2>
-          <p className={classNames("text-sm", isDark ? "text-white/70" : "text-neutral-600")}>
-            A collaborative effort uniting computer vision research, full-stack systems engineering, and urban governance insights.
-          </p>
-        </div>
-
-        <div className="grid sm:grid-cols-3 gap-6">
-          {team.map((m, idx) => (
-            <div
-              key={idx}
-              className={classNames(
-                "rounded-3xl p-6 text-center space-y-3.5 border shadow-xl transition-all group",
-                isDark
-                  ? "bg-neutral-900/70 border-white/10 hover:border-emerald-400/50 backdrop-blur-xl"
-                  : "bg-white border-neutral-200 hover:border-emerald-500 shadow-soft-lg hover:shadow-soft-xl"
-              )}
-            >
-              <div className="w-16 h-16 rounded-2xl bg-gradient-to-tr from-emerald-500 via-teal-400 to-sky-400 text-neutral-950 font-black text-lg flex items-center justify-center mx-auto shadow-[0_0_20px_rgba(52,211,153,0.4)] group-hover:scale-105 transition-transform">
-                {m.initials}
-              </div>
-              <div className="space-y-1">
-                <h3 className={classNames("font-bold text-base", isDark ? "text-white" : "text-neutral-900")}>{m.name}</h3>
-                <p className={classNames("text-xs font-mono font-bold", isDark ? "text-emerald-400" : "text-emerald-600")}>{m.role}</p>
-                <p className={classNames("text-[11px] mt-0.5", isDark ? "text-white/50" : "text-neutral-500")}>{m.domain}</p>
-              </div>
-            </div>
-          ))}
         </div>
       </section>
 
