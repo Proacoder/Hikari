@@ -115,7 +115,7 @@ export const Navbar = () => {
         <div className="px-3 sm:px-4 lg:px-5">
           <div className={classNames('flex items-center justify-between transition-all duration-300', scrolled ? 'h-14' : 'h-16')}>
             {/* Logo */}
-            <Link to="/" className="flex items-center gap-2.5 shrink-0 group mr-0 sm:mr-1" onClick={() => sound.play('click')}>
+            <Link to="/" className="flex items-center gap-2.5 shrink-0 group mr-4 sm:mr-5 lg:mr-6" onClick={() => sound.play('click')}>
               <div className="relative w-10 h-10 rounded-xl bg-white shadow-brand flex items-center justify-center p-0.5 overflow-hidden group-hover:scale-105 group-hover:rotate-2 transition-all duration-300">
                 <img src="/kaiser-mark.png" alt="Kaiser AI" className="w-full h-full object-contain" />
                 <span className="absolute inset-0 bg-gradient-to-tr from-transparent via-white/70 to-transparent translate-x-[-120%] group-hover:translate-x-[120%] transition-transform duration-700" />
