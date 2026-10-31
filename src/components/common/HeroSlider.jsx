@@ -79,9 +79,9 @@ export const HeroSlider = ({ stats, weather }) => {
       cta: { to: '/register', label: t('nav.signUp', 'Join Kaiser AI') },
       rows: [
         ['CITIZEN #1 · PRIYA N.', '4,820 PTS', 'RESOLVED'],
-        ['CITIZEN #2 · AARAV S.', '4,310 PTS', 'RESOLVED'],
-        ['CITIZEN #3 · ROHAN K.', '3,975 PTS', 'ASSIGNED'],
-        ['WARD RANK #1', 'BANDRA WEST (H/W)', 'RESOLVED'],
+        ['CITIZEN #2 · AYUSH B.', '4,640 PTS', 'RESOLVED'],
+        ['CITIZEN #3 · DHARMIK D.', '4,310 PTS', 'RESOLVED'],
+        ['CITIZEN #4 · HARSH M.', '4,120 PTS', 'ASSIGNED'],
       ],
     },
     // 2. Real-Time 24 Wards GIS Telemetry (Gateway of India)

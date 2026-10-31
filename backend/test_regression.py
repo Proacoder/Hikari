@@ -540,6 +540,32 @@ def test_external_nvidia_chatbot_handling():
         os.environ["NVIDIA_API_KEY"] = orig_key
 
 
+def test_bmc_admin_multi_citizen_distribution():
+    """Verify that Ayush Barve, Dharmik Desai, Harsh Mane, and Priya Nair are all registered and present in complaints."""
+    credentials = [
+        ("priya.nair@example.com", "Citizen@123", "Priya Nair"),
+        ("ayush.barve@example.com", "Citizen@123", "Ayush Barve"),
+        ("dharmik.desai@example.com", "Citizen@123", "Dharmik Desai"),
+        ("harsh.mane@example.com", "Citizen@123", "Harsh Mane"),
+    ]
+    for email, pwd, expected_name in credentials:
+        res = client.post("/api/auth/login", json={"email": email, "password": pwd})
+        assert res.status_code == 200, f"Login failed for {email}: {res.text}"
+        user_data = res.json()["data"]["user"]
+        assert user_data["name"] == expected_name
+        assert user_data["role"] == "citizen"
+
+    res_complaints = client.get("/api/complaints?limit=100")
+    assert res_complaints.status_code == 200
+    complaints = res_complaints.json()["data"]
+
+    creators = {c["createdBy"]["name"] for c in complaints if c.get("createdBy")}
+    assert "Priya Nair" in creators
+    assert "Ayush Barve" in creators
+    assert "Dharmik Desai" in creators
+    assert "Harsh Mane" in creators
+
+
 if __name__ == "__main__":
     print("=" * 60)
     print("RUNNING BUG REGRESSION TEST SUITE")
