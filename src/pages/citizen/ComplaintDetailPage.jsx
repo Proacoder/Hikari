@@ -892,14 +892,21 @@ export const ComplaintDetailPage = () => {
 
           {/* Location on OpenStreetMap */}
           <Card className="p-4 space-y-3 border border-neutral-200">
-            <div className="flex items-center justify-between">
+            <div className="flex items-center justify-between flex-wrap gap-1.5">
               <span className="text-xs font-bold text-neutral-800 flex items-center gap-1.5">
                 <MapPin size={14} className="text-brand-600" />
                 Exact Pinned Location
               </span>
-              <span className="text-[11px] text-neutral-400 font-mono">
-                {complaint.latitude?.toFixed(4)}, {complaint.longitude?.toFixed(4)}
-              </span>
+              <div className="flex items-center gap-2">
+                {complaint.locationMethod && (
+                  <span className="text-[10px] font-semibold text-brand-700 bg-brand-50 border border-brand-200 px-2 py-0.5 rounded-full">
+                    {complaint.locationMethod}
+                  </span>
+                )}
+                <span className="text-[11px] text-neutral-400 font-mono">
+                  {complaint.latitude?.toFixed(4)}, {complaint.longitude?.toFixed(4)}
+                </span>
+              </div>
             </div>
             <div className="rounded-xl overflow-hidden border border-neutral-200">
               <LeafletMap

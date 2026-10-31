@@ -10,7 +10,7 @@ import { getComplaints, createComplaint, getMapData, getStoredComplaints, saveSt
 import { getWeatherAQI, getMumbaiNews } from '../api/weather.api';
 import { detectDefectWithCLIP, checkDuplicateWithDBSCAN } from '../api/ml.api';
 import { MUMBAI_WARDS, MOCK_OFFICERS, CATEGORIES } from '../utils/mockData';
-import { findClosestWard, reverseGeocodeCoordinates, analyzeComplaintDynamic } from '../utils/geoUtils';
+import { findClosestWard, reverseGeocodeCoordinates, analyzeComplaintDynamic, MUMBAI_POPULAR_LANDMARKS, searchMumbaiLocations } from '../utils/geoUtils';
 import { useLanguage } from '../context/LanguageContext';
 import { useNotifications } from '../context/NotificationContext';
 import { useAuth } from '../context/AuthContext';
@@ -410,6 +410,11 @@ export const ReportIssuePage = () => {
     imageName: '',
   });
 
+  const [locationMode, setLocationMode] = useState('pin'); // 'pin' | 'gps'
+  const [searchQuery, setSearchQuery] = useState('');
+  const [searchResults, setSearchResults] = useState([]);
+  const [isSearchingLocation, setIsSearchingLocation] = useState(false);
+  const [showSearchResults, setShowSearchResults] = useState(false);
   const [isDetectingGps, setIsDetectingGps] = useState(false);
   const [locationStatus, setLocationStatus] = useState(null); // 'locating' | 'success' | 'error'
   const [locationMessage, setLocationMessage] = useState('');
@@ -472,16 +477,17 @@ export const ReportIssuePage = () => {
 
   // Handle GPS Live Location
   const handleDetectLocation = () => {
+    setLocationMode('gps');
     if (!navigator.geolocation) {
-      toast.error('Geolocation is not supported by your browser.');
+      toast.error('Geolocation is not supported by your browser. Please use Map Pin mode.');
       setLocationStatus('error');
-      setLocationMessage('Geolocation is not supported by your browser.');
+      setLocationMessage('Geolocation is not supported by your browser. Please use Map Pin to set location.');
       return;
     }
 
     setIsDetectingGps(true);
     setLocationStatus('locating');
-    setLocationMessage('Acquiring real-time GPS coordinates…');
+    setLocationMessage('Acquiring real-time device GPS coordinates…');
     const toastId = toast.loading(t('citizen.detectingGps', 'Fetching GPS coordinates from device...'));
 
     navigator.geolocation.getCurrentPosition(
@@ -510,7 +516,7 @@ export const ReportIssuePage = () => {
 
         setIsDetectingGps(false);
         setLocationStatus('success');
-        setLocationMessage(`Live location detected (${lat}° N, ${lng}° E) · Auto-classified to ${closest.ward.name}`);
+        setLocationMessage(`Live GPS locked (${lat}° N, ${lng}° E) · ±${Math.round(pos.coords.accuracy || 5)}m accuracy · Assigned to ${closest.ward.name}`);
         toast.success(
           `${t('citizen.gpsSuccess', 'Location detected!')} ${closest.ward.name} (${closest.distanceKm} km away)`,
           { id: toastId }
@@ -519,9 +525,9 @@ export const ReportIssuePage = () => {
       (error) => {
         setIsDetectingGps(false);
         setLocationStatus('error');
-        setLocationMessage(`GPS permission denied or timeout (${error.message}). Pick a Mumbai preset location below!`);
+        setLocationMessage(`GPS permission unavailable or timed out (${error.message}). You can use "Pin on Map" to place your pin anywhere!`);
         toast.error(
-          t('citizen.gpsError', 'Could not access device GPS. Click on the map to set location.'),
+          t('citizen.gpsError', 'Could not access device GPS. Use "Pin on Map" to set location anywhere.'),
           { id: toastId }
         );
       },
@@ -529,7 +535,7 @@ export const ReportIssuePage = () => {
     );
   };
 
-  // Map pin position change handler (drag or click on Leaflet map)
+  // Map pin position change handler (drag or click anywhere on Leaflet map)
   const handleMapPositionChange = async ({ lat, lng }) => {
     const roundedLat = parseFloat(lat.toFixed(6));
     const roundedLng = parseFloat(lng.toFixed(6));
@@ -548,9 +554,47 @@ export const ReportIssuePage = () => {
     if (street) {
       setFormData((prev) => ({
         ...prev,
-        landmark: prev.landmark ? prev.landmark : street,
+        landmark: street,
       }));
     }
+  };
+
+  // Handle location search query for Mumbai areas
+  const handleSearchLocation = async (query) => {
+    setSearchQuery(query);
+    if (!query || query.trim().length < 2) {
+      setSearchResults([]);
+      setShowSearchResults(false);
+      return;
+    }
+    setIsSearchingLocation(true);
+    setShowSearchResults(true);
+    try {
+      const results = await searchMumbaiLocations(query);
+      setSearchResults(results);
+    } catch {
+      setSearchResults([]);
+    } finally {
+      setIsSearchingLocation(false);
+    }
+  };
+
+  // Jump pin to selected search result or quick-jump area
+  const handleSelectLocation = async (loc) => {
+    setShowSearchResults(false);
+    setSearchQuery(loc.name);
+    const closest = findClosestWard(loc.lat, loc.lng);
+    setDetectedWardInfo(closest);
+
+    setFormData((prev) => ({
+      ...prev,
+      latitude: loc.lat,
+      longitude: loc.lng,
+      ward: loc.wardId || closest.ward.id,
+      landmark: loc.area ? `${loc.name}, ${loc.area}` : loc.name,
+    }));
+
+    toast.success(`📍 Pin placed at ${loc.name} (${closest.ward.name})`);
   };
 
   // Handle file image upload with Model 1 (OpenAI CLIP Visual Inspector)
@@ -701,6 +745,8 @@ export const ReportIssuePage = () => {
         severity: aiPrediction?.severity || 65,
         confidence: aiPrediction?.confidence || '94.0%',
         duplicateLinkedTo: dupCheck?.is_duplicate ? dupCheck.parent_complaint_id : null,
+        locationSource: locationMode === 'pin' ? 'custom_pin' : 'auto_gps',
+        locationMethod: locationMode === 'pin' ? '📍 Interactive Map Pin (Custom)' : '🛰️ Auto-Detected Live GPS Telemetry',
         createdBy: user ? {
           id: user.id,
           name: user.name,
@@ -790,10 +836,13 @@ export const ReportIssuePage = () => {
               <div className="flex-1 min-w-0">
                 <span className="font-semibold text-neutral-900 text-sm block truncate">{submittedTicket.title}</span>
                 <p className="text-neutral-500 text-[11px] line-clamp-2 mt-0.5">{submittedTicket.description}</p>
-                <div className="flex items-center gap-2 mt-2">
+                <div className="flex items-center gap-2 mt-2 flex-wrap">
                   <Badge variant="brand">{translateCategory(submittedTicket.category)}</Badge>
                   <Badge variant="amber">Severity {submittedTicket.severity}/100</Badge>
                   <span className="text-[11px] text-neutral-400">Ward #{submittedTicket.ward}</span>
+                  <span className="inline-flex items-center gap-1 text-[11px] text-brand-700 font-semibold bg-brand-50 border border-brand-200 px-2 py-0.5 rounded-full">
+                    {submittedTicket.locationMethod || (locationMode === 'pin' ? '📍 Custom Map Pin' : '🛰️ Live GPS Telemetry')}
+                  </span>
                 </div>
               </div>
             </div>
@@ -850,40 +899,194 @@ export const ReportIssuePage = () => {
       <Card className="p-6 space-y-6 shadow-soft-md bg-white border-neutral-200" padding="">
         <form onSubmit={handleSubmit} className="space-y-5">
 
-          {/* ── Section 1: Live Location & Ward Auto-Classification ── */}
-          <div className="p-4 bg-slate-50 border border-slate-200 rounded-2xl space-y-3">
+          {/* ── Section 1: Dual-Option Location (Pin on Map vs. Auto-Detect GPS) ── */}
+          <div className="p-4 sm:p-5 bg-slate-50 border border-slate-200 rounded-2xl space-y-4">
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
-              <div className="flex items-center gap-2">
-                <div className="w-8 h-8 rounded-xl bg-brand-100 flex items-center justify-center text-brand-600">
+              <div className="flex items-center gap-2.5">
+                <div className="w-8 h-8 rounded-xl bg-brand-100 flex items-center justify-center text-brand-600 shrink-0">
                   <Navigation size={16} />
                 </div>
                 <div>
-                  <label className="text-sm font-bold text-neutral-900">Live GPS Location & Ward</label>
-                  <p className="text-[11px] text-neutral-500">Auto-routes to the nearest of {MUMBAI_WARDS.length} BMC Ward Offices</p>
+                  <label className="text-sm font-bold text-neutral-900">
+                    Location & Municipal Ward
+                  </label>
+                  <p className="text-[11px] text-neutral-500">
+                    Choose how to report: drop a pin anywhere on the map or auto-detect with device GPS
+                  </p>
                 </div>
               </div>
+              <span className="text-[10px] font-semibold text-neutral-500 bg-white px-2.5 py-1 rounded-lg border border-neutral-200 self-start sm:self-auto">
+                24 BMC Wards Auto-Routed
+              </span>
+            </div>
+
+            {/* Dual Location Mode Tabs: Option A (Pin on Map) & Option B (Auto-Detect GPS) */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+              {/* Option 1: Pin on Map */}
+              <button
+                type="button"
+                onClick={() => setLocationMode('pin')}
+                className={classNames(
+                  "p-3 rounded-xl border text-left transition-all flex items-start gap-3 cursor-pointer",
+                  locationMode === 'pin'
+                    ? "bg-white border-brand-500 shadow-sm ring-2 ring-brand-500/20"
+                    : "bg-white/70 hover:bg-white border-neutral-200 text-neutral-600"
+                )}
+              >
+                <div className={classNames(
+                  "w-8 h-8 rounded-lg flex items-center justify-center shrink-0 transition-colors",
+                  locationMode === 'pin' ? "bg-brand-600 text-white shadow-xs" : "bg-neutral-100 text-neutral-500"
+                )}>
+                  <MapPin size={17} />
+                </div>
+                <div className="min-w-0 flex-1">
+                  <div className="flex items-center justify-between">
+                    <span className={classNames("text-xs font-bold", locationMode === 'pin' ? "text-brand-900" : "text-neutral-800")}>
+                      📍 Pin on Map (Custom)
+                    </span>
+                    {locationMode === 'pin' && (
+                      <span className="text-[10px] font-bold bg-brand-50 text-brand-700 px-2 py-0.5 rounded-full border border-brand-200">
+                        Selected
+                      </span>
+                    )}
+                  </div>
+                  <p className="text-[11px] text-neutral-500 mt-0.5 leading-snug">
+                    Pin wherever you want: click or drag marker anywhere in Mumbai
+                  </p>
+                </div>
+              </button>
+
+              {/* Option 2: Auto-Detect Live GPS */}
               <button
                 type="button"
                 onClick={handleDetectLocation}
                 disabled={isDetectingGps}
-                className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-brand-600 hover:bg-brand-700 text-white rounded-xl text-xs font-semibold shadow-sm transition-colors disabled:opacity-50"
+                className={classNames(
+                  "p-3 rounded-xl border text-left transition-all flex items-start gap-3 cursor-pointer",
+                  locationMode === 'gps'
+                    ? "bg-white border-emerald-500 shadow-sm ring-2 ring-emerald-500/20"
+                    : "bg-white/70 hover:bg-white border-neutral-200 text-neutral-600"
+                )}
               >
-                <Crosshair size={13} className={isDetectingGps ? 'animate-spin' : ''} />
-                {isDetectingGps ? t('citizen.detectingGps', 'Detecting GPS…') : t('citizen.detectGps', 'Use Live GPS')}
+                <div className={classNames(
+                  "w-8 h-8 rounded-lg flex items-center justify-center shrink-0 transition-colors",
+                  locationMode === 'gps' ? "bg-emerald-600 text-white shadow-xs" : "bg-neutral-100 text-neutral-500"
+                )}>
+                  <Crosshair size={17} className={isDetectingGps ? "animate-spin" : ""} />
+                </div>
+                <div className="min-w-0 flex-1">
+                  <div className="flex items-center justify-between">
+                    <span className={classNames("text-xs font-bold", locationMode === 'gps' ? "text-emerald-900" : "text-neutral-800")}>
+                      🛰️ Auto-Detect Live GPS
+                    </span>
+                    {locationMode === 'gps' && (
+                      <span className="text-[10px] font-bold bg-emerald-50 text-emerald-700 px-2 py-0.5 rounded-full border border-emerald-200">
+                        {isDetectingGps ? "Locating…" : "Selected"}
+                      </span>
+                    )}
+                  </div>
+                  <p className="text-[11px] text-neutral-500 mt-0.5 leading-snug">
+                    One-click real-time GPS coordinates from your device sensor
+                  </p>
+                </div>
               </button>
             </div>
 
-            {/* Location status notice */}
-            {locationStatus && (
-              <div className={`p-2.5 rounded-xl text-xs flex items-center gap-2 ${
-                locationStatus === 'success' ? 'bg-emerald-50 text-emerald-700 border border-emerald-200' :
-                locationStatus === 'locating' ? 'bg-brand-50 text-brand-700 border border-brand-200' :
-                'bg-amber-50 text-amber-700 border border-amber-200'
+            {/* Pin Mode Search & Quick-Jump Area Bar */}
+            {locationMode === 'pin' && (
+              <div className="space-y-2.5 pt-0.5">
+                {/* Search Input with auto-complete */}
+                <div className="relative">
+                  <div className="relative flex items-center">
+                    <Search size={14} className="absolute left-3 text-neutral-400" />
+                    <input
+                      type="text"
+                      value={searchQuery}
+                      onChange={(e) => handleSearchLocation(e.target.value)}
+                      onFocus={() => searchQuery.length >= 2 && setShowSearchResults(true)}
+                      placeholder="Search Mumbai landmark, street, or area (e.g. Bandra, Dadar, Powai, Colaba)..."
+                      className="w-full pl-9 pr-8 py-2 bg-white border border-neutral-300 rounded-xl text-xs placeholder:text-neutral-400 focus:outline-none focus:ring-2 focus:ring-brand-500/20 focus:border-brand-500 transition-all"
+                    />
+                    {searchQuery && (
+                      <button
+                        type="button"
+                        onClick={() => { setSearchQuery(''); setSearchResults([]); setShowSearchResults(false); }}
+                        className="absolute right-2.5 text-neutral-400 hover:text-neutral-600 text-xs cursor-pointer"
+                      >
+                        ✕
+                      </button>
+                    )}
+                  </div>
+
+                  {/* Search Results Dropdown */}
+                  {showSearchResults && searchResults.length > 0 && (
+                    <div className="absolute top-full left-0 right-0 mt-1 bg-white border border-neutral-200 rounded-xl shadow-lg z-[1100] max-h-56 overflow-y-auto divide-y divide-neutral-100">
+                      {searchResults.map((item, idx) => (
+                        <button
+                          key={idx}
+                          type="button"
+                          onClick={() => handleSelectLocation(item)}
+                          className="w-full px-3 py-2 text-left hover:bg-neutral-50 flex items-center justify-between text-xs transition-colors cursor-pointer"
+                        >
+                          <div>
+                            <div className="font-semibold text-neutral-800">{item.name}</div>
+                            <div className="text-[10px] text-neutral-400">{item.area}</div>
+                          </div>
+                          <span className="text-[10px] font-bold bg-brand-50 text-brand-700 px-2 py-0.5 rounded-full border border-brand-200 shrink-0">
+                            Drop Pin →
+                          </span>
+                        </button>
+                      ))}
+                    </div>
+                  )}
+                </div>
+
+                {/* Popular Area Quick Jump Pills */}
+                <div>
+                  <div className="flex items-center justify-between mb-1.5">
+                    <span className="text-[10px] font-bold uppercase tracking-wider text-neutral-400">
+                      Quick Pin Zones (Mumbai):
+                    </span>
+                    <span className="text-[10px] text-neutral-400">Click to jump pin</span>
+                  </div>
+                  <div className="flex flex-wrap gap-1.5">
+                    {MUMBAI_POPULAR_LANDMARKS.slice(0, 8).map((landmark, idx) => (
+                      <button
+                        key={idx}
+                        type="button"
+                        onClick={() => handleSelectLocation(landmark)}
+                        className="px-2.5 py-1 bg-white hover:bg-brand-50 hover:border-brand-300 border border-neutral-200 rounded-lg text-[11px] font-medium text-neutral-700 transition-colors cursor-pointer"
+                      >
+                        📍 {landmark.name.split('/')[0].trim()}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* GPS Mode Status Banner */}
+            {locationMode === 'gps' && (
+              <div className={`p-3 rounded-xl text-xs flex flex-col sm:flex-row sm:items-center justify-between gap-2 ${
+                locationStatus === 'success' ? 'bg-emerald-50 text-emerald-800 border border-emerald-200' :
+                locationStatus === 'locating' ? 'bg-brand-50 text-brand-800 border border-brand-200' :
+                'bg-amber-50 text-amber-800 border border-amber-200'
               }`}>
-                {locationStatus === 'success' ? <CheckCircle2 size={14} className="shrink-0" /> :
-                 locationStatus === 'locating' ? <Navigation size={14} className="shrink-0 animate-spin" /> :
-                 <AlertTriangle size={14} className="shrink-0" />}
-                <span className="font-medium">{locationMessage}</span>
+                <div className="flex items-center gap-2">
+                  {locationStatus === 'success' ? <CheckCircle2 size={16} className="text-emerald-600 shrink-0" /> :
+                   locationStatus === 'locating' ? <Crosshair size={16} className="text-brand-600 shrink-0 animate-spin" /> :
+                   <AlertTriangle size={16} className="text-amber-600 shrink-0" />}
+                  <span className="font-medium text-xs leading-snug">{locationMessage || 'Acquiring GPS fix…'}</span>
+                </div>
+                <button
+                  type="button"
+                  onClick={handleDetectLocation}
+                  disabled={isDetectingGps}
+                  className="inline-flex items-center gap-1 text-[11px] font-bold text-emerald-700 hover:text-emerald-900 bg-white px-2 py-1 rounded-lg border border-emerald-200 shrink-0 self-start sm:self-auto cursor-pointer"
+                >
+                  <RefreshCw size={11} className={isDetectingGps ? "animate-spin" : ""} />
+                  Re-detect GPS
+                </button>
               </div>
             )}
 
@@ -891,11 +1094,13 @@ export const ReportIssuePage = () => {
             <div className="space-y-1.5 pt-1">
               <div className="flex items-center justify-between">
                 <label className="text-xs font-bold text-neutral-800 flex items-center gap-1.5">
-                  <MapPin size={14} className="text-brand-600" />
-                  <span>{t('citizen.pinLocation', 'Pinpoint Location on Map')}</span>
+                  <MapPin size={14} className={locationMode === 'pin' ? "text-brand-600" : "text-emerald-600"} />
+                  <span>
+                    {locationMode === 'pin' ? "Interactive Map Pin (Click anywhere to drop pin)" : "Live Pinned Location"}
+                  </span>
                 </label>
-                <span className="text-[11px] text-neutral-400">
-                  {t('citizen.pinHint', 'Click or drag pin to update coordinate')}
+                <span className="text-[11px] font-medium text-brand-600 bg-brand-50 px-2 py-0.5 rounded-full border border-brand-200">
+                  {locationMode === 'pin' ? "Click or drag pin freely" : "GPS Position Locked"}
                 </span>
               </div>
               <div className="rounded-2xl overflow-hidden border border-neutral-200 shadow-soft-sm relative">
@@ -905,8 +1110,18 @@ export const ReportIssuePage = () => {
                   zoom={14}
                   selectedPosition={{ lat: formData.latitude, lng: formData.longitude }}
                   onPositionChange={handleMapPositionChange}
-                  height="220px"
+                  height="260px"
                 />
+              </div>
+
+              {/* Pin info footer */}
+              <div className="flex items-center justify-between text-[11px] text-neutral-500 px-1 pt-0.5">
+                <span>
+                  Pinned: <strong className="font-mono text-neutral-800">{formData.latitude?.toFixed(4)}° N, {formData.longitude?.toFixed(4)}° E</strong>
+                </span>
+                <span className="text-neutral-400">
+                  Mode: <strong className="text-neutral-700">{locationMode === 'pin' ? 'Manual Pin Drop' : 'Device GPS Telemetry'}</strong>
+                </span>
               </div>
             </div>
 

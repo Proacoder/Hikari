@@ -93,6 +93,11 @@ export const LeafletMap = ({
   const centerLat = center?.[0];
   const centerLng = center?.[1];
 
+  const onPositionChangeRef = useRef(onPositionChange);
+  onPositionChangeRef.current = onPositionChange;
+  const pickerModeRef = useRef(pickerMode);
+  pickerModeRef.current = pickerMode;
+
   // Intercept Leaflet popup navigation links for client-side routing
   useEffect(() => {
     const container = mapContainerRef.current;
@@ -116,14 +121,15 @@ export const LeafletMap = ({
     };
   }, [navigate]);
 
-  // Initialize Map
+  // Initialize Map Once
   useEffect(() => {
     if (!mapContainerRef.current) return;
 
     if (!mapInstanceRef.current) {
+      const initialCenter = [centerLat || 19.0760, centerLng || 72.8777];
       const map = L.map(mapContainerRef.current, {
-        center: center,
-        zoom: zoom,
+        center: initialCenter,
+        zoom: zoom || 12,
         zoomControl: true,
         scrollWheelZoom: true,
       });
@@ -138,39 +144,44 @@ export const LeafletMap = ({
       markersLayerRef.current = markersGroup;
       mapInstanceRef.current = map;
 
-      // Handle map clicks in picker mode
-      let clickHandler = null;
-      if (pickerMode && onPositionChange) {
-        clickHandler = (e) => {
+      // Handle map clicks in picker mode without tearing down the map
+      map.on('click', (e) => {
+        if (pickerModeRef.current && onPositionChangeRef.current) {
           const { lat, lng } = e.latlng;
-          onPositionChange({ lat, lng });
-        };
-        map.on('click', clickHandler);
-      }
-
-      // Store click handler for cleanup
-      mapInstanceRef.current._pickerClickHandler = clickHandler;
+          onPositionChangeRef.current({ lat, lng });
+        }
+      });
     }
 
     return () => {
       if (mapInstanceRef.current) {
-        // Remove picker mode click handler if it exists
-        if (mapInstanceRef.current._pickerClickHandler) {
-          mapInstanceRef.current.off('click', mapInstanceRef.current._pickerClickHandler);
-          mapInstanceRef.current._pickerClickHandler = null;
-        }
         mapInstanceRef.current.remove();
         mapInstanceRef.current = null;
       }
     };
-  }, [center, onPositionChange, pickerMode, zoom]);
+  }, []);
 
-  // Update Center if changed
+  // Invalidate map size on height or mode changes
   useEffect(() => {
-    if (mapInstanceRef.current && center) {
-      mapInstanceRef.current.setView(center, zoom);
+    if (mapInstanceRef.current) {
+      const timer = setTimeout(() => {
+        mapInstanceRef.current?.invalidateSize();
+      }, 150);
+      return () => clearTimeout(timer);
     }
-  }, [centerLat, centerLng, zoom, center]);
+  }, [height, pickerMode]);
+
+  // Update Center if changed noticeably
+  useEffect(() => {
+    if (mapInstanceRef.current && centerLat != null && centerLng != null) {
+      const current = mapInstanceRef.current.getCenter();
+      if (Math.abs(current.lat - centerLat) > 0.0001 || Math.abs(current.lng - centerLng) > 0.0001) {
+        mapInstanceRef.current.setView([centerLat, centerLng], zoom || mapInstanceRef.current.getZoom(), {
+          animate: true,
+        });
+      }
+    }
+  }, [centerLat, centerLng, zoom]);
 
   // Update Markers or Ward Polygons based on mapViewMode
   useEffect(() => {
@@ -279,17 +290,24 @@ export const LeafletMap = ({
   useEffect(() => {
     if (!mapInstanceRef.current) return;
 
-    if (pickerMode && selectedPosition) {
+    if (pickerMode && selectedPosition && selectedPosition.lat != null && selectedPosition.lng != null) {
       if (!pickerMarkerRef.current) {
         const marker = L.marker([selectedPosition.lat, selectedPosition.lng], {
           icon: createPickerIcon(),
-          draggable: true
+          draggable: true,
+          title: 'Drag marker or click anywhere on map to reposition pin',
         }).addTo(mapInstanceRef.current);
+
+        marker.bindTooltip('📍 Pinned Location (Drag to adjust)', {
+          permanent: false,
+          direction: 'top',
+          offset: [0, -36],
+        });
 
         marker.on('dragend', (event) => {
           const position = event.target.getLatLng();
-          if (onPositionChange) {
-            onPositionChange({ lat: position.lat, lng: position.lng });
+          if (onPositionChangeRef.current) {
+            onPositionChangeRef.current({ lat: position.lat, lng: position.lng });
           }
         });
 
@@ -301,7 +319,7 @@ export const LeafletMap = ({
       pickerMarkerRef.current.remove();
       pickerMarkerRef.current = null;
     }
-  }, [pickerMode, selectedPosition, onPositionChange]);
+  }, [pickerMode, selectedPosition?.lat, selectedPosition?.lng]);
 
   return (
     <div className={`relative rounded-2xl overflow-hidden shadow-soft-sm border border-neutral-200 z-10 ${className}`}>
@@ -337,7 +355,12 @@ export const LeafletMap = ({
 
       <div
         ref={mapContainerRef}
-        style={{ height, width: '100%', minHeight: '300px' }}
+        style={{
+          height,
+          width: '100%',
+          minHeight: '260px',
+          cursor: pickerMode ? 'crosshair' : 'grab',
+        }}
       />
     </div>
   );

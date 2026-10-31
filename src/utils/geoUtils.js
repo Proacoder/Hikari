@@ -166,3 +166,108 @@ export const analyzeComplaintDynamic = (title = '', description = '') => {
   };
 };
 
+/**
+ * Curated key landmarks across Mumbai for instant map jump & pin placement.
+ */
+export const MUMBAI_POPULAR_LANDMARKS = [
+  { name: 'Dadar Station / Shivaji Park', area: 'Dadar West', wardId: 8, lat: 19.0180, lng: 72.8430 },
+  { name: 'Bandra Bandstand / Carter Road', area: 'Bandra West', wardId: 11, lat: 19.0544, lng: 72.8205 },
+  { name: 'Linking Road Shopping District', area: 'Bandra West', wardId: 11, lat: 19.0620, lng: 72.8350 },
+  { name: 'Andheri East Station / MIDC', area: 'Andheri East', wardId: 12, lat: 19.1152, lng: 72.8680 },
+  { name: 'Lokhandwala & Juhu Beach', area: 'Andheri West', wardId: 13, lat: 19.1197, lng: 72.8290 },
+  { name: 'Nariman Point & Marine Drive', area: 'South Mumbai', wardId: 1, lat: 18.9256, lng: 72.8242 },
+  { name: 'Colaba Causeway & Gateway of India', area: 'Colaba', wardId: 1, lat: 18.9220, lng: 72.8347 },
+  { name: 'CSMT & Fort Heritage District', area: 'Fort', wardId: 1, lat: 18.9400, lng: 72.8354 },
+  { name: 'Powai Lake & Hiranandani', area: 'Powai', wardId: 23, lat: 19.1250, lng: 72.9150 },
+  { name: 'BKC (Bandra Kurla Complex)', area: 'Kalina / BKC', wardId: 10, lat: 19.0657, lng: 72.8687 },
+  { name: 'Borivali Station & National Park', area: 'Borivali West', wardId: 20, lat: 19.2290, lng: 72.8554 },
+  { name: 'Kurla West & Phoenix Marketcity', area: 'Kurla West', wardId: 14, lat: 19.0860, lng: 72.8890 },
+  { name: 'Chembur Diamond Garden', area: 'Chembur', wardId: 16, lat: 19.0538, lng: 72.8990 },
+  { name: 'Goregaon West / SV Road', area: 'Goregaon West', wardId: 19, lat: 19.1392, lng: 72.8499 },
+  { name: 'Malad West & Link Road', area: 'Malad West', wardId: 18, lat: 19.1617, lng: 72.8492 },
+  { name: 'Ghatkopar East & Pant Nagar', area: 'Ghatkopar East', wardId: 17, lat: 19.0868, lng: 72.9083 },
+  { name: 'Mulund West & LBS Marg', area: 'Mulund West', wardId: 24, lat: 19.1449, lng: 72.9382 },
+];
+
+/**
+ * Searches Mumbai locations with fast local landmark matching and OSM Nominatim fallback.
+ */
+export const searchMumbaiLocations = async (query) => {
+  if (!query || query.trim().length < 2) return [];
+  const q = query.trim().toLowerCase();
+
+  // 1. Fast match from local curated landmarks
+  const localMatches = [];
+  MUMBAI_POPULAR_LANDMARKS.forEach((lm) => {
+    if (lm.name.toLowerCase().includes(q) || lm.area.toLowerCase().includes(q)) {
+      localMatches.push({
+        name: lm.name,
+        area: lm.area,
+        lat: lm.lat,
+        lng: lm.lng,
+        wardId: lm.wardId,
+        source: 'landmark',
+      });
+    }
+  });
+
+  // 2. Match from all 24 Mumbai Wards
+  MUMBAI_WARDS.forEach((w) => {
+    if (w.name.toLowerCase().includes(q) || w.area.toLowerCase().includes(q) || w.code.toLowerCase().includes(q)) {
+      if (!localMatches.some((m) => Math.abs(m.lat - w.lat) < 0.005 && Math.abs(m.lng - w.lng) < 0.005)) {
+        localMatches.push({
+          name: `${w.name} Office & Jurisdiction`,
+          area: w.area,
+          lat: w.lat,
+          lng: w.lng,
+          wardId: w.id,
+          source: 'ward',
+        });
+      }
+    }
+  });
+
+  if (localMatches.length >= 3) return localMatches.slice(0, 6);
+
+  // 3. Fallback to OpenStreetMap Nominatim with strict Mumbai bounding box
+  try {
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 2000);
+    const encoded = encodeURIComponent(`${query}, Mumbai, Maharashtra, India`);
+    const res = await fetch(
+      `https://nominatim.openstreetmap.org/search?q=${encoded}&format=json&limit=5&viewbox=72.75,19.35,73.05,18.85&bounded=1`,
+      {
+        headers: {
+          'Accept': 'application/json',
+          'User-Agent': 'KaiserAI-CivicPortal/1.0',
+        },
+        signal: controller.signal,
+      }
+    );
+    clearTimeout(timeoutId);
+
+    if (res.ok) {
+      const items = await res.json();
+      const nominatimMatches = (items || []).map((item) => {
+        const lat = parseFloat(item.lat);
+        const lng = parseFloat(item.lon);
+        const closest = findClosestWard(lat, lng);
+        return {
+          name: item.display_name.split(',').slice(0, 2).join(', '),
+          area: item.display_name.split(',').slice(2, 4).join(', '),
+          lat,
+          lng,
+          wardId: closest.ward.id,
+          source: 'osm',
+        };
+      });
+
+      return [...localMatches, ...nominatimMatches].slice(0, 6);
+    }
+  } catch {
+    // Non-blocking fallback
+  }
+
+  return localMatches;
+};
+
