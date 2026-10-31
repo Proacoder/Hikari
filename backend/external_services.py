@@ -186,7 +186,7 @@ CURATED_MUMBAI_BULLETINS = [
         "source": "BMC Municipal Press Wire",
         "publishedAt": "2026-10-28T09:30:00Z",
         "url": "https://www.mcgm.gov.in",
-        "imageUrl": "https://images.unsplash.com/photo-1570125909232-eb263c188f7e?w=600&q=80",
+        "imageUrl": "/civic/news/storm-drain.jpg",
         "description": "Brihanmumbai Municipal Corporation completes major nullah desilting audits ahead of seasonal rains with GPS-tracked silt hauling.",
     },
     {
@@ -194,7 +194,7 @@ CURATED_MUMBAI_BULLETINS = [
         "source": "Mumbai Civic Gazette",
         "publishedAt": "2026-10-27T14:15:00Z",
         "url": "https://www.mcgm.gov.in",
-        "imageUrl": "https://images.unsplash.com/photo-1545239351-ef35f43d514b?w=600&q=80",
+        "imageUrl": "/civic/news/sealink-bridge.jpg",
         "description": "Advanced atmospheric sensors and AI incident detection cameras deployed along the promenade for pedestrian and traffic safety.",
     },
     {
@@ -202,7 +202,7 @@ CURATED_MUMBAI_BULLETINS = [
         "source": "Maharashtra Urban Infrastructure",
         "publishedAt": "2026-10-26T11:00:00Z",
         "url": "https://www.mcgm.gov.in",
-        "imageUrl": "https://images.unsplash.com/photo-1515162816999-a0c47dc192f7?w=600&q=80",
+        "imageUrl": "/civic/news/road-asphalt.jpg",
         "description": "Ward engineering squads adopt cold-mix quick mastic asphalt technology to accelerate grievance closures for reported road defects.",
     },
 ]
@@ -210,27 +210,72 @@ CURATED_MUMBAI_BULLETINS = [
 
 _CIVIC_NEWS_CACHE = {"timestamp": 0.0, "query": "", "data": None}
 
-CIVIC_IMAGE_MAP = [
-    ("water", "https://images.unsplash.com/photo-1576435728678-68d0fbf94e91?w=600&q=80"),
-    ("drain", "https://images.unsplash.com/photo-1547683905-f686c993aae5?w=600&q=80"),
-    ("pothole", "https://images.unsplash.com/photo-1515162816999-a0c47dc192f7?w=600&q=80"),
-    ("road", "https://images.unsplash.com/photo-1545239351-ef35f43d514b?w=600&q=80"),
-    ("traffic", "https://images.unsplash.com/photo-1506521781263-d8422e82f27a?w=600&q=80"),
-    ("bridge", "https://images.unsplash.com/photo-1570125909232-eb263c188f7e?w=600&q=80"),
-    ("garbage", "https://images.unsplash.com/photo-1530587191325-3db32d826c18?w=600&q=80"),
-    ("waste", "https://images.unsplash.com/photo-1530587191325-3db32d826c18?w=600&q=80"),
-    ("flood", "https://images.unsplash.com/photo-1547683905-f686c993aae5?w=600&q=80"),
-    ("monsoon", "https://images.unsplash.com/photo-1547683905-f686c993aae5?w=600&q=80"),
-    ("pollution", "https://images.unsplash.com/photo-1545239351-ef35f43d514b?w=600&q=80"),
-    ("aqi", "https://images.unsplash.com/photo-1545239351-ef35f43d514b?w=600&q=80"),
+CIVIC_CATEGORY_IMAGES = [
+    ("pool", ["/civic/news/swimming-pool.jpg"]),
+    ("tanker", ["/civic/news/water-tanker.jpg"]),
+    ("lake", ["/civic/news/powai-lake.jpg", "/civic/news/reservoir-dam.jpg"]),
+    ("dam", ["/civic/news/reservoir-dam.jpg", "/civic/news/powai-lake.jpg"]),
+    ("reservoir", ["/civic/news/reservoir-dam.jpg", "/civic/news/powai-lake.jpg"]),
+    ("pipeline", ["/civic/news/water-pipeline.jpg"]),
+    ("pipe", ["/civic/news/water-pipeline.jpg"]),
+    ("leakage", ["/civic/news/water-pipeline.jpg", "/civic/news/water-tanker.jpg"]),
+    ("shortage", ["/civic/news/water-tanker.jpg", "/civic/news/reservoir-dam.jpg"]),
+    ("water cut", ["/civic/news/water-tanker.jpg", "/civic/news/reservoir-dam.jpg"]),
+    ("water", [
+        "/civic/news/water-tanker.jpg",
+        "/civic/news/water-pipeline.jpg",
+        "/civic/news/powai-lake.jpg",
+        "/civic/news/reservoir-dam.jpg",
+    ]),
+    ("pothole", ["/civic/news/road-asphalt.jpg"]),
+    ("asphalt", ["/civic/news/road-asphalt.jpg"]),
+    ("road-washing", ["/civic/news/street-sweeper.jpg", "/civic/news/road-asphalt.jpg"]),
+    ("road", ["/civic/news/road-asphalt.jpg", "/civic/news/sealink-bridge.jpg"]),
+    ("bridge", ["/civic/news/sealink-bridge.jpg"]),
+    ("coastal", ["/civic/news/sealink-bridge.jpg", "/civic/news/coastal-skyline.jpg"]),
+    ("drain", ["/civic/news/storm-drain.jpg"]),
+    ("desilting", ["/civic/news/storm-drain.jpg"]),
+    ("flood", ["/civic/news/storm-drain.jpg"]),
+    ("inundation", ["/civic/news/storm-drain.jpg"]),
+    ("monsoon", ["/civic/news/storm-drain.jpg", "/civic/news/reservoir-dam.jpg"]),
+    ("rain", ["/civic/news/reservoir-dam.jpg", "/civic/news/storm-drain.jpg"]),
+    ("waste", ["/civic/news/street-sweeper.jpg"]),
+    ("garbage", ["/civic/news/street-sweeper.jpg"]),
+    ("clean", ["/civic/news/street-sweeper.jpg"]),
+    ("traffic", ["/civic/news/city-traffic.jpg", "/civic/news/sealink-bridge.jpg"]),
+    ("aqi", ["/civic/news/city-traffic.jpg", "/civic/news/coastal-skyline.jpg"]),
+    ("air quality", ["/civic/news/city-traffic.jpg", "/civic/news/coastal-skyline.jpg"]),
+    ("pollution", ["/civic/news/city-traffic.jpg", "/civic/news/coastal-skyline.jpg"]),
+    ("election", ["/civic/news/bmc-headquarters.jpg"]),
+    ("chief", ["/civic/news/bmc-headquarters.jpg"]),
+    ("bmc", [
+        "/civic/news/bmc-headquarters.jpg",
+        "/civic/news/road-asphalt.jpg",
+        "/civic/news/water-pipeline.jpg",
+    ]),
 ]
 
-def pick_image_for_civic_title(title: str) -> str:
+GENERAL_FALLBACK_POOL = [
+    "/civic/news/bmc-headquarters.jpg",
+    "/civic/news/water-pipeline.jpg",
+    "/civic/news/road-asphalt.jpg",
+    "/civic/news/powai-lake.jpg",
+    "/civic/news/sealink-bridge.jpg",
+    "/civic/news/water-tanker.jpg",
+    "/civic/news/city-traffic.jpg",
+    "/civic/news/swimming-pool.jpg",
+    "/civic/news/storm-drain.jpg",
+    "/civic/news/street-sweeper.jpg",
+    "/civic/news/reservoir-dam.jpg",
+    "/civic/news/coastal-skyline.jpg",
+]
+
+def pick_image_for_civic_title(title: str, index: int = 0) -> str:
     t = (title or "").lower()
-    for kw, img_url in CIVIC_IMAGE_MAP:
+    for kw, img_list in CIVIC_CATEGORY_IMAGES:
         if kw in t:
-            return img_url
-    return "https://images.unsplash.com/photo-1576435728678-68d0fbf94e91?w=600&q=80"
+            return img_list[index % len(img_list)]
+    return GENERAL_FALLBACK_POOL[index % len(GENERAL_FALLBACK_POOL)]
 
 
 async def _fetch_live_google_rss_civic_news(query: Optional[str] = None, limit: int = 12, timeout: float = 5.0) -> List[Dict[str, Any]]:
@@ -249,9 +294,10 @@ async def _fetch_live_google_rss_civic_news(query: Optional[str] = None, limit: 
         return []
 
     root = ET.fromstring(resp.text)
+    import html
     items = root.findall('.//item')
     articles = []
-    for item in items[:limit]:
+    for idx, item in enumerate(items[:limit]):
         title = item.find('title').text if item.find('title') is not None else ''
         link = item.find('link').text if item.find('link') is not None else 'https://www.mcgm.gov.in'
         pub_date = item.find('pubDate').text if item.find('pubDate') is not None else ''
@@ -264,12 +310,16 @@ async def _fetch_live_google_rss_civic_news(query: Optional[str] = None, limit: 
             if not source or source == 'Mumbai Civic Gazette':
                 source = parts[1]
 
+        # Clean HTML unescaping and mojibake punctuation
+        clean_title = html.unescape(clean_title)
+        clean_title = clean_title.replace("�s", "'s").replace("�", "'").replace("â€™", "'").replace("â€œ", '"').replace("â€", '"')
+
         articles.append({
             "title": clean_title,
             "source": source.strip(),
             "publishedAt": pub_date,
             "url": link,
-            "imageUrl": pick_image_for_civic_title(clean_title),
+            "imageUrl": pick_image_for_civic_title(clean_title, index=idx),
             "description": f"Verified live civic report by {source.strip()} on Mumbai municipal services, urban infrastructure, roads, and BMC administration.",
         })
     return articles
@@ -322,7 +372,7 @@ async def fetch_mumbai_news(
                 data = resp.json()
                 raw_articles = data.get("articles", [])
                 cleaned_articles = []
-                for art in raw_articles:
+                for idx, art in enumerate(raw_articles):
                     title = (art.get("title") or "").strip()
                     if not title or title == "[Removed]":
                         continue
@@ -331,7 +381,7 @@ async def fetch_mumbai_news(
                         "source": art.get("source", {}).get("name") or "News Wire",
                         "publishedAt": art.get("publishedAt"),
                         "url": art.get("url"),
-                        "imageUrl": art.get("urlToImage") or pick_image_for_civic_title(title),
+                        "imageUrl": art.get("urlToImage") or pick_image_for_civic_title(title, index=idx),
                         "description": art.get("description") or f"Live civic update reported by {art.get('source', {}).get('name') or 'News Wire'}.",
                     })
                 if cleaned_articles:

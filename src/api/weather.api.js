@@ -23,7 +23,7 @@ export const CURATED_CIVIC_BULLETINS = [
     source: 'BMC Municipal Press Wire',
     publishedAt: '2026-10-28T09:30:00Z',
     url: 'https://www.mcgm.gov.in',
-    imageUrl: 'https://images.unsplash.com/photo-1570125909232-eb263c188f7e?w=600&q=80',
+    imageUrl: '/civic/news/storm-drain.jpg',
     description: 'Brihanmumbai Municipal Corporation completes major nullah desilting audits ahead of seasonal rains with GPS-tracked silt hauling.',
   },
   {
@@ -31,7 +31,7 @@ export const CURATED_CIVIC_BULLETINS = [
     source: 'Mumbai Civic Gazette',
     publishedAt: '2026-10-27T14:15:00Z',
     url: 'https://www.mcgm.gov.in',
-    imageUrl: 'https://images.unsplash.com/photo-1545239351-ef35f43d514b?w=600&q=80',
+    imageUrl: '/civic/news/sealink-bridge.jpg',
     description: 'Advanced atmospheric sensors and AI incident detection cameras deployed along the promenade for pedestrian and traffic safety.',
   },
   {
@@ -39,7 +39,7 @@ export const CURATED_CIVIC_BULLETINS = [
     source: 'Maharashtra Urban Infrastructure',
     publishedAt: '2026-10-26T11:00:00Z',
     url: 'https://www.mcgm.gov.in',
-    imageUrl: 'https://images.unsplash.com/photo-1515162816999-a0c47dc192f7?w=600&q=80',
+    imageUrl: '/civic/news/road-asphalt.jpg',
     description: 'Ward engineering squads adopt cold-mix quick mastic asphalt technology to accelerate grievance closures for reported road defects.',
   },
   {
@@ -47,7 +47,7 @@ export const CURATED_CIVIC_BULLETINS = [
     source: 'BMC Hydraulic Engineering Dept',
     publishedAt: '2026-10-25T08:00:00Z',
     url: 'https://www.mcgm.gov.in',
-    imageUrl: 'https://images.unsplash.com/photo-1576435728678-68d0fbf94e91?w=600&q=80',
+    imageUrl: '/civic/news/water-pipeline.jpg',
     description: 'Upgrades to the primary municipal water distribution pipelines ensure steady potable water pressure across Bandra, Andheri, and Borivali.',
   },
   {
@@ -55,7 +55,7 @@ export const CURATED_CIVIC_BULLETINS = [
     source: 'BMC Solid Waste Management',
     publishedAt: '2026-10-24T12:30:00Z',
     url: 'https://www.mcgm.gov.in',
-    imageUrl: 'https://images.unsplash.com/photo-1618477388954-7852f32655ec?w=600&q=80',
+    imageUrl: '/civic/news/street-sweeper.jpg',
     description: 'New electric waste compactors and automated street scrubbers initiate nighttime cleaning corridors across Marine Drive, Colaba, and Dadar.',
   },
   {
@@ -63,7 +63,7 @@ export const CURATED_CIVIC_BULLETINS = [
     source: 'BMC Disaster Management',
     publishedAt: '2026-10-23T15:45:00Z',
     url: 'https://www.mcgm.gov.in',
-    imageUrl: 'https://images.unsplash.com/photo-1509114397022-ed747cca3f65?w=600&q=80',
+    imageUrl: '/civic/news/powai-lake.jpg',
     description: '64 high-capacity submersible dewatering pumps placed on active standby with real-time water depth sensors connected to 1916 Control Room.',
   },
 ];
