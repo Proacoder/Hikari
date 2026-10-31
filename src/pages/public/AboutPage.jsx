@@ -115,7 +115,7 @@ export const AboutPage = () => {
       name: 'Dharmik Desai',
       role: 'Frontend Architect & Geospatial Systems Lead',
       domain: 'Interactive GIS & Multilingual Voice UX',
-      bio: 'Spearheaded the modern responsive frontend architecture, interactive 24-ward Leaflet GIS mapping with sub-meter polygon reverse-geocoding, and built the accessible Web Speech voice grievance recording engine supporting natural conversational Marathi, Hindi, and English for inclusive civic participation.',
+      bio: 'Spearheaded the sovereign frontend architecture and interactive GIS telemetry engine powering Kaiser AI across desktop and field devices. Designed the high-performance Leaflet 24-ward geospatial command map with sub-meter point-in-polygon ward routing, dynamic incident clustering, and real-time civic heatmaps. Engineered the accessible Web Speech audio grievance pipeline with real-time waveform visualization supporting conversational Marathi, Hindi, and English. Implemented the responsive theme architecture, tactile micro-interactions, spotlight command palette (Ctrl+K), and mobile-first field ergonomics to ensure inclusive civic access for all Mumbai residents.',
       initials: 'DD',
       badge: 'Geospatial & UI Lead'
     },
@@ -123,7 +123,7 @@ export const AboutPage = () => {
       name: 'Harsh Mane',
       role: 'Cloud API & Systems Integration Lead',
       domain: 'Municipal APIs & Multi-Portal Architecture',
-      bio: 'Architected core external API integrations including the NVIDIA NIM civic LLM assistant, real-time Open-Meteo weather telemetry, IMD radar feeds, and AQI monitoring. Engineered the comprehensive Citizen, Ward Officer, and Municipal HQ portal interfaces, and conducted foundational research to source and structure high-precision municipal datasets across all 24 BMC administrative zones.',
+      bio: 'Architected the robust cloud integration fabric, external telemetry services, and multi-tier municipal portal ecosystem powering Kaiser AI. Integrated the NVIDIA NIM civic LLM assistant, real-time Open-Meteo weather telemetry, Santacruz IMD radar streaming, and automated AQI monitoring pipelines. Engineered the role-based multi-portal architecture spanning Citizen, Ward Officer, and Municipal HQ command interfaces with strict DPDP Act 2023 privacy redaction, cryptographic JWT session security, and automated webhook dispatch. Curated foundational geospatial datasets and response SLA benchmarks across all 24 BMC administrative zones to synchronize municipal workflows.',
       initials: 'HM',
       badge: 'Integration Lead'
     }
