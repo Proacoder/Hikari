@@ -47,9 +47,9 @@ export const LandingPage = () => {
           getPublicSummary(),
           getWeatherAQI(19.076, 72.877)
         ]);
-        setComplaints(complaintsRes.data || []);
-        setCityStats(statsRes.data || null);
-        setWeatherData(weatherRes.data || null);
+        setComplaints(complaintsRes?.data || []);
+        setCityStats(statsRes?.data || null);
+        setWeatherData(weatherRes?.data || null);
       } catch (err) {
         console.error('Failed to load landing data:', err);
       } finally {
