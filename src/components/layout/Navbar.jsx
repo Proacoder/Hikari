@@ -102,7 +102,7 @@ export const Navbar = () => {
       
       <div
         className={classNames(
-          'w-full max-w-[1240px] xl:max-w-[1320px] 2xl:max-w-[1400px] mx-auto rounded-2xl border transition-all duration-300',
+          'w-full max-w-[1060px] xl:max-w-[1120px] mx-auto rounded-2xl border transition-all duration-300',
           navIsDark
             ? scrolled
               ? 'bg-neutral-950/92 backdrop-blur-xl border-white/20 text-white shadow-[0_16px_40px_rgba(0,0,0,0.7)]'
@@ -112,7 +112,7 @@ export const Navbar = () => {
               : 'bg-white/90 backdrop-blur-xl border-neutral-200/80 text-neutral-900 shadow-[0_8px_24px_rgba(0,0,0,0.06)]'
         )}
       >
-        <div className="px-3 sm:px-4 lg:px-6">
+        <div className="px-3 sm:px-4 lg:px-5">
           <div className={classNames('flex items-center justify-between transition-all duration-300', scrolled ? 'h-14' : 'h-16')}>
             {/* Logo */}
             <Link to="/" className="flex items-center gap-2.5 shrink-0 group mr-2 sm:mr-3 lg:mr-4" onClick={() => sound.play('click')}>
@@ -143,7 +143,7 @@ export const Navbar = () => {
                   onMouseEnter={(e) => movePill(e.currentTarget)}
                   className={({ isActive }) =>
                     classNames(
-                      'relative z-10 px-2.5 lg:px-3 py-1.5 rounded-xl text-sm font-semibold transition-colors duration-200 whitespace-nowrap shrink-0 inline-block',
+                      'relative z-10 px-3 lg:px-3.5 py-1.5 rounded-xl text-sm font-semibold transition-colors duration-200 whitespace-nowrap shrink-0 inline-block',
                       isActive
                         ? navIsDark ? 'text-emerald-400 font-bold' : 'text-emerald-600 font-bold'
                         : navIsDark ? 'text-white/80 hover:text-white' : 'text-neutral-600 hover:text-neutral-950'
@@ -164,7 +164,7 @@ export const Navbar = () => {
                   setCmdOpen(true);
                 }}
                 className={classNames(
-                  'flex items-center gap-2 px-2.5 py-1.5 text-xs rounded-xl transition-all shadow-xs cursor-pointer active:scale-95',
+                  'flex items-center gap-2 px-3 py-1.5 text-xs rounded-xl transition-all shadow-xs cursor-pointer active:scale-95',
                   navIsDark
                     ? 'border border-white/15 bg-white/10 hover:bg-white/15 text-white/90 hover:text-white'
                     : 'border border-neutral-200/80 bg-neutral-100/80 hover:bg-neutral-200/70 text-neutral-700'
@@ -173,6 +173,12 @@ export const Navbar = () => {
               >
                 <Search size={14} className={navIsDark ? 'text-white/70' : 'text-neutral-500'} />
                 <span className="font-semibold whitespace-nowrap">{t('nav.quickFind', 'Quick Find')}</span>
+                <kbd className={classNames(
+                  'hidden xl:inline-flex items-center text-[10px] font-mono font-bold px-1.5 py-0.5 rounded border leading-none',
+                  navIsDark ? 'bg-white/10 border-white/15 text-white/60' : 'bg-white border-neutral-300 text-neutral-500'
+                )}>
+                  Ctrl+K
+                </kbd>
               </button>
 
               {/* Sound Effects Toggle */}
