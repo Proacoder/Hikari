@@ -48,28 +48,76 @@ const createMarkerIcon = (severity, _category) => {
   });
 };
 
-// Draggable pin icon for location picker
+// Vibrant Red Pin icon for location picker
 const createPickerIcon = () => {
   const html = `
-    <div style="display: flex; flex-direction: column; align-items: center;">
-      <div style="width: 32px; height: 32px; border-radius: 50%; background-color: #ea580c; border: 3px solid #ffffff; box-shadow: 0 6px 12px rgba(0,0,0,0.35); display: flex; align-items: center; justify-content: center; color: white;">
-        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
-          <circle cx="12" cy="12" r="3"></circle>
-          <path d="M12 2v3m0 14v3M2 12h3m14 0h3"></path>
-        </svg>
-      </div>
-      <div style="width: 0; height: 0; border-left: 6px solid transparent; border-right: 6px solid transparent; border-top: 8px solid #ea580c; margin-top: -2px;"></div>
+    <div style="position: relative; width: 38px; height: 50px; display: flex; flex-direction: column; align-items: center; cursor: grab; user-select: none;">
+      <!-- Pulsing ground ripple at the pin tip -->
+      <div style="position: absolute; bottom: -2px; left: 50%; transform: translateX(-50%); width: 22px; height: 8px; border-radius: 50%; background: rgba(220, 38, 38, 0.25); border: 1.5px solid rgba(220, 38, 38, 0.7); animation: ping 2s cubic-bezier(0, 0, 0.2, 1) infinite;"></div>
+      
+      <!-- Vivid Red Teardrop Map Pin -->
+      <svg width="38" height="50" viewBox="0 0 38 50" fill="none" xmlns="http://www.w3.org/2000/svg" style="filter: drop-shadow(0 4px 8px rgba(0,0,0,0.45));">
+        <path d="M19 2 C9.61 2 2 9.61 2 19 C2 30.5 17.2 46.5 18.25 47.6 C18.65 48.05 19.35 48.05 19.75 47.6 C20.8 46.5 36 30.5 36 19 C36 9.61 28.39 2 19 2 Z" 
+              fill="url(#redPinGrad)" 
+              stroke="#ffffff" 
+              stroke-width="2.5" />
+        <circle cx="19" cy="19" r="7.5" fill="#ffffff" />
+        <circle cx="19" cy="19" r="3.8" fill="#dc2626" />
+        <defs>
+          <linearGradient id="redPinGrad" x1="19" y1="2" x2="19" y2="48" gradientUnits="userSpaceOnUse">
+            <stop offset="0%" stop-color="#ef4444" />
+            <stop offset="65%" stop-color="#dc2626" />
+            <stop offset="100%" stop-color="#991b1b" />
+          </linearGradient>
+        </defs>
+      </svg>
     </div>
   `;
 
   return L.divIcon({
     html,
-    className: 'picker-leaflet-marker',
-    iconSize: [32, 40],
-    iconAnchor: [16, 40],
-    popupAnchor: [0, -40]
+    className: 'picker-leaflet-red-marker',
+    iconSize: [38, 50],
+    iconAnchor: [19, 48],
+    popupAnchor: [0, -48]
   });
 };
+
+const getPickerPopupContent = (lat, lng) => `
+  <div style="font-family: Inter, -apple-system, sans-serif; padding: 6px 10px; min-width: 175px;">
+    <div style="display: flex; align-items: center; justify-content: space-between; gap: 8px; margin-bottom: 5px;">
+      <span style="display: flex; align-items: center; gap: 4px; font-size: 11px; font-weight: 800; color: #dc2626; text-transform: uppercase; letter-spacing: 0.5px;">
+        <span style="display: inline-block; width: 7px; height: 7px; border-radius: 50%; background: #dc2626; box-shadow: 0 0 6px #ef4444;"></span>
+        Pinned Location
+      </span>
+      <span style="font-size: 9px; font-weight: 700; color: #16a34a; background: #dcfce7; padding: 1px 6px; border-radius: 9999px;">Live</span>
+    </div>
+    <div style="font-family: ui-monospace, SFMono-Regular, monospace; font-size: 12px; font-weight: 700; color: #0f172a; background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 6px; padding: 5px 8px; margin-bottom: 4px; text-align: center;">
+      ${Number(lat).toFixed(6)}° N, ${Number(lng).toFixed(6)}° E
+    </div>
+    <div style="font-size: 10px; color: #64748b; text-align: center;">
+      Click anywhere to move pin
+    </div>
+  </div>
+`;
+
+const getInspectPopupContent = (lat, lng) => `
+  <div style="font-family: Inter, -apple-system, sans-serif; padding: 6px 10px; min-width: 190px;">
+    <div style="display: flex; align-items: center; justify-content: space-between; gap: 8px; margin-bottom: 5px;">
+      <span style="display: flex; align-items: center; gap: 4px; font-size: 11px; font-weight: 800; color: #dc2626; text-transform: uppercase; letter-spacing: 0.5px;">
+        <span style="display: inline-block; width: 7px; height: 7px; border-radius: 50%; background: #dc2626; box-shadow: 0 0 6px #ef4444;"></span>
+        Location Coordinates
+      </span>
+      <span style="font-size: 9px; font-weight: 700; color: #0284c7; background: #e0f2fe; padding: 1px 6px; border-radius: 9999px;">GPS Pin</span>
+    </div>
+    <div style="font-family: ui-monospace, SFMono-Regular, monospace; font-size: 12px; font-weight: 700; color: #0f172a; background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 6px; padding: 5px 8px; margin-bottom: 6px; text-align: center;">
+      ${Number(lat).toFixed(6)}° N, ${Number(lng).toFixed(6)}° E
+    </div>
+    <a href="/app/report?lat=${Number(lat).toFixed(6)}&lng=${Number(lng).toFixed(6)}" class="leaflet-popup-nav-link" style="display: block; text-align: center; font-size: 11px; font-weight: 700; color: #ffffff; background: #dc2626; padding: 5px 10px; border-radius: 8px; text-decoration: none; cursor: pointer;">
+      Report Issue Here →
+    </a>
+  </div>
+`;
 
 export const LeafletMap = ({
   center = [19.0760, 72.8777], // Mumbai default
@@ -89,6 +137,7 @@ export const LeafletMap = ({
   const markersLayerRef = useRef(null);
   const geoJsonLayerRef = useRef(null);
   const pickerMarkerRef = useRef(null);
+  const clickInspectMarkerRef = useRef(null);
   const [mapViewMode, setMapViewMode] = useState('pins'); // 'pins' | 'wards'
   const centerLat = center?.[0];
   const centerLng = center?.[1];
@@ -146,14 +195,46 @@ export const LeafletMap = ({
 
       // Handle map clicks in picker mode without tearing down the map
       map.on('click', (e) => {
-        if (pickerModeRef.current && onPositionChangeRef.current) {
-          const { lat, lng } = e.latlng;
-          onPositionChangeRef.current({ lat, lng });
+        const { lat, lng } = e.latlng;
+        if (pickerModeRef.current) {
+          if (pickerMarkerRef.current && map.hasLayer(pickerMarkerRef.current)) {
+            pickerMarkerRef.current.setLatLng([lat, lng]);
+            pickerMarkerRef.current.setPopupContent(getPickerPopupContent(lat, lng));
+            pickerMarkerRef.current.openPopup();
+          }
+          if (onPositionChangeRef.current) {
+            onPositionChangeRef.current({ lat, lng });
+          }
+        } else {
+          // On non-picker general map, click anywhere to see coordinates and report option
+          if (clickInspectMarkerRef.current && map.hasLayer(clickInspectMarkerRef.current)) {
+            clickInspectMarkerRef.current.setLatLng([lat, lng]);
+            clickInspectMarkerRef.current.setPopupContent(getInspectPopupContent(lat, lng));
+            clickInspectMarkerRef.current.openPopup();
+          } else {
+            const inspMarker = L.marker([lat, lng], {
+              icon: createPickerIcon(),
+              zIndexOffset: 1500,
+            }).addTo(map);
+            inspMarker.bindPopup(getInspectPopupContent(lat, lng), {
+              offset: [0, -48],
+              className: 'kaiser-picker-popup',
+            }).openPopup();
+            clickInspectMarkerRef.current = inspMarker;
+          }
         }
       });
     }
 
     return () => {
+      if (clickInspectMarkerRef.current) {
+        try { clickInspectMarkerRef.current.remove(); } catch (e) {}
+        clickInspectMarkerRef.current = null;
+      }
+      if (pickerMarkerRef.current) {
+        try { pickerMarkerRef.current.remove(); } catch (e) {}
+        pickerMarkerRef.current = null;
+      }
       if (mapInstanceRef.current) {
         mapInstanceRef.current.remove();
         mapInstanceRef.current = null;
@@ -291,21 +372,42 @@ export const LeafletMap = ({
     if (!mapInstanceRef.current) return;
 
     if (pickerMode && selectedPosition && selectedPosition.lat != null && selectedPosition.lng != null) {
-      if (!pickerMarkerRef.current) {
-        const marker = L.marker([selectedPosition.lat, selectedPosition.lng], {
+      const lat = selectedPosition.lat;
+      const lng = selectedPosition.lng;
+
+      // If marker doesn't exist or is not attached to this map, create and add it
+      if (!pickerMarkerRef.current || !mapInstanceRef.current.hasLayer(pickerMarkerRef.current)) {
+        if (pickerMarkerRef.current) {
+          try { pickerMarkerRef.current.remove(); } catch (e) {}
+        }
+
+        const marker = L.marker([lat, lng], {
           icon: createPickerIcon(),
           draggable: true,
-          title: 'Drag marker or click anywhere on map to reposition pin',
+          zIndexOffset: 2000,
+          title: 'Selected Location (Drag or click anywhere on map to move pin)',
         }).addTo(mapInstanceRef.current);
 
-        marker.bindTooltip('📍 Pinned Location (Drag to adjust)', {
-          permanent: false,
-          direction: 'top',
-          offset: [0, -36],
+        marker.bindPopup(getPickerPopupContent(lat, lng), {
+          offset: [0, -48],
+          className: 'kaiser-picker-popup',
+          closeButton: false,
+          autoClose: false,
+          closeOnClick: false,
+        });
+
+        // Always keep coordinates popup open
+        marker.openPopup();
+
+        marker.on('drag', (event) => {
+          const pos = event.target.getLatLng();
+          marker.setPopupContent(getPickerPopupContent(pos.lat, pos.lng));
         });
 
         marker.on('dragend', (event) => {
           const position = event.target.getLatLng();
+          marker.setPopupContent(getPickerPopupContent(position.lat, position.lng));
+          marker.openPopup();
           if (onPositionChangeRef.current) {
             onPositionChangeRef.current({ lat: position.lat, lng: position.lng });
           }
@@ -313,10 +415,12 @@ export const LeafletMap = ({
 
         pickerMarkerRef.current = marker;
       } else {
-        pickerMarkerRef.current.setLatLng([selectedPosition.lat, selectedPosition.lng]);
+        pickerMarkerRef.current.setLatLng([lat, lng]);
+        pickerMarkerRef.current.setPopupContent(getPickerPopupContent(lat, lng));
+        pickerMarkerRef.current.openPopup();
       }
     } else if (pickerMarkerRef.current) {
-      pickerMarkerRef.current.remove();
+      try { pickerMarkerRef.current.remove(); } catch (e) {}
       pickerMarkerRef.current = null;
     }
   }, [pickerMode, selectedPosition?.lat, selectedPosition?.lng]);

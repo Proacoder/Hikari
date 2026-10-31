@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef, useMemo, useCallback } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useSearchParams } from 'react-router-dom';
 import toast from 'react-hot-toast';
 import {
   AlertTriangle, MapPin, Camera, Sparkles, CheckCircle2,
@@ -395,8 +395,14 @@ export const ReportIssuePage = () => {
   const { dispatchNotification } = useNotifications();
   const fileInputRef = useRef(null);
 
+  const [searchParams] = useSearchParams();
+  const paramLat = searchParams.get('lat') ? parseFloat(searchParams.get('lat')) : null;
+  const paramLng = searchParams.get('lng') ? parseFloat(searchParams.get('lng')) : null;
+
   const defaultWard = user?.ward || 12;
   const initialWardObj = MUMBAI_WARDS.find((w) => w.id === defaultWard) || MUMBAI_WARDS[0];
+  const initialLat = paramLat || initialWardObj.lat;
+  const initialLng = paramLng || initialWardObj.lng;
 
   const [formData, setFormData] = useState({
     title: '',
@@ -404,8 +410,8 @@ export const ReportIssuePage = () => {
     category: 'Pothole',
     landmark: '',
     ward: defaultWard,
-    latitude: initialWardObj.lat,
-    longitude: initialWardObj.lng,
+    latitude: initialLat,
+    longitude: initialLng,
     imageUrl: '',
     imageName: '',
   });
@@ -1095,12 +1101,13 @@ export const ReportIssuePage = () => {
               </div>
 
               {/* Pin info footer */}
-              <div className="flex items-center justify-between text-[11px] text-neutral-500 px-1 pt-0.5">
-                <span>
-                  Pinned: <strong className="font-mono text-neutral-800">{formData.latitude?.toFixed(4)}° N, {formData.longitude?.toFixed(4)}° E</strong>
+              <div className="flex items-center justify-between text-xs text-neutral-600 bg-neutral-50/90 border border-neutral-200 rounded-xl px-3.5 py-2.5">
+                <span className="flex items-center gap-2">
+                  <span className="w-2.5 h-2.5 rounded-full bg-red-600 shadow-[0_0_8px_#ef4444] animate-pulse" />
+                  <span>Pinned Coordinates: <strong className="font-mono text-neutral-900 font-bold">{formData.latitude?.toFixed(6)}° N, {formData.longitude?.toFixed(6)}° E</strong></span>
                 </span>
-                <span className="text-neutral-400">
-                  Mode: <strong className="text-neutral-700">{locationMode === 'pin' ? 'Manual Pin Drop' : 'Device GPS Telemetry'}</strong>
+                <span className="text-[10px] font-bold text-neutral-500 uppercase tracking-wider bg-white px-2 py-0.5 rounded-md border border-neutral-200">
+                  {locationMode === 'pin' ? '📍 Manual Map Pin' : '🛰️ Device GPS Sensor'}
                 </span>
               </div>
             </div>

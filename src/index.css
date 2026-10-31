@@ -221,6 +221,18 @@ html.light body {
   background: white !important;
 }
 
+.picker-leaflet-red-marker,
+.custom-leaflet-marker {
+  background: transparent !important;
+  border: none !important;
+}
+
+.kaiser-picker-popup .leaflet-popup-content-wrapper {
+  padding: 4px !important;
+  border: 1.5px solid rgba(220, 38, 38, 0.3) !important;
+  box-shadow: 0 12px 24px -4px rgba(220, 38, 38, 0.15), 0 8px 16px -4px rgba(0, 0, 0, 0.12) !important;
+}
+
 /* ─── Recharts ─── */
 .recharts-tooltip-wrapper {
   outline: none !important;
