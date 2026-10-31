@@ -23,11 +23,14 @@ import { sound } from '../../utils/soundEffects';
 // ── Public layout (marketing site — supports adaptive Light & Dark mode) ─────
 export const PublicLayout = () => {
   const { isDark } = useTheme();
+  const location = useLocation();
+  const isHome = location.pathname === '/';
+
   return (
     <div
       className={classNames(
         'flex flex-col min-h-screen transition-colors duration-300',
-        isDark
+        isDark || isHome
           ? 'bg-neutral-950 text-neutral-100 selection:bg-emerald-500/30 selection:text-emerald-200'
           : 'bg-slate-50 text-neutral-900 selection:bg-emerald-500/20 selection:text-emerald-800'
       )}
@@ -35,7 +38,7 @@ export const PublicLayout = () => {
       <EmergencyTicker />
       <Navbar />
       <NotificationDrawer />
-      <main className="flex-1 page-enter">
+      <main className={classNames('flex-1 page-enter', isHome && '-mt-[72px] sm:-mt-[76px]')}>
         <Outlet />
       </main>
       <Footer />

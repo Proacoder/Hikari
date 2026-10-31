@@ -268,7 +268,7 @@ export const HeroSlider = ({ stats, weather }) => {
         const d = e.changedTouches[0].clientX - touchX.current;
         if (Math.abs(d) > 50) go(index + (d < 0 ? 1 : -1));
       }}
-      className="relative w-full min-h-[92vh] lg:min-h-screen bg-neutral-950 text-white overflow-hidden isolate flex flex-col justify-between pt-16 sm:pt-20 pb-8 select-none"
+      className="relative w-full min-h-[92vh] lg:min-h-screen bg-neutral-950 text-white overflow-hidden isolate flex flex-col justify-between pt-20 sm:pt-24 pb-8 select-none"
       aria-roledescription="carousel"
       aria-label="Kaiser AI full background hero"
     >

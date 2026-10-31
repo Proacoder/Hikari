@@ -78,7 +78,7 @@ export const Navbar = () => {
   };
 
   return (
-    <header className="sticky top-0 z-40 w-full px-2 sm:px-6 pt-2 pb-1 transition-all duration-300">
+    <header className="sticky top-0 z-40 w-full px-2 sm:px-6 pt-2 pb-1 transition-all duration-300 bg-transparent">
       {/* Scroll Progress Bar */}
       <div
         className="absolute top-0 left-0 h-[2.5px] bg-gradient-to-r from-emerald-500 via-teal-400 to-sky-400 z-50 transition-[width] duration-150"
@@ -93,8 +93,8 @@ export const Navbar = () => {
               ? 'bg-neutral-950/92 backdrop-blur-xl border-white/20 text-white shadow-[0_16px_40px_rgba(0,0,0,0.7)]'
               : 'bg-neutral-950/75 backdrop-blur-md border-white/15 text-white shadow-[0_8px_32px_rgba(0,0,0,0.45)]'
             : scrolled
-              ? 'bg-white/95 backdrop-blur-xl border-neutral-200/90 text-neutral-900 shadow-[0_16px_40px_rgba(0,0,0,0.08)]'
-              : 'bg-white/90 backdrop-blur-md border-neutral-200/80 text-neutral-900 shadow-[0_8px_32px_rgba(0,0,0,0.06)]'
+              ? 'bg-white/95 backdrop-blur-xl border-neutral-200/90 text-neutral-900 shadow-[0_16px_40px_rgba(0,0,0,0.12)]'
+              : 'bg-white/95 backdrop-blur-xl border-neutral-200/90 text-neutral-900 shadow-[0_12px_36px_rgba(0,0,0,0.25)]'
         )}
       >
         <div className="px-3 sm:px-5">
