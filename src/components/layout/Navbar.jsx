@@ -102,7 +102,7 @@ export const Navbar = () => {
       
       <div
         className={classNames(
-          'w-full max-w-[1200px] mx-auto rounded-2xl border transition-all duration-300',
+          'w-full max-w-[1360px] mx-auto rounded-2xl border transition-all duration-300',
           navIsDark
             ? scrolled
               ? 'bg-neutral-950/92 backdrop-blur-xl border-white/20 text-white shadow-[0_16px_40px_rgba(0,0,0,0.7)]'
@@ -112,7 +112,7 @@ export const Navbar = () => {
               : 'bg-white/90 backdrop-blur-xl border-neutral-200/80 text-neutral-900 shadow-[0_8px_24px_rgba(0,0,0,0.06)]'
         )}
       >
-        <div className="px-3 sm:px-4 lg:px-5">
+        <div className="px-3 sm:px-4 lg:px-6">
           <div className={classNames('flex items-center justify-between transition-all duration-300', scrolled ? 'h-14' : 'h-16')}>
             {/* Logo */}
             <Link to="/" className="flex items-center gap-2.5 shrink-0 group mr-4 sm:mr-5 lg:mr-6" onClick={() => sound.play('click')}>
@@ -156,7 +156,7 @@ export const Navbar = () => {
             </nav>
 
             {/* Right Controls */}
-            <div className="hidden md:flex items-center gap-1.5 xl:gap-2 pr-1 sm:pr-2">
+            <div className="hidden md:flex items-center gap-1 sm:gap-1.5 xl:gap-2">
               {/* Quick Spotlight Search trigger */}
               <button
                 onClick={() => {
@@ -226,7 +226,7 @@ export const Navbar = () => {
                         : 'text-neutral-400 hover:text-amber-300 rotate-45'
                     )}
                   />
-                  <span className="hidden xl:inline text-[11px] font-semibold tracking-wide">{t('nav.light', 'Light')}</span>
+                  <span className="hidden 2xl:inline text-[11px] font-semibold tracking-wide">{t('nav.light', 'Light')}</span>
                 </button>
                 <button
                   type="button"
@@ -253,7 +253,7 @@ export const Navbar = () => {
                         : 'text-neutral-400 hover:text-sky-500 rotate-0'
                     )}
                   />
-                  <span className="hidden xl:inline text-[11px] font-semibold tracking-wide">{t('nav.dark', 'Dark')}</span>
+                  <span className="hidden 2xl:inline text-[11px] font-semibold tracking-wide">{t('nav.dark', 'Dark')}</span>
                 </button>
               </div>
 
@@ -271,7 +271,7 @@ export const Navbar = () => {
                   aria-label="Select language"
                 >
                   <Globe size={14} className={navIsDark ? 'text-emerald-400' : 'text-emerald-600'} />
-                  <span className="hidden xl:inline">{currentLangObj.native}</span><span className="xl:hidden uppercase font-mono text-[10px]">{language}</span>
+                  <span className="hidden 2xl:inline">{currentLangObj.native}</span><span className="2xl:hidden uppercase font-mono text-[10px]">{language}</span>
                   <ChevronDown size={12} className={classNames('transition-transform', langOpen && 'rotate-180')} />
                 </button>
                 {langOpen && (
@@ -335,14 +335,14 @@ export const Navbar = () => {
                   <button
                     onClick={() => navigate(dashboardPath)}
                     className={classNames(
-                      'hidden lg:inline-flex items-center px-3 py-1.5 rounded-xl text-xs font-semibold transition-colors cursor-pointer shrink-0 whitespace-nowrap',
+                      'hidden 2xl:inline-flex items-center px-3 py-1.5 rounded-xl text-xs font-semibold transition-colors cursor-pointer shrink-0 whitespace-nowrap',
                       navIsDark ? 'text-white hover:bg-white/10' : 'text-neutral-800 hover:bg-neutral-100'
                     )}
                   >
                     {t('nav.dashboard', 'Dashboard')}
                   </button>
 
-                  <div className={classNames('flex items-center gap-1.5 pl-2 border-l shrink-0', navIsDark ? 'border-white/20' : 'border-neutral-200')}>
+                  <div className={classNames('flex items-center gap-1.5 pl-1.5 sm:pl-2 border-l shrink-0', navIsDark ? 'border-white/20' : 'border-neutral-200')}>
                     <button
                       onClick={() => navigate(dashboardPath)}
                       className={classNames(
@@ -360,14 +360,14 @@ export const Navbar = () => {
                     <button
                       onClick={handleLogout}
                       className={classNames(
-                        'flex items-center gap-1.5 px-2 py-0.5 rounded-xl transition-colors cursor-pointer shrink-0',
+                        'flex items-center gap-1.5 px-2 py-1 rounded-xl transition-colors cursor-pointer shrink-0',
                         navIsDark
-                          ? 'text-white/80 hover:text-rose-400 hover:bg-rose-500/15'
-                          : 'text-neutral-700 hover:text-rose-600 hover:bg-rose-50'
+                          ? 'text-rose-400 hover:text-rose-300 hover:bg-rose-500/15'
+                          : 'text-rose-600 hover:text-rose-700 hover:bg-rose-50'
                       )}
                       title={t('nav.signOut', 'Sign Out')}
                     >
-                      <LogOut size={13} className="shrink-0" />
+                      <LogOut size={13} className="shrink-0 text-rose-500" />
                       <span className="flex flex-col text-[10px] leading-[1.05] font-bold text-left tracking-tight">
                         <span>Sign</span>
                         <span>Out</span>
