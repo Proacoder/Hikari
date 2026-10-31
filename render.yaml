@@ -18,6 +18,10 @@ services:
         value: "1"
       - key: CLIP_DEVICE
         value: cpu
+      - key: DISABLE_HEAVY_MODELS
+        value: "true"
+      - key: PREWARM_HEAVY_MODELS
+        value: "false"
       - key: JWT_SECRET
         generateValue: true
       - key: DATABASE_URL
@@ -26,4 +30,3 @@ services:
         value: "false"
       - key: ALLOWED_ORIGINS
         value: ""
-

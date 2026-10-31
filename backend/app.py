@@ -127,19 +127,20 @@ else:
         allow_headers=["*"],
     )
 
-    @app.on_event("startup")
-    def startup_prewarm_models():
-        """Pre-warms ML and vision models in a background daemon thread so requests never suffer cold-start."""
-        import threading
-        def _warm():
-            try:
-                logger.info("Asynchronously pre-warming ML & vision models...")
-                get_clip_service()
+@app.on_event("startup")
+def startup_prewarm_models():
+    """Pre-warms ML and vision models safely in background without exceeding cloud container RAM limits."""
+    import threading
+    def _warm():
+        try:
+            logger.info("Asynchronously pre-warming lightweight ML services...")
+            get_clip_service()
+            if os.getenv("PREWARM_HEAVY_MODELS", "false").lower() == "true":
                 get_authenticity_analyzer()._init_hf_model()
-                logger.info("ML & vision models pre-warmed successfully.")
-            except Exception as e:
-                logger.warning(f"Background ML warmup notice: {e}")
-        threading.Thread(target=_warm, daemon=True).start()
+            logger.info("ML services ready.")
+        except Exception as e:
+            logger.warning(f"Background ML warmup notice: {e}")
+    threading.Thread(target=_warm, daemon=True).start()
 
 
 # ==============================================================================

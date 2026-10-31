@@ -57,6 +57,13 @@ class ImageAuthenticityAnalyzer:
             return
         self._init_attempted = True
 
+        # In cloud environments with < 1GB RAM (like Render Free Tier 512MB limit),
+        # prevent downloading large 350MB transformer weights that trigger Linux OOM kills.
+        if os.getenv("DISABLE_HEAVY_MODELS", "true").lower() == "true":
+            logger.info("Cloud low-memory mode active: using multi-signal C2PA, EXIF, and noise forensic verification.")
+            self._hf_ready = False
+            return
+
         try:
             import torch
             from transformers import AutoImageProcessor, AutoModelForImageClassification
