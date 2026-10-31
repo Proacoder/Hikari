@@ -102,7 +102,7 @@ export const Navbar = () => {
       
       <div
         className={classNames(
-          'w-full max-w-[1200px] mx-auto rounded-2xl border transition-all duration-300',
+          'w-full max-w-[1240px] xl:max-w-[1320px] 2xl:max-w-[1400px] mx-auto rounded-2xl border transition-all duration-300',
           navIsDark
             ? scrolled
               ? 'bg-neutral-950/92 backdrop-blur-xl border-white/20 text-white shadow-[0_16px_40px_rgba(0,0,0,0.7)]'
@@ -112,7 +112,7 @@ export const Navbar = () => {
               : 'bg-white/90 backdrop-blur-xl border-neutral-200/80 text-neutral-900 shadow-[0_8px_24px_rgba(0,0,0,0.06)]'
         )}
       >
-        <div className="px-3 sm:px-4 lg:px-5">
+        <div className="px-3 sm:px-4 lg:px-6">
           <div className={classNames('flex items-center justify-between transition-all duration-300', scrolled ? 'h-14' : 'h-16')}>
             {/* Logo */}
             <Link to="/" className="flex items-center gap-2.5 shrink-0 group mr-2 sm:mr-3 lg:mr-4" onClick={() => sound.play('click')}>
@@ -335,7 +335,7 @@ export const Navbar = () => {
                   <button
                     onClick={() => navigate(dashboardPath)}
                     className={classNames(
-                      'hidden 2xl:inline-flex items-center px-3 py-1.5 rounded-xl text-xs font-semibold transition-colors cursor-pointer shrink-0 whitespace-nowrap',
+                      'hidden 2xl:inline-flex items-center px-2.5 py-1 rounded-xl text-xs font-semibold transition-colors cursor-pointer shrink-0 whitespace-nowrap',
                       navIsDark ? 'text-white hover:bg-white/10' : 'text-neutral-800 hover:bg-neutral-100'
                     )}
                   >
@@ -360,18 +360,16 @@ export const Navbar = () => {
                     <button
                       onClick={handleLogout}
                       className={classNames(
-                        'flex items-center gap-1.5 px-2 py-1 rounded-xl transition-colors cursor-pointer shrink-0',
+                        'flex items-center gap-1.5 px-2.5 py-1.5 rounded-xl text-xs font-semibold transition-colors cursor-pointer shrink-0',
                         navIsDark
                           ? 'text-rose-400 hover:text-rose-300 hover:bg-rose-500/15'
                           : 'text-rose-600 hover:text-rose-700 hover:bg-rose-50'
                       )}
                       title={t('nav.signOut', 'Sign Out')}
+                      aria-label="Sign Out"
                     >
                       <LogOut size={13} className="shrink-0 text-rose-500" />
-                      <span className="flex flex-col text-[10px] leading-[1.05] font-bold text-left tracking-tight">
-                        <span>Sign</span>
-                        <span>Out</span>
-                      </span>
+                      <span className="whitespace-nowrap font-bold text-[11px]">{t('nav.signOut', 'Sign Out')}</span>
                     </button>
                   </div>
                 </div>
