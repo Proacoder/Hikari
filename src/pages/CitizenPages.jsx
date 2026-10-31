@@ -1827,9 +1827,42 @@ export const CivicNewsPage = () => {
       </div>
 
       {/* Filter and Search Bar */}
-      <div className="flex flex-col md:flex-row items-stretch md:items-center justify-between gap-4 bg-white p-4 rounded-xl border border-neutral-200 shadow-xs">
-        {/* Category Pills */}
-        <div className="flex items-center gap-2 overflow-x-auto pb-1 md:pb-0 scrollbar-none">
+      <div className="bg-white p-4 rounded-2xl border border-neutral-200 shadow-xs space-y-3.5">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+          {/* Section / Category Filter Label */}
+          <div className="flex items-center gap-2">
+            <span className="text-xs font-bold text-neutral-800 uppercase tracking-wider">
+              Filter By Topic
+            </span>
+            <span className="text-[10px] font-semibold text-neutral-400 bg-neutral-100 px-2 py-0.5 rounded-full">
+              {categories.length} Topics
+            </span>
+          </div>
+
+          {/* Search Box */}
+          <div className="relative w-full sm:w-80 shrink-0">
+            <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-neutral-400" />
+            <input
+              type="text"
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              placeholder="Search news, keywords, or topics..."
+              className="w-full pl-8 pr-8 py-1.5 text-xs bg-neutral-50 border border-neutral-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-brand-500/20 focus:border-brand-500 text-neutral-900 transition-all"
+            />
+            {search && (
+              <button
+                type="button"
+                onClick={() => setSearch('')}
+                className="absolute right-2.5 top-1/2 -translate-y-1/2 text-neutral-400 hover:text-neutral-600 text-xs cursor-pointer"
+              >
+                ✕
+              </button>
+            )}
+          </div>
+        </div>
+
+        {/* Category Pills with natural flex-wrap so no pills get clipped or overlapped */}
+        <div className="flex flex-wrap items-center gap-2 pt-1 border-t border-neutral-100">
           {categories.map((cat) => {
             const Icon = cat.icon;
             const active = activeCategory === cat.id;
@@ -1838,7 +1871,7 @@ export const CivicNewsPage = () => {
                 key={cat.id}
                 onClick={() => setActiveCategory(cat.id)}
                 className={classNames(
-                  'flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold whitespace-nowrap transition-all cursor-pointer',
+                  'flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-semibold whitespace-nowrap transition-all cursor-pointer',
                   active
                     ? 'bg-brand-600 text-white shadow-xs'
                     : 'bg-neutral-100 text-neutral-600 hover:bg-neutral-200 hover:text-neutral-900'
@@ -1849,18 +1882,6 @@ export const CivicNewsPage = () => {
               </button>
             );
           })}
-        </div>
-
-        {/* Search */}
-        <div className="relative min-w-[220px]">
-          <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-neutral-400" />
-          <input
-            type="text"
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-            placeholder="Search news..."
-            className="w-full pl-8 pr-3 py-1.5 text-xs bg-neutral-50 border border-neutral-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-brand-500/20 focus:border-brand-500 text-neutral-900"
-          />
         </div>
       </div>
 
