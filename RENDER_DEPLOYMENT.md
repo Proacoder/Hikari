@@ -99,3 +99,4 @@ To enable live LLM chatbot responses, add any of these keys in your Render **Env
 ## 💡 Render Free Tier Notes
 * **Cold Starts**: Render free services spin down after 15 minutes of inactivity. The first request after sleep may take ~30-50 seconds to wake up.
 * **Health Check**: Render monitors `/api/health`. Once the service starts, it returns `{"status": "healthy"}`.
+
