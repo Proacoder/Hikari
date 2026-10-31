@@ -796,22 +796,26 @@ export const ContactPage = () => {
 
         {/* Zone Filter Tabs */}
         <div className={classNames("flex flex-wrap items-center gap-2 border-b pb-4", isDark ? "border-white/10" : "border-neutral-200")}>
-          {zones.map((zone) => (
-            <button
-              key={zone}
-              onClick={() => { sound.play('pop'); setSelectedZone(zone); }}
-              className={classNames(
-                "px-4 py-2 rounded-xl text-xs font-semibold transition-all cursor-pointer",
-                selectedZone === zone
-                  ? 'bg-emerald-500 text-neutral-950 font-bold shadow-md'
-                  : isDark
-                    ? 'bg-neutral-900/80 border border-white/10 text-white/70 hover:bg-neutral-800'
-                    : 'bg-white border border-neutral-200 text-neutral-700 hover:bg-neutral-100 shadow-sm'
-              )}
-            >
-              {zone} {zone === 'All' ? `(${MUMBAI_WARDS.length})` : ''}
-            </button>
-          ))}
+          {zones.map((zoneItem) => {
+            const zKey = typeof zoneItem === 'object' ? zoneItem.key : zoneItem;
+            const zLabel = typeof zoneItem === 'object' ? zoneItem.label : zoneItem;
+            return (
+              <button
+                key={zKey}
+                onClick={() => { sound.play('pop'); setSelectedZone(zKey); }}
+                className={classNames(
+                  "px-4 py-2 rounded-xl text-xs font-semibold transition-all cursor-pointer",
+                  selectedZone === zKey
+                    ? 'bg-emerald-500 text-neutral-950 font-bold shadow-md'
+                    : isDark
+                      ? 'bg-neutral-900/80 border border-white/10 text-white/70 hover:bg-neutral-800'
+                      : 'bg-white border border-neutral-200 text-neutral-700 hover:bg-neutral-100 shadow-sm'
+                )}
+              >
+                {zLabel} {zKey === 'All' ? `(${MUMBAI_WARDS.length})` : ''}
+              </button>
+            );
+          })}
           <span className={classNames("ml-auto text-xs font-mono hidden sm:block", isDark ? "text-white/40" : "text-neutral-500")}>
             Showing {filteredWards.length} ward offices
           </span>
