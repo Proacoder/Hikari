@@ -10,7 +10,7 @@ import { getComplaints, createComplaint, getMapData, getStoredComplaints, saveSt
 import { getWeatherAQI, getMumbaiNews } from '../api/weather.api';
 import { detectDefectWithCLIP, checkDuplicateWithDBSCAN } from '../api/ml.api';
 import { MUMBAI_WARDS, MOCK_OFFICERS, CATEGORIES } from '../utils/mockData';
-import { findClosestWard, reverseGeocodeCoordinates, analyzeComplaintDynamic, MUMBAI_POPULAR_LANDMARKS, searchMumbaiLocations } from '../utils/geoUtils';
+import { findClosestWard, reverseGeocodeCoordinates, analyzeComplaintDynamic, searchMumbaiLocations } from '../utils/geoUtils';
 import { useLanguage } from '../context/LanguageContext';
 import { useNotifications } from '../context/NotificationContext';
 import { useAuth } from '../context/AuthContext';
@@ -1041,27 +1041,7 @@ export const ReportIssuePage = () => {
                   )}
                 </div>
 
-                {/* Popular Area Quick Jump Pills */}
-                <div>
-                  <div className="flex items-center justify-between mb-1.5">
-                    <span className="text-[10px] font-bold uppercase tracking-wider text-neutral-400">
-                      Quick Pin Zones (Mumbai):
-                    </span>
-                    <span className="text-[10px] text-neutral-400">Click to jump pin</span>
-                  </div>
-                  <div className="flex flex-wrap gap-1.5">
-                    {MUMBAI_POPULAR_LANDMARKS.slice(0, 8).map((landmark, idx) => (
-                      <button
-                        key={idx}
-                        type="button"
-                        onClick={() => handleSelectLocation(landmark)}
-                        className="px-2.5 py-1 bg-white hover:bg-brand-50 hover:border-brand-300 border border-neutral-200 rounded-lg text-[11px] font-medium text-neutral-700 transition-colors cursor-pointer"
-                      >
-                        📍 {landmark.name.split('/')[0].trim()}
-                      </button>
-                    ))}
-                  </div>
-                </div>
+
               </div>
             )}
 
