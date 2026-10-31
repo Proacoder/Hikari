@@ -115,7 +115,7 @@ export const createComplaint = async (formData) => {
             ward: sessionUser.ward || wardId,
           };
         }
-        return { id: 'anonymous', name: 'Citizen' };
+        return { id: 'user-001', name: 'Priya Nair', email: 'priya.nair@example.com', ward: wardId };
       })(),
       assignedOfficer: null,
       upvoteCount: 1,
@@ -246,7 +246,7 @@ export const addComment = async (id, { text, author }) => {
       id: sessionUser.id,
       name: sessionUser.name,
       role: sessionUser.role || 'citizen',
-    } : { id: 'anonymous', name: 'Citizen', role: 'citizen' });
+    } : { id: 'user-001', name: 'Priya Nair', role: 'citizen' });
 
     const newComment = {
       id: `comm-${Date.now()}`,

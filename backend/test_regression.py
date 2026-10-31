@@ -67,12 +67,12 @@ def test_dashboard_analytics_authorization():
 
 
 def test_anonymous_complaint_status_update():
-    """Issue 2: Updating an anonymous complaint (created_by_id = None) succeeds without crashing."""
+    """Issue 2: Updating an unlinked complaint succeeds without crashing and cleans up test artifact."""
     db = next(get_db())
     anon_comp_id = f"cmp-anon-{uuid.uuid4().hex[:6]}"
     anon_comp = ComplaintModel(
         id=anon_comp_id,
-        title="Anonymous open drain hazard",
+        title="Temporary drain test hazard",
         description="Hazardous open drain without registered creator",
         category="Drainage",
         severity=85,
@@ -80,33 +80,40 @@ def test_anonymous_complaint_status_update():
         latitude=19.0596,
         longitude=72.8296,
         ward_id=8,
-        created_by_id=None,  # Anonymous complaint
-        created_by_name="Anonymous Citizen",
+        created_by_id=None,
+        created_by_name="Registered Citizen",
     )
     db.add(anon_comp)
     db.commit()
 
-    # Officer in Ward 8 updates the status
-    off_res = client.post("/api/auth/login", json={"email": "suresh.patil@bmc.gov.in", "password": "BandraN@2024"})
-    off_token = off_res.json()["data"]["token"]
+    try:
+        # Officer in Ward 8 updates the status
+        off_res = client.post("/api/auth/login", json={"email": "suresh.patil@bmc.gov.in", "password": "BandraN@2024"})
+        off_token = off_res.json()["data"]["token"]
 
-    update_res = client.patch(
-        f"/api/complaints/{anon_comp_id}",
-        json={"status": "in_progress", "notes": "Dispatched crew to inspect anonymous report."},
-        headers={"Authorization": f"Bearer {off_token}"},
-    )
-    assert update_res.status_code == 200, f"Expected 200, got {update_res.status_code}: {update_res.text}"
-    updated = update_res.json()["data"]
-    assert updated["status"] == "in_progress"
+        update_res = client.patch(
+            f"/api/complaints/{anon_comp_id}",
+            json={"status": "in_progress", "notes": "Dispatched crew to inspect report."},
+            headers={"Authorization": f"Bearer {off_token}"},
+        )
+        assert update_res.status_code == 200, f"Expected 200, got {update_res.status_code}: {update_res.text}"
+        updated = update_res.json()["data"]
+        assert updated["status"] == "in_progress"
 
-    # Further resolve the complaint
-    resolve_res = client.patch(
-        f"/api/complaints/{anon_comp_id}",
-        json={"status": "resolved", "notes": "FRP cover installed over open drain."},
-        headers={"Authorization": f"Bearer {off_token}"},
-    )
-    assert resolve_res.status_code == 200
-    assert resolve_res.json()["data"]["status"] == "resolved"
+        # Further resolve the complaint
+        resolve_res = client.patch(
+            f"/api/complaints/{anon_comp_id}",
+            json={"status": "resolved", "notes": "FRP cover installed over open drain."},
+            headers={"Authorization": f"Bearer {off_token}"},
+        )
+        assert resolve_res.status_code == 200
+        assert resolve_res.json()["data"]["status"] == "resolved"
+    finally:
+        try:
+            db.delete(anon_comp)
+            db.commit()
+        except Exception:
+            db.rollback()
 
 
 def test_local_image_upload_and_serving():
@@ -141,6 +148,16 @@ def test_local_image_upload_and_serving():
     fetch_res = client.get(img_url)
     assert fetch_res.status_code == 200, f"Static fetch failed for {img_url}"
     assert len(fetch_res.content) > 0
+
+    # Cleanup test record
+    try:
+        db = next(get_db())
+        test_c = db.query(ComplaintModel).filter(ComplaintModel.id == upload_res.json()["data"]["id"]).first()
+        if test_c:
+            db.delete(test_c)
+            db.commit()
+    except Exception:
+        pass
 
 
 def test_malformed_base64_returns_400():
@@ -243,6 +260,17 @@ def test_new_complaint_zero_upvotes_and_utc_timestamp():
     detail_off_res = client.get(f"/api/complaints/{comp['id']}", headers={"Authorization": f"Bearer {off_token}"})
     assert detail_off_res.json()["data"]["hasUpvoted"] is False
 
+    # Cleanup test record
+    try:
+        db = next(get_db())
+        db.query(UpvoteModel).filter(UpvoteModel.complaint_id == comp['id']).delete()
+        test_c = db.query(ComplaintModel).filter(ComplaintModel.id == comp['id']).first()
+        if test_c:
+            db.delete(test_c)
+            db.commit()
+    except Exception:
+        pass
+
 
 def test_sqlite_wal_pragmas():
     """Issue 8: SQLite engine has WAL mode and busy_timeout configured."""
@@ -313,6 +341,16 @@ def test_concurrent_duplicate_upvoting():
     comp = db.query(ComplaintModel).filter(ComplaintModel.id == cid).first()
     upvotes = db.query(UpvoteModel).filter(UpvoteModel.complaint_id == cid).all()
     assert comp.upvote_count == 1, f"Persisted upvote count corrupted! Expected 1, got {comp.upvote_count}"
+
+    # Cleanup test record
+    try:
+        for u in upvotes:
+            db.delete(u)
+        db.delete(comp)
+        db.commit()
+        db.close()
+    except Exception:
+        pass
     assert len(upvotes) == 1, f"Persisted upvote rows corrupted! Expected 1, got {len(upvotes)}"
     db.close()
 
@@ -364,6 +402,16 @@ def test_secure_upload_endpoint():
     res_get = client.get(upload_url)
     assert res_get.status_code == 200
     assert len(res_get.content) == len(png_bytes)
+
+    # Cleanup test record
+    try:
+        db = next(get_db())
+        test_c = db.query(ComplaintModel).filter(ComplaintModel.id == res_valid.json()["data"]["id"]).first()
+        if test_c:
+            db.delete(test_c)
+            db.commit()
+    except Exception:
+        pass
 
 
 def test_citizen_certificate_authorization():
@@ -450,6 +498,18 @@ def test_notification_on_comment_and_assignment():
     comment_notif = next((n for n in priya_notifs if n["complaintId"] == cid and n["type"] == "comment"), None)
     assert comment_notif is not None, "Ticket creator did not receive notification of officer's comment"
     assert "Suresh Patil" in comment_notif["body"]
+
+    # Cleanup test record
+    try:
+        db = next(get_db())
+        db.query(NotificationModel).filter(NotificationModel.complaint_id == cid).delete()
+        db.query(CommentModel).filter(CommentModel.complaint_id == cid).delete()
+        test_c = db.query(ComplaintModel).filter(ComplaintModel.id == cid).first()
+        if test_c:
+            db.delete(test_c)
+            db.commit()
+    except Exception:
+        pass
 
 
 def test_external_open_meteo_weather():

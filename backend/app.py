@@ -877,7 +877,7 @@ async def get_complaints(
     if limit < 1 or limit > 100:
         limit = min(max(1, limit), 100)
 
-    query = db.query(ComplaintModel)
+    query = db.query(ComplaintModel).filter(ComplaintModel.created_by_id.isnot(None), ComplaintModel.created_by_name != "Anonymous Citizen")
 
     if ward and str(ward).strip():
         try:
@@ -962,7 +962,7 @@ async def create_complaint(
     # Validate severity range
     severity = max(0, min(100, severity))
 
-    image_url = imageUrl or "https://images.unsplash.com/photo-1515162816999-a0c47dc192f7?w=800&auto=format&fit=crop&q=80"
+    image_url = imageUrl or "/civic/pothole-before.jpg"
 
     contents = None
     # Handle file upload
@@ -1099,7 +1099,7 @@ async def create_complaint_json(
     ).first()
 
     complaint_id = f"cmp-{int(datetime.now().timestamp())}-{uuid.uuid4().hex[:4]}"
-    image_url = body.imageUrl or "https://images.unsplash.com/photo-1515162816999-a0c47dc192f7?w=800&auto=format&fit=crop&q=80"
+    image_url = body.imageUrl or "/civic/pothole-before.jpg"
 
     # Evaluate semantic and spatial duplicates
     dup_res = get_duplicate_service().evaluate_candidates(

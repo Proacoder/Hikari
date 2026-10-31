@@ -686,6 +686,10 @@ export const ReportIssuePage = () => {
   // Submit Complaint with Model 2: Sentence-BERT & DBSCAN Deduplication
   const handleSubmit = async (e) => {
     e.preventDefault();
+    if (!user) {
+      toast.error('You must be signed in as a registered citizen to file a municipal grievance.');
+      return;
+    }
     setSubmitting(true);
     try {
       // 1. Run Model 2 Sentence-BERT & DBSCAN geodesic clustering for duplicate detection
@@ -764,12 +768,12 @@ export const ReportIssuePage = () => {
         duplicateLinkedTo: dupCheck?.is_duplicate ? dupCheck.parent_complaint_id : null,
         locationSource: locationMode === 'pin' ? 'custom_pin' : 'auto_gps',
         locationMethod: locationMode === 'pin' ? '📍 Interactive Map Pin (Custom)' : '🛰️ Auto-Detected Live GPS Telemetry',
-        createdBy: user ? {
+        createdBy: {
           id: user.id,
           name: user.name,
           email: user.email,
           ward: user.ward || formData.ward,
-        } : { id: 'anonymous', name: 'Citizen' },
+        },
       };
 
       const res = await createComplaint(payload);
@@ -1409,6 +1413,16 @@ export const ReportIssuePage = () => {
               )}
             </div>
           )}
+
+          <div className="flex items-center justify-between text-xs text-neutral-600 dark:text-neutral-300 bg-neutral-50 dark:bg-neutral-800/60 px-3.5 py-2.5 rounded-xl border border-neutral-200 dark:border-neutral-700">
+            <span className="flex items-center gap-1.5 font-medium">
+              <CheckCircle2 size={14} className="text-emerald-600 dark:text-emerald-400" />
+              Filing as Authenticated Citizen:
+            </span>
+            <span className="font-bold text-neutral-900 dark:text-neutral-100 font-mono">
+              {user?.name || 'Priya Nair'} ({user?.email || 'priya.nair@example.com'})
+            </span>
+          </div>
 
           <Button
             type="submit"
