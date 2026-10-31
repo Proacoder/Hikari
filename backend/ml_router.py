@@ -164,8 +164,8 @@ def annotate_image_with_clip_hud(
     """
     draw_img = image.copy()
     # Downscale for ultra-fast JPEG encoding and snappy network transmission
-    if max(draw_img.size) > 1280:
-        draw_img.thumbnail((1280, 1280), Image.Resampling.BILINEAR)
+    if max(draw_img.size) > 800:
+        draw_img.thumbnail((800, 800), Image.Resampling.BILINEAR)
     w, h = draw_img.size
     draw = ImageDraw.Draw(draw_img)
 
@@ -296,6 +296,8 @@ async def detect_defect(
     Accepts image file upload or base64 string.
     URL fetching is disabled to prevent SSRF.
     """
+    import time
+    t_req = time.time()
     try:
         raw_bytes = None
         if file and file.filename:
@@ -310,6 +312,8 @@ async def detect_defect(
 
         try:
             image = Image.open(io.BytesIO(raw_bytes)).convert("RGB")
+            if max(image.size) > 1200:
+                image.thumbnail((1200, 1200), Image.Resampling.BILINEAR)
             w, h = image.size
             if w <= 0 or h <= 0:
                 raise ValueError("Invalid image dimensions")
@@ -452,6 +456,7 @@ async def detect_defect(
             severity=severity,
             auth_verdict=auth_res.get("verdict", "Authentic Camera Capture"),
         )
+        logger.info(f"OpenAI CLIP & Forensics analyzed image in {round((time.time() - t_req)*1000, 1)}ms: {primary_category} ({round(confidence * 100, 1)}%)")
 
         return {
             "success": True,

@@ -84,6 +84,19 @@ async def lifespan(app: FastAPI):
     except Exception as e:
         logger.error(f"Database initialization failed: {e}")
         raise
+
+    # Pre-warm ML and vision models in background daemon thread
+    import threading
+    def _warm():
+        try:
+            logger.info("Asynchronously pre-warming ML & vision models...")
+            get_clip_service()
+            get_authenticity_analyzer()._init_hf_model()
+            logger.info("ML & vision models pre-warmed and ready.")
+        except Exception as e:
+            logger.warning(f"Background ML warmup notice: {e}")
+    threading.Thread(target=_warm, daemon=True).start()
+
     yield
 
 

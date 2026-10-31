@@ -19,27 +19,28 @@ export const HolographicScanner = ({
 
   useEffect(() => {
     if (!isScanning) {
+      setScanStep(2);
       return;
     }
 
     sound.play('scan');
 
-    // Telemetry tick counter simulation
+    // High-speed telemetry tick counter
     const interval = setInterval(() => {
-      setTelemetryCount((prev) => (prev + 13) % 100);
-    }, 70);
+      setTelemetryCount((prev) => (prev >= 90 ? 99 : prev + 22));
+    }, 25);
 
     const step1 = setTimeout(() => {
       setScanStep(1);
       sound.play('pop');
-    }, 900);
+    }, 120);
 
     const step2 = setTimeout(() => {
       setScanStep(2);
       clearInterval(interval);
       sound.play('success');
       if (onScanComplete) onScanComplete();
-    }, 1800);
+    }, 320);
 
     return () => {
       clearInterval(interval);

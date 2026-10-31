@@ -113,7 +113,7 @@ class ImageAuthenticityAnalyzer:
             inputs = self._hf_processor(images=rgb_img, return_tensors="pt")
             inputs = {k: v.to(self._hf_device) for k, v in inputs.items()}
 
-            with torch.no_grad():
+            with torch.inference_mode():
                 outputs = self._hf_model(**inputs)
                 logits = outputs.logits
                 probs = torch.softmax(logits, dim=-1).squeeze().tolist()
@@ -296,16 +296,31 @@ class ImageAuthenticityAnalyzer:
             signals.append(f"Direct AI software tag in metadata ({exif['ai_software_tag']})")
             ai_risk_score = 0.98
             dl_res = {"model_available": False, "ai_probability": 0.98, "label": "artificial"}
+            model_source = "Metadata C2PA / Forensic Engine"
         elif c2pa.get("provenance_found"):
             signals.append("C2PA content credentials verified in file manifest")
             ai_risk_score = 0.94
             dl_res = {"model_available": False, "ai_probability": 0.94, "label": "artificial"}
+            model_source = "C2PA Provenance Manifest Engine"
         # Fast-Path B: Confirmed camera hardware EXIF with natural sensor grain (Instant Authentic)
         elif exif.get("has_camera_hardware") and not noise.get("is_synthetic_noise_signature"):
             signals.append("Hardware camera EXIF tags confirmed (smartphone/digital camera)")
             signals.append(f"Natural noise distribution detected (HF variance {noise.get('high_frequency_variance', 0)})")
             ai_risk_score = 0.04
             dl_res = {"model_available": False, "ai_probability": 0.04, "label": "human"}
+            model_source = "EXIF Camera Hardware Validator"
+        # Fast-Path C: High physical sensor frequency variance (> 100.0) without synthetic markers (Instant Authentic)
+        elif noise.get("high_frequency_variance", 0) >= 100.0 and not noise.get("is_synthetic_noise_signature"):
+            signals.append("Natural optical high-frequency sensor grain verified (physical infrastructure texture)")
+            ai_risk_score = 0.05
+            dl_res = {"model_available": False, "ai_probability": 0.05, "label": "human"}
+            model_source = "High-Speed Optical Sensor & Forensic Grain Analyzer"
+        # Fast-Path D: Clear synthetic noise signature with low localized sensor grain (Instant Synthetic)
+        elif noise.get("is_synthetic_noise_signature"):
+            signals.append("High channel correlation with low localized sensor grain (synthetic diffusion signature)")
+            ai_risk_score = 0.95
+            dl_res = {"model_available": False, "ai_probability": 0.95, "label": "artificial"}
+            model_source = "Spectral Forensic AI Artifact Detector"
         else:
             # Fallback Tier: Deep Learning Vision Transformer for ambiguous or scrubbed photos
             dl_res = self._predict_deep_learning_ai(img)
