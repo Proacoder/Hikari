@@ -4,7 +4,7 @@ import { Link } from 'react-router-dom';
 import {
   Shield, Award, Building2, CheckCircle2,
   Cpu, Zap, ChevronDown, AlertTriangle, ArrowRight,
-  Sparkles, FileCheck2, Compass, Layers, Lock, Code, Check
+  Sparkles, FileCheck2, Compass, Layers, Lock, Code, Check, Clock
 } from 'lucide-react';
 import { sound } from '../../utils/soundEffects';
 import { useTheme } from '../../context/ThemeContext';
