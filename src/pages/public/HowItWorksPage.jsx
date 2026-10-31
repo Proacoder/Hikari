@@ -29,6 +29,7 @@ export const HowItWorksPage = () => {
         'Offline caching mode: report without active 5G connectivity',
       ],
       icon: Camera,
+      image: '/steps/step-1-citizen-submission.jpg',
       accent: 'emerald',
       gradient: 'from-emerald-500/20 to-teal-500/5',
       border: 'border-emerald-500/30',
@@ -46,6 +47,7 @@ export const HowItWorksPage = () => {
         'Dynamic SLA calculation: high-hazard complaints get accelerated 12h-24h turnaround clocks',
       ],
       icon: Cpu,
+      image: '/steps/step-2-openai-clip.jpg',
       accent: 'teal',
       gradient: 'from-teal-500/20 to-sky-500/5',
       border: 'border-teal-500/30',
@@ -63,6 +65,7 @@ export const HowItWorksPage = () => {
         'Auto-escalation to Ward Assistant Commissioner if unattended at 75% SLA',
       ],
       icon: Shield,
+      image: '/steps/step-3-ward-dispatch.jpg',
       accent: 'sky',
       gradient: 'from-sky-500/20 to-blue-500/5',
       border: 'border-sky-500/30',
@@ -80,6 +83,7 @@ export const HowItWorksPage = () => {
         'Verified resolution points awarded to citizen for municipal certificates',
       ],
       icon: CheckCircle2,
+      image: '/steps/step-4-photo-verified.jpg',
       accent: 'purple',
       gradient: 'from-purple-500/20 to-emerald-500/5',
       border: 'border-purple-500/30',
@@ -160,30 +164,25 @@ export const HowItWorksPage = () => {
 
   const COMPARISONS = [
     {
-      stage: '1. Issue Submission',
-      traditional: 'Physical ward office visit, paper complaint forms, or long tele-queue delays.',
-      kaiser: 'Instant 60-second mobile submission with sub-meter GPS auto-ward polygon detection.',
+      metric: 'Reporting Channel',
+      traditional: 'Paper registers, clogged telephone helplines, or Twitter mentions lost in noise.',
+      kaiser: 'Instant mobile PWA with sub-meter GPS pin, photo capture, and voice notes in Marathi, Hindi & English.'
     },
     {
-      stage: '2. Triage & Defect Classification',
-      traditional: 'Subjective manual clerk sorting taking 3 to 7 business days to log.',
-      kaiser: 'Sub-second OpenAI CLIP Zero-Shot vision classifying defect and 1-100 severity in <2 seconds.',
+      metric: 'Triage & Categorization',
+      traditional: 'Manual sorting by municipal clerks taking 2 to 5 business days before reaching engineering division.',
+      kaiser: 'Sub-second AI neural categorization and automated dispatch to the assigned ward engineer in <2 seconds.'
     },
     {
-      stage: '3. Engineering Dispatch',
-      traditional: 'Physical registry books hand-delivered to ward officers with zero tracking.',
-      kaiser: 'Direct automated mobile routing to designated Ward Junior Engineer with live GPS ticket assignment.',
+      metric: 'Priority Allocation',
+      traditional: 'First-come, first-served or influencer-driven escalation regardless of actual danger level.',
+      kaiser: 'Algorithmic 1-100 severity scoring factoring pedestrian footfall, hospital routes, and monsoon risk.'
     },
     {
-      stage: '4. Resolution Turnaround (SLA)',
-      traditional: '15 to 45 days average turnaround with frequent jurisdiction buck-passing.',
-      kaiser: 'Strict 6h to 48h dynamic SLA countdown with auto-escalation to Ward Assistant Commissioner.',
-    },
-    {
-      stage: '5. Verification & Accountability',
-      traditional: 'Closed on paper without photographic proof or citizen inspection.',
-      kaiser: 'Mandatory before/after photographic audit with 48-hour citizen sign-off & one-click re-open.',
-    },
+      metric: 'Resolution Transparency',
+      traditional: 'Opaque "Closed" status without verifiable photographic proof or citizen notification.',
+      kaiser: 'Mandatory geolocated after-repair photo proof with citizen satisfaction ratings & 48h re-open window.'
+    }
   ];
 
   const FAQS = [
@@ -272,32 +271,57 @@ export const HowItWorksPage = () => {
               <div className={`absolute top-0 right-0 w-80 h-80 bg-gradient-to-br ${item.gradient} rounded-full blur-3xl pointer-events-none`} />
 
               <div className="grid md:grid-cols-12 gap-8 items-center relative z-10">
-                {/* Visual Icon Box */}
-                <div className={classNames('md:col-span-4 flex flex-col items-center justify-center p-6 rounded-2xl border text-center space-y-3', isEven ? 'md:order-2' : '', isDark ? 'bg-neutral-950/70 border-white/10' : 'bg-neutral-50 border-neutral-200')}>
-                  <div className={`w-16 h-16 rounded-2xl border flex items-center justify-center shadow-lg ${item.iconBg}`}>
-                    <Icon size={32} />
+                {/* Visual Step Card with Real Image */}
+                <div className={classNames(
+                  'md:col-span-5 relative rounded-2xl overflow-hidden border shadow-xl group/img',
+                  isEven ? 'md:order-2' : '',
+                  isDark ? 'border-white/15 bg-neutral-950' : 'border-neutral-200 bg-neutral-100'
+                )}>
+                  {/* Step Image */}
+                  <div className="relative h-56 sm:h-64 md:h-72 w-full overflow-hidden">
+                    <img
+                      src={item.image}
+                      alt={item.title}
+                      className="w-full h-full object-cover group-hover/img:scale-105 transition-transform duration-700"
+                    />
+                    {/* Gradient Overlay */}
+                    <div className="absolute inset-0 bg-gradient-to-t from-neutral-950/85 via-neutral-950/25 to-transparent" />
+                    
+                    {/* Top Floating Badge & Icon */}
+                    <div className="absolute top-3 left-3 right-3 flex items-center justify-between pointer-events-none">
+                      <span className={`px-2.5 py-1 rounded-full text-[10px] font-mono font-bold border tracking-wider backdrop-blur-md shadow-md ${item.badge}`}>
+                        {item.step}
+                      </span>
+                      <div className={`w-9 h-9 rounded-xl border flex items-center justify-center shadow-lg backdrop-blur-md ${item.iconBg}`}>
+                        <Icon size={18} />
+                      </div>
+                    </div>
+
+                    {/* Bottom Number & Verified Tag */}
+                    <div className="absolute bottom-3 left-3 right-3 flex items-end justify-between pointer-events-none">
+                      <span className="font-mono text-3xl sm:text-4xl font-black text-white/95 drop-shadow-[0_2px_8px_rgba(0,0,0,0.8)]">
+                        {item.num}
+                      </span>
+                      <span className="text-[10px] font-mono font-bold text-emerald-300 bg-neutral-950/80 border border-emerald-400/40 px-2 py-0.5 rounded-md backdrop-blur-sm shadow-sm">
+                        BMC VERIFIED STEP
+                      </span>
+                    </div>
                   </div>
-                  <span className={`px-2.5 py-0.5 rounded-full text-[10px] font-mono font-bold border tracking-widest ${item.badge}`}>
-                    {item.step}
-                  </span>
-                  <span className={classNames('font-mono text-3xl font-extrabold', isDark ? 'text-white/90' : 'text-neutral-900')}>
-                    {item.num}
-                  </span>
                 </div>
 
                 {/* Content Box */}
-                <div className={`md:col-span-8 space-y-4 ${isEven ? 'md:order-1' : ''}`}>
+                <div className={`md:col-span-7 space-y-4 ${isEven ? 'md:order-1' : ''}`}>
                   <h3 className={classNames('font-display text-2xl sm:text-3xl font-bold tracking-tight', isDark ? 'text-white' : 'text-neutral-900')}>
                     {item.title}
                   </h3>
                   <p className={classNames('text-sm sm:text-base leading-relaxed', isDark ? 'text-white/75' : 'text-neutral-600')}>
                     {item.desc}
                   </p>
-                  <ul className={classNames('space-y-2 text-xs sm:text-sm', isDark ? 'text-white/60' : 'text-neutral-700')}>
+                  <ul className={classNames('space-y-2.5 text-xs sm:text-sm', isDark ? 'text-white/60' : 'text-neutral-700')}>
                     {item.bullets.map((b, bi) => (
                       <li key={bi} className="flex items-start gap-2.5">
-                        <Check size={15} className="text-emerald-500 shrink-0 mt-0.5" />
-                        <span>{b}</span>
+                        <Check size={16} className="text-emerald-500 shrink-0 mt-0.5" />
+                        <span className="leading-normal">{b}</span>
                       </li>
                     ))}
                   </ul>
@@ -429,45 +453,59 @@ export const HowItWorksPage = () => {
         </div>
       </section>
 
-      {/* ── SECTION: Traditional BMC vs. Kaiser AI Comparison Matrix ── */}
-      <section className="relative max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 pt-16">
-        <div className="text-center max-w-2xl mx-auto mb-8 space-y-2">
+      {/* ── SECTION: How Kaiser AI Outperforms Traditional Helplines (Enlarged) ── */}
+      <section className="relative max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 pt-16">
+        <div className="text-center max-w-3xl mx-auto mb-10 space-y-3">
           <div className={classNames(
-            'inline-flex items-center gap-2 px-3 py-1 rounded-full text-xs font-mono font-bold tracking-wider uppercase border',
+            'inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full text-xs font-mono font-bold tracking-wider uppercase border',
             isDark ? 'bg-emerald-500/10 border-emerald-500/30 text-emerald-400' : 'bg-emerald-50 border-emerald-300 text-emerald-700'
           )}>
-            <Clock size={13} />
-            <span>MUNICIPAL TRANSFORMATION BENCHMARK</span>
+            <Sparkles size={14} />
+            <span>TRANSFORMATIVE CIVIC IMPACT</span>
           </div>
-          <h2 className={classNames('font-display text-2xl sm:text-3xl font-extrabold tracking-tight', isDark ? 'text-white' : 'text-neutral-900')}>
-            Traditional BMC Grievance System vs. Kaiser AI
+          <h2 className={classNames('font-display text-3xl sm:text-4xl lg:text-5xl font-extrabold tracking-tight', isDark ? 'text-white' : 'text-neutral-900')}>
+            How Kaiser AI Outperforms Traditional Helplines
           </h2>
-          <p className={classNames('text-xs sm:text-sm leading-relaxed', isDark ? 'text-white/70' : 'text-neutral-600')}>
-            How our automated sovereign pipeline eliminates bureaucratic friction, jurisdiction dead-ends, and unverified paperwork closures.
+          <p className={classNames('text-sm sm:text-base leading-relaxed', isDark ? 'text-white/70' : 'text-neutral-600')}>
+            A direct side-by-side comparison between legacy municipal complaint helplines and Kaiser AI’s automated sovereign pipeline.
           </p>
         </div>
 
         <div className={classNames(
-          'rounded-3xl border overflow-hidden shadow-2xl backdrop-blur-xl',
-          isDark ? 'bg-neutral-900/80 border-white/10' : 'bg-white border-neutral-200'
+          'rounded-3xl border overflow-hidden shadow-2xl backdrop-blur-xl transition-all',
+          isDark ? 'bg-neutral-900/80 border-white/15' : 'bg-white border-neutral-200 shadow-soft-xl'
         )}>
-          <div className="grid grid-cols-12 text-xs font-mono font-bold uppercase tracking-wider p-4 border-b border-neutral-200 dark:border-white/10 bg-neutral-100 dark:bg-neutral-950/70">
-            <div className="col-span-3 text-neutral-500 dark:text-neutral-400">Pipeline Stage</div>
-            <div className="col-span-4 text-rose-600 dark:text-rose-400">Legacy Municipal System</div>
-            <div className="col-span-5 text-emerald-600 dark:text-emerald-400">Kaiser AI Sovereign Pipeline</div>
+          {/* Header Row - Enlarged */}
+          <div className={classNames(
+            'grid grid-cols-12 text-xs sm:text-sm font-mono font-bold uppercase tracking-wider p-4 sm:p-5 border-b',
+            isDark ? 'bg-neutral-950/80 border-white/10 text-white/70' : 'bg-slate-100 border-neutral-200 text-neutral-700'
+          )}>
+            <div className="col-span-3 sm:col-span-3 text-neutral-500 dark:text-neutral-400">Metric</div>
+            <div className="col-span-4 sm:col-span-4 text-rose-600 dark:text-rose-400">Traditional Municipal Helpline</div>
+            <div className="col-span-5 sm:col-span-5 text-emerald-600 dark:text-emerald-400">Kaiser AI Platform</div>
           </div>
 
-          <div className="divide-y divide-neutral-200 dark:divide-white/10 text-xs sm:text-sm">
+          {/* Body Rows - Enlarged & Clearly Legible */}
+          <div className="divide-y divide-neutral-200 dark:divide-white/10">
             {COMPARISONS.map((row, i) => (
-              <div key={i} className="grid grid-cols-12 p-4 sm:p-5 items-start gap-3 hover:bg-neutral-500/5 transition-colors">
-                <div className={classNames('col-span-3 font-semibold text-xs font-mono', isDark ? 'text-white/80' : 'text-neutral-900')}>
-                  {row.stage}
+              <div key={i} className={classNames(
+                'grid grid-cols-12 p-5 sm:p-6 items-center gap-4 transition-colors',
+                isDark ? 'hover:bg-white/5' : 'hover:bg-slate-50'
+              )}>
+                <div className={classNames('col-span-3 sm:col-span-3 font-bold text-sm sm:text-base', isDark ? 'text-white' : 'text-neutral-900')}>
+                  {row.metric}
                 </div>
-                <div className={classNames('col-span-4 text-xs leading-relaxed', isDark ? 'text-rose-300/80' : 'text-rose-700')}>
-                  {row.traditional}
+                <div className={classNames('col-span-4 sm:col-span-4 text-xs sm:text-sm leading-relaxed flex items-start gap-2', isDark ? 'text-white/60' : 'text-neutral-600')}>
+                  <span className="text-rose-500 font-bold text-base shrink-0 leading-none mt-0.5">✕</span>
+                  <span>{row.traditional}</span>
                 </div>
-                <div className={classNames('col-span-5 text-xs font-medium leading-relaxed flex items-start gap-2', isDark ? 'text-emerald-300' : 'text-emerald-800')}>
-                  <Check size={14} className="shrink-0 mt-0.5 text-emerald-500" />
+                <div className={classNames(
+                  'col-span-5 sm:col-span-5 text-xs sm:text-sm font-medium leading-relaxed flex items-start gap-2.5 p-3.5 sm:p-4 rounded-2xl border',
+                  isDark
+                    ? 'bg-emerald-500/10 text-emerald-200 border-emerald-400/25'
+                    : 'bg-emerald-50 text-emerald-900 border-emerald-200'
+                )}>
+                  <Check size={18} className="shrink-0 mt-0.5 text-emerald-500" />
                   <span>{row.kaiser}</span>
                 </div>
               </div>

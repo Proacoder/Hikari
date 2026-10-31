@@ -81,24 +81,29 @@ export const AboutPage = () => {
 
   const comparisons = [
     {
-      metric: 'Reporting Channel',
-      traditional: 'Paper registers, clogged telephone helplines, or Twitter mentions lost in noise',
-      kaiser: 'Instant mobile PWA with sub-meter GPS pin, photo capture, and voice notes in Marathi/Hindi/English'
+      metric: '1. Issue Submission',
+      traditional: 'Physical ward office visit, paper complaint forms, or long tele-queue delays.',
+      kaiser: 'Instant 60-second mobile submission with sub-meter GPS auto-ward polygon detection.'
     },
     {
-      metric: 'Triage & Categorization',
-      traditional: 'Manual sorting by clerk taking 2 to 5 days before reaching the engineering division',
-      kaiser: 'Sub-second AI neural categorization and automated dispatch to the assigned ward engineer'
+      metric: '2. Triage & Defect Classification',
+      traditional: 'Subjective manual clerk sorting taking 3 to 7 business days to log.',
+      kaiser: 'Sub-second OpenAI CLIP Zero-Shot vision classifying defect and 1-100 severity in <2 seconds.'
     },
     {
-      metric: 'Priority Allocation',
-      traditional: 'First-come, first-served or influencer-driven escalation regardless of danger level',
-      kaiser: 'Algorithmic 1-100 severity scoring factoring pedestrian footfall, hospital routes, and monsoon risk'
+      metric: '3. Engineering Dispatch',
+      traditional: 'Physical registry books hand-delivered to ward officers with zero tracking.',
+      kaiser: 'Direct automated mobile routing to designated Ward Junior Engineer with live GPS ticket assignment.'
     },
     {
-      metric: 'Resolution Transparency',
-      traditional: 'Opaque "Closed" status without verifiable proof or citizen notification',
-      kaiser: 'Mandatory geolocated after-repair photo proof with citizen satisfaction ratings'
+      metric: '4. Resolution Turnaround (SLA)',
+      traditional: '15 to 45 days average turnaround with frequent jurisdiction buck-passing.',
+      kaiser: 'Strict 6h to 48h dynamic SLA countdown with auto-escalation to Ward Assistant Commissioner.'
+    },
+    {
+      metric: '5. Verification & Accountability',
+      traditional: 'Closed on paper without photographic proof or citizen inspection.',
+      kaiser: 'Mandatory before/after photographic audit with 48-hour citizen sign-off & one-click re-open.'
     }
   ];
 
@@ -481,15 +486,21 @@ export const AboutPage = () => {
         </div>
       </section>
 
-      {/* ── Before vs After Kaiser AI ── */}
+      {/* ── SECTION: Traditional BMC Grievance System vs. Kaiser AI (Enlarged) ── */}
       <section className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 space-y-10">
-        <div className="text-center max-w-2xl mx-auto space-y-3">
-          <span className={classNames("font-mono text-xs font-bold uppercase tracking-widest", isDark ? "text-emerald-400" : "text-emerald-700")}>TRANSFORMATIVE IMPACT</span>
-          <h2 className={classNames("font-display text-2xl sm:text-4xl font-extrabold tracking-tight", isDark ? "text-white" : "text-neutral-950")}>
-            How Kaiser AI Outperforms Traditional Helplines
+        <div className="text-center max-w-3xl mx-auto space-y-3">
+          <div className={classNames(
+            "inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full text-xs font-mono font-bold tracking-wider uppercase border",
+            isDark ? "bg-emerald-500/10 border-emerald-500/30 text-emerald-400" : "bg-emerald-50 border-emerald-300 text-emerald-700"
+          )}>
+            <Clock size={14} />
+            <span>MUNICIPAL TRANSFORMATION BENCHMARK</span>
+          </div>
+          <h2 className={classNames("font-display text-3xl sm:text-4xl lg:text-5xl font-extrabold tracking-tight", isDark ? "text-white" : "text-neutral-950")}>
+            Traditional BMC Grievance System vs. Kaiser AI
           </h2>
-          <p className={classNames("text-sm", isDark ? "text-white/70" : "text-neutral-600")}>
-            A direct comparison between legacy municipal grievance systems and Kaiser AI's automated intelligence.
+          <p className={classNames("text-sm sm:text-base leading-relaxed", isDark ? "text-white/70" : "text-neutral-600")}>
+            How our automated sovereign pipeline eliminates bureaucratic friction, jurisdiction dead-ends, and unverified paperwork closures across all 24 municipal wards.
           </p>
         </div>
 
@@ -497,32 +508,37 @@ export const AboutPage = () => {
           "overflow-hidden rounded-3xl border shadow-2xl transition-all",
           isDark ? "bg-neutral-900/80 border-white/15 backdrop-blur-xl" : "bg-white border-neutral-200 shadow-soft-xl"
         )}>
+          {/* Header Row - Enlarged */}
           <div className={classNames(
-            "grid grid-cols-12 border-b p-4 text-xs font-mono font-bold uppercase tracking-wider",
-            isDark ? "bg-neutral-950/70 border-white/15 text-white/70" : "bg-slate-100 border-neutral-200 text-neutral-700"
+            "grid grid-cols-12 border-b p-4 sm:p-5 text-xs sm:text-sm font-mono font-bold uppercase tracking-wider",
+            isDark ? "bg-neutral-950/80 border-white/15 text-white/70" : "bg-slate-100 border-neutral-200 text-neutral-700"
           )}>
-            <div className="col-span-3 sm:col-span-2">Metric</div>
-            <div className={classNames("col-span-4 sm:col-span-5", isDark ? "text-white/40" : "text-neutral-500")}>Traditional Municipal Helpline</div>
-            <div className={isDark ? "col-span-5 sm:col-span-5 text-emerald-400" : "col-span-5 sm:col-span-5 text-emerald-700"}>Kaiser AI Platform</div>
+            <div className="col-span-3 sm:col-span-3">Pipeline Stage</div>
+            <div className={classNames("col-span-4 sm:col-span-4 text-rose-600 dark:text-rose-400")}>Legacy Municipal System</div>
+            <div className={isDark ? "col-span-5 sm:col-span-5 text-emerald-400" : "col-span-5 sm:col-span-5 text-emerald-700"}>Kaiser AI Sovereign Pipeline</div>
           </div>
+
+          {/* Body Rows - Enlarged & Clearly Legible */}
           <div className={classNames("divide-y", isDark ? "divide-white/10" : "divide-neutral-200")}>
             {comparisons.map((row, i) => (
               <div key={i} className={classNames(
-                "grid grid-cols-12 p-4 sm:p-5 text-xs sm:text-sm items-center transition-colors",
+                "grid grid-cols-12 p-5 sm:p-6 text-sm sm:text-base items-center gap-4 transition-colors",
                 isDark ? "hover:bg-white/5" : "hover:bg-slate-50"
               )}>
-                <div className={classNames("col-span-3 sm:col-span-2 font-bold", isDark ? "text-white" : "text-neutral-900")}>{row.metric}</div>
-                <div className={classNames("col-span-4 sm:col-span-5 pr-4 leading-relaxed flex items-start gap-1.5", isDark ? "text-white/50" : "text-neutral-600")}>
-                  <span className="text-rose-500 font-bold text-sm shrink-0">✕</span>
+                <div className={classNames("col-span-3 sm:col-span-3 font-bold text-sm sm:text-base font-mono", isDark ? "text-white" : "text-neutral-900")}>
+                  {row.metric}
+                </div>
+                <div className={classNames("col-span-4 sm:col-span-4 pr-2 leading-relaxed flex items-start gap-2 text-xs sm:text-sm", isDark ? "text-white/60" : "text-neutral-600")}>
+                  <span className="text-rose-500 font-bold text-base shrink-0 leading-none mt-0.5">✕</span>
                   <span>{row.traditional}</span>
                 </div>
                 <div className={classNames(
-                  "col-span-5 sm:col-span-5 font-medium leading-relaxed flex items-start gap-2 p-3 rounded-2xl border",
+                  "col-span-5 sm:col-span-5 font-medium leading-relaxed flex items-start gap-2.5 p-3.5 sm:p-4 rounded-2xl border text-xs sm:text-sm",
                   isDark
                     ? "bg-emerald-500/10 text-emerald-200 border-emerald-400/25"
                     : "bg-emerald-50 text-emerald-900 border-emerald-200"
                 )}>
-                  <CheckCircle2 size={16} className={isDark ? "text-emerald-400 shrink-0 mt-0.5" : "text-emerald-600 shrink-0 mt-0.5"} />
+                  <CheckCircle2 size={18} className={isDark ? "text-emerald-400 shrink-0 mt-0.5" : "text-emerald-600 shrink-0 mt-0.5"} />
                   <span>{row.kaiser}</span>
                 </div>
               </div>
