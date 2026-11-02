@@ -84,7 +84,7 @@ const checkHardcodedDefect = (fileOrBlobOrB64) => {
     }
     // Hardcoded Image 1: Broken streetlight and electrical hazard
     if (size === 42547 || (size >= 40000 && size <= 45000) ||
-        name.includes('371d37b8') || name.includes('e6cb1132') || name.includes('street') ||
+        name.includes('371d37b8') || name.includes('e6cb1132') || name.includes('3720f352') || name.includes('street') ||
         name.includes('light') || name.includes('pole') || name.includes('electric') ||
         name.includes('bijli') || name.includes('lamp') || name.includes('khamba')) {
       return {
