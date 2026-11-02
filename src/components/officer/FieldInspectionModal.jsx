@@ -1,7 +1,8 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import {
   ShieldCheck, MapPin, Camera, CheckCircle2, AlertTriangle,
-  Download, Sparkles, Navigation, X, Wrench, Check
+  Download, Sparkles, Navigation, X, Wrench, Check,
+  Upload, Folder, Link as LinkIcon, Trash2
 } from 'lucide-react';
 import { calculateDistanceKm } from '../../utils/geoUtils';
 import toast from 'react-hot-toast';
@@ -45,6 +46,74 @@ const FieldInspectionModalContent = ({ complaint, officer, onClose, onResolveSuc
     return RESOLVED_CATEGORY_IMAGES[cmp?.category] || RESOLVED_CATEGORY_IMAGES.Pothole;
   };
   const [afterImage, setAfterImage] = useState(() => getInitialAfter(complaint));
+  const [photoSourceMode, setPhotoSourceMode] = useState('url'); // 'url' | 'file'
+  const [uploadedFileName, setUploadedFileName] = useState('');
+  const [uploadedFileSize, setUploadedFileSize] = useState('');
+  const [isDragging, setIsDragging] = useState(false);
+  const fileInputRef = useRef(null);
+
+  const handleLocalFileSelect = (file) => {
+    if (!file) return;
+
+    if (!file.type.startsWith('image/')) {
+      toast.error('Please choose a valid image file (JPG, PNG, WebP, etc.).');
+      return;
+    }
+
+    const MAX_MB = 10;
+    if (file.size > MAX_MB * 1024 * 1024) {
+      toast.error(`Image exceeds ${MAX_MB}MB limit. Please choose a smaller photo.`);
+      return;
+    }
+
+    const formattedSize = file.size > 1024 * 1024
+      ? `${(file.size / (1024 * 1024)).toFixed(1)} MB`
+      : `${Math.round(file.size / 1024)} KB`;
+
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      const rawResult = e.target.result;
+      const img = new window.Image();
+      img.onload = () => {
+        const maxDim = 1800;
+        if (img.width > maxDim || img.height > maxDim) {
+          const canvas = document.createElement('canvas');
+          let width = img.width;
+          let height = img.height;
+          if (width > height) {
+            height = Math.round((height * maxDim) / width);
+            width = maxDim;
+          } else {
+            width = Math.round((width * maxDim) / height);
+            height = maxDim;
+          }
+          canvas.width = width;
+          canvas.height = height;
+          const ctx = canvas.getContext('2d');
+          ctx.drawImage(img, 0, 0, width, height);
+          const compressed = canvas.toDataURL('image/jpeg', 0.88);
+          setAfterImage(compressed);
+        } else {
+          setAfterImage(rawResult);
+        }
+        setUploadedFileName(file.name);
+        setUploadedFileSize(formattedSize);
+        setPhotoSourceMode('file');
+        toast.success(`Loaded "${file.name}" from your PC / laptop`, { icon: '📁' });
+      };
+      img.onerror = () => {
+        setAfterImage(rawResult);
+        setUploadedFileName(file.name);
+        setUploadedFileSize(formattedSize);
+        setPhotoSourceMode('file');
+      };
+      img.src = rawResult;
+    };
+    reader.onerror = () => {
+      toast.error('Failed to read photo from your PC.');
+    };
+    reader.readAsDataURL(file);
+  };
 
   useEffect(() => {
     if (complaint) {
@@ -206,8 +275,9 @@ const FieldInspectionModalContent = ({ complaint, officer, onClose, onResolveSuc
                 className="absolute inset-0 w-full h-full object-cover"
                 onError={(e) => { e.currentTarget.src = RESOLVED_CATEGORY_IMAGES[complaint.category] || RESOLVED_CATEGORY_IMAGES.Pothole; }}
               />
-              <div className="absolute top-3 right-3 bg-emerald-600 text-white font-bold px-2.5 py-1 rounded-lg text-[10px] shadow-lg flex items-center gap-1">
-                <CheckCircle2 size={12} /> AFTER REPAIR (Field Inspection)
+              <div className="absolute top-3 right-3 bg-emerald-600 text-white font-bold px-2.5 py-1 rounded-lg text-[10px] shadow-lg flex items-center gap-1 max-w-[250px]">
+                <CheckCircle2 size={12} className="shrink-0" />
+                <span className="truncate">{uploadedFileName ? `AFTER REPAIR (${uploadedFileName})` : 'AFTER REPAIR (Field Inspection)'}</span>
               </div>
 
               {/* Before image (Clipped / Left) */}
@@ -248,60 +318,180 @@ const FieldInspectionModalContent = ({ complaint, officer, onClose, onResolveSuc
               />
             </div>
 
-            {/* After Photo Selector */}
-            <div className="flex flex-wrap items-center gap-2 pt-1 text-[11px]">
-              <span className="font-semibold text-neutral-600 dark:text-neutral-300 shrink-0">After Photo:</span>
-              <input
-                type="text"
-                value={afterImage}
-                onChange={(e) => setAfterImage(e.target.value)}
-                placeholder="After repair image URL..."
-                className="flex-1 min-w-[200px] px-2.5 py-1 text-xs border border-neutral-300 dark:border-neutral-700 rounded-lg bg-white dark:bg-neutral-800 text-neutral-800 dark:text-neutral-200 focus:outline-none focus:ring-1 focus:ring-brand-500"
-              />
-              <div className="flex items-center gap-1.5 flex-wrap">
-                <button
-                  type="button"
-                  onClick={() => setAfterImage(RESOLVED_CATEGORY_IMAGES.Pothole)}
-                  className="px-2.5 py-1 bg-neutral-100 hover:bg-neutral-200 dark:bg-neutral-800 dark:hover:bg-neutral-700 text-neutral-700 dark:text-neutral-200 rounded text-[10px] font-semibold cursor-pointer shrink-0 transition-colors"
-                >
-                  Pothole Fixed
-                </button>
-                <button
-                  type="button"
-                  onClick={() => setAfterImage(RESOLVED_CATEGORY_IMAGES.Drainage)}
-                  className="px-2.5 py-1 bg-neutral-100 hover:bg-neutral-200 dark:bg-neutral-800 dark:hover:bg-neutral-700 text-neutral-700 dark:text-neutral-200 rounded text-[10px] font-semibold cursor-pointer shrink-0 transition-colors"
-                >
-                  Drain Cleaned
-                </button>
-                <button
-                  type="button"
-                  onClick={() => setAfterImage(RESOLVED_CATEGORY_IMAGES.Garbage)}
-                  className="px-2.5 py-1 bg-neutral-100 hover:bg-neutral-200 dark:bg-neutral-800 dark:hover:bg-neutral-700 text-neutral-700 dark:text-neutral-200 rounded text-[10px] font-semibold cursor-pointer shrink-0 transition-colors"
-                >
-                  Garbage Swept
-                </button>
-                <button
-                  type="button"
-                  onClick={() => setAfterImage(RESOLVED_CATEGORY_IMAGES.Streetlight)}
-                  className="px-2.5 py-1 bg-neutral-100 hover:bg-neutral-200 dark:bg-neutral-800 dark:hover:bg-neutral-700 text-neutral-700 dark:text-neutral-200 rounded text-[10px] font-semibold cursor-pointer shrink-0 transition-colors"
-                >
-                  Streetlight Fixed
-                </button>
-                <button
-                  type="button"
-                  onClick={() => setAfterImage(RESOLVED_CATEGORY_IMAGES['Water Leakage'])}
-                  className="px-2.5 py-1 bg-neutral-100 hover:bg-neutral-200 dark:bg-neutral-800 dark:hover:bg-neutral-700 text-neutral-700 dark:text-neutral-200 rounded text-[10px] font-semibold cursor-pointer shrink-0 transition-colors"
-                >
-                  Pipe Sealed
-                </button>
-                <button
-                  type="button"
-                  onClick={() => setAfterImage(RESOLVED_CATEGORY_IMAGES.Other)}
-                  className="px-2.5 py-1 bg-neutral-100 hover:bg-neutral-200 dark:bg-neutral-800 dark:hover:bg-neutral-700 text-neutral-700 dark:text-neutral-200 rounded text-[10px] font-semibold cursor-pointer shrink-0 transition-colors"
-                >
-                  Debris Cleared
-                </button>
+            {/* ── After Photo Evidence: 2 Options (URL / Presets & Files Folder from PC/Laptop) ── */}
+            <div className="space-y-2.5 pt-2 border-t border-neutral-200/80 dark:border-neutral-700/80">
+              <div className="flex flex-wrap items-center justify-between gap-2">
+                <div className="flex items-center gap-1.5 text-xs font-bold text-neutral-800 dark:text-neutral-200">
+                  <Camera size={14} className="text-brand-600" />
+                  <span>Choose After-Repair Evidence Photo:</span>
+                </div>
+
+                {/* 2 Options Tab Control */}
+                <div className="inline-flex p-1 rounded-xl bg-neutral-100 dark:bg-neutral-800 border border-neutral-200 dark:border-neutral-700 text-xs">
+                  <button
+                    type="button"
+                    onClick={() => setPhotoSourceMode('url')}
+                    className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg font-semibold transition-all cursor-pointer ${
+                      photoSourceMode === 'url'
+                        ? 'bg-white dark:bg-neutral-700 text-brand-700 dark:text-brand-300 shadow-sm border border-neutral-200/60 dark:border-neutral-600'
+                        : 'text-neutral-600 dark:text-neutral-400 hover:text-neutral-900 dark:hover:text-neutral-200'
+                    }`}
+                  >
+                    <LinkIcon size={13} />
+                    Option 1: Image URL
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setPhotoSourceMode('file')}
+                    className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg font-semibold transition-all cursor-pointer ${
+                      photoSourceMode === 'file'
+                        ? 'bg-white dark:bg-neutral-700 text-brand-700 dark:text-brand-300 shadow-sm border border-neutral-200/60 dark:border-neutral-600'
+                        : 'text-neutral-600 dark:text-neutral-400 hover:text-neutral-900 dark:hover:text-neutral-200'
+                    }`}
+                  >
+                    <Upload size={13} />
+                    Option 2: From Files Folder (PC / Laptop)
+                    {uploadedFileName && (
+                      <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
+                    )}
+                  </button>
+                </div>
               </div>
+
+              {/* Option 1: URL & Preset Chips */}
+              {photoSourceMode === 'url' && (
+                <div className="p-3 rounded-xl bg-neutral-50 dark:bg-neutral-800/40 border border-neutral-200 dark:border-neutral-700 space-y-2.5">
+                  <div className="flex flex-wrap items-center gap-2 text-[11px]">
+                    <span className="font-semibold text-neutral-600 dark:text-neutral-300 shrink-0">After Photo URL:</span>
+                    <input
+                      type="text"
+                      value={afterImage}
+                      onChange={(e) => {
+                        setAfterImage(e.target.value);
+                        setUploadedFileName('');
+                        setUploadedFileSize('');
+                      }}
+                      placeholder="Paste image URL (https://... or /civic/pothole-after.jpg)"
+                      className="flex-1 min-w-[200px] px-2.5 py-1.5 text-xs border border-neutral-300 dark:border-neutral-600 rounded-lg bg-white dark:bg-neutral-800 text-neutral-800 dark:text-neutral-200 focus:outline-none focus:ring-2 focus:ring-brand-500/30"
+                    />
+                    {afterImage && (
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setAfterImage('');
+                          setUploadedFileName('');
+                          setUploadedFileSize('');
+                        }}
+                        className="text-[10px] text-neutral-500 hover:text-red-600 font-semibold px-1.5 py-1 cursor-pointer"
+                      >
+                        Clear
+                      </button>
+                    )}
+                  </div>
+                </div>
+              )}
+
+              {/* Option 2: Upload from PC / Laptop Files Folder */}
+              {photoSourceMode === 'file' && (
+                <div className="p-3 rounded-xl bg-neutral-50 dark:bg-neutral-800/40 border border-neutral-200 dark:border-neutral-700 space-y-3">
+                  <input
+                    type="file"
+                    ref={fileInputRef}
+                    onChange={(e) => {
+                      const f = e.target.files?.[0];
+                      if (f) handleLocalFileSelect(f);
+                    }}
+                    accept="image/*"
+                    className="hidden"
+                  />
+
+                  {uploadedFileName ? (
+                    /* Selected Local File Card */
+                    <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 p-3 bg-white dark:bg-neutral-900 rounded-xl border border-emerald-300 dark:border-emerald-700 shadow-sm">
+                      <div className="flex items-center gap-3 min-w-0">
+                        <div className="w-12 h-12 rounded-lg overflow-hidden border border-neutral-200 dark:border-neutral-700 shrink-0 bg-neutral-100">
+                          <img src={afterImage} alt="Uploaded evidence" className="w-full h-full object-cover" />
+                        </div>
+                        <div className="min-w-0">
+                          <div className="flex items-center gap-1.5 flex-wrap">
+                            <span className="font-bold text-neutral-900 dark:text-neutral-100 text-xs truncate max-w-[200px] sm:max-w-xs">
+                              {uploadedFileName}
+                            </span>
+                            <span className="text-[10px] font-mono text-neutral-500 bg-neutral-100 dark:bg-neutral-800 px-1.5 py-0.5 rounded">
+                              {uploadedFileSize}
+                            </span>
+                          </div>
+                          <div className="flex items-center gap-1 text-[11px] text-emerald-600 dark:text-emerald-400 font-medium mt-0.5">
+                            <CheckCircle2 size={12} className="shrink-0" />
+                            <span>Loaded from PC folder · Showing in After Repair slider</span>
+                          </div>
+                        </div>
+                      </div>
+
+                      <div className="flex items-center gap-2 self-end sm:self-auto shrink-0">
+                        <button
+                          type="button"
+                          onClick={() => fileInputRef.current?.click()}
+                          className="px-3 py-1.5 bg-neutral-100 hover:bg-neutral-200 dark:bg-neutral-800 dark:hover:bg-neutral-700 text-neutral-800 dark:text-neutral-200 rounded-lg text-xs font-semibold flex items-center gap-1.5 transition-colors cursor-pointer"
+                        >
+                          <Upload size={12} />
+                          Change File
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setUploadedFileName('');
+                            setUploadedFileSize('');
+                            setAfterImage(getInitialAfter(complaint));
+                            toast('Reset to standard category image', { icon: '↩️' });
+                          }}
+                          className="p-1.5 text-neutral-400 hover:text-red-600 dark:hover:text-red-400 transition-colors cursor-pointer"
+                          title="Remove file"
+                        >
+                          <Trash2 size={15} />
+                        </button>
+                      </div>
+                    </div>
+                  ) : (
+                    /* Dropzone to Select File from PC / Laptop */
+                    <div
+                      onClick={() => fileInputRef.current?.click()}
+                      onDragOver={(e) => { e.preventDefault(); setIsDragging(true); }}
+                      onDragLeave={() => setIsDragging(false)}
+                      onDrop={(e) => {
+                        e.preventDefault();
+                        setIsDragging(false);
+                        const f = e.dataTransfer.files?.[0];
+                        if (f) handleLocalFileSelect(f);
+                      }}
+                      className={`border-2 border-dashed rounded-xl p-5 text-center cursor-pointer transition-all flex flex-col items-center justify-center gap-2 ${
+                        isDragging
+                          ? 'border-brand-500 bg-brand-50/80 dark:bg-brand-950/40 ring-4 ring-brand-500/20'
+                          : 'border-neutral-300 dark:border-neutral-700 hover:border-brand-500 hover:bg-neutral-100/60 dark:hover:bg-neutral-800/40 bg-white dark:bg-neutral-900/60'
+                      }`}
+                    >
+                      <div className="w-10 h-10 rounded-full bg-brand-50 dark:bg-brand-900/40 text-brand-600 dark:text-brand-400 flex items-center justify-center shadow-sm">
+                        <Folder size={18} />
+                      </div>
+                      <div>
+                        <p className="text-xs font-bold text-neutral-800 dark:text-neutral-200">
+                          Click to browse image from files folder or drag & drop here
+                        </p>
+                        <p className="text-[11px] text-neutral-500 dark:text-neutral-400 mt-0.5">
+                          Select photo from your PC / laptop files (JPG, PNG, WEBP up to 10MB)
+                        </p>
+                      </div>
+                      <button
+                        type="button"
+                        className="mt-1 px-3.5 py-1.5 bg-brand-600 hover:bg-brand-700 text-white rounded-lg text-xs font-bold flex items-center gap-1.5 shadow-sm transition-colors cursor-pointer"
+                      >
+                        <Upload size={13} />
+                        Browse PC / Laptop Files
+                      </button>
+                    </div>
+                  )}
+                </div>
+              )}
             </div>
           </div>
 
