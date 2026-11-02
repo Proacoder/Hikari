@@ -64,7 +64,12 @@ export const CivicLeaderboardPage = () => {
     { rank: 1, name: 'Aarav Mehta', ward: 'K/E Ward (Andheri East)', points: 1940, tier: 'Mayor’s Vanguard', badge: '🥇' },
     { rank: 2, name: 'Sunita Deshmukh', ward: 'G/N Ward (Bandra West)', points: 1820, tier: 'Mayor’s Vanguard', badge: '🥈' },
     { rank: 3, name: 'Farhan Shaikh', ward: 'H/W Ward (Khar / Bandra)', points: 1690, tier: 'Mayor’s Vanguard', badge: '🥉' },
-    { rank: 4, name: 'Priya Nair (You)', ward: 'G/N Ward (Bandra)', points: 840, tier: 'BMC Champion', isUser: true },
+    (() => {
+      const u = getCurrentSessionUser();
+      const uName = u?.name ? `${u.name} (You)` : 'You (Citizen)';
+      const uWard = u?.wardName ? u.wardName.split('–')[0].trim() : 'G/N Ward (Bandra)';
+      return { rank: 4, name: uName, ward: uWard, points: karmaPoints || 500, tier: currentTier, isUser: true };
+    })(),
     { rank: 5, name: 'Vikram Joshi', ward: 'F/N Ward (Matunga)', points: 790, tier: 'BMC Champion' },
     { rank: 6, name: 'Ananya Rao', ward: 'D Ward (Malabar Hill)', points: 760, tier: 'BMC Champion' },
     { rank: 7, name: 'Rajesh Kadam', ward: 'S Ward (Bhandup)', points: 710, tier: 'BMC Champion' },
@@ -91,7 +96,7 @@ export const CivicLeaderboardPage = () => {
   const handleOpenCertificate = async () => {
     try {
       const user = getCurrentSessionUser();
-      const res = await getCitizenCertificate(user?.id || 'user-001');
+      const res = await getCitizenCertificate(user?.id || 'citizen');
       if (res?.data) {
         setCertData(res.data);
       }

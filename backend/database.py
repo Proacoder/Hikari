@@ -332,6 +332,21 @@ def _migrate_schema():
                     except Exception as e:
                         logger.warning(f"Migration notice for {col_name}: {e}")
 
+            # Re-attribute any municipal seed grievances to BMC Municipal Field Survey
+            # so newly registered citizens never inherit complaints
+            try:
+                conn.execute(text("""
+                    UPDATE complaints
+                    SET created_by_id = 'bmc-survey',
+                        created_by_name = 'BMC Municipal Field Survey',
+                        created_by_email = 'survey@mcgm.gov.in'
+                    WHERE (created_by_id IN ('user-001', 'user-002', 'user-003', 'user-004', 'user-005')
+                           OR created_by_name IN ('Priya Nair', 'Ayush Barve', 'Dharmik Desai', 'Harsh Mane', 'Aarav Sharma'))
+                      AND id LIKE 'cmp-%'
+                """))
+            except Exception as e:
+                logger.warning(f"Notice during complaint re-attribution migration: {e}")
+
 
 def init_db():
     """Initializes schema and seeds baseline records only on empty tables."""

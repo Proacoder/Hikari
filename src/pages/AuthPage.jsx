@@ -147,7 +147,7 @@ export const AuthPage = () => {
         
         await register({
           name: formData.name.trim(),
-          email: formData.email.trim(),
+          email: formData.email.trim().toLowerCase(),
           password: formData.password,
           phone: formData.phone.trim() || '+91 98000 00000',
           ward: selectedWard.id,
@@ -158,7 +158,7 @@ export const AuthPage = () => {
         navigate('/app');
       } else {
         const result = await login({
-          email: formData.email.trim(),
+          email: formData.email.trim().toLowerCase(),
           password: formData.password,
         });
 
@@ -469,6 +469,9 @@ export const AuthPage = () => {
                 required
                 maxLength={254}
                 autoComplete="email"
+                autoCapitalize="none"
+                autoCorrect="off"
+                spellCheck={false}
                 className={`w-full pl-10 pr-4 py-3 rounded-xl text-xs font-mono transition-colors shadow-inner ${
                   isDark
                     ? 'bg-neutral-950/80 border border-white/15 text-white placeholder-white/30 focus:border-emerald-400 focus:outline-none'

@@ -106,12 +106,9 @@ export const CitizenDashboard = () => {
       }
     });
     return combined.filter(
-      (c) =>
-        (user?.id && c.createdBy?.id === user.id) ||
-        (user?.name && c.createdBy?.name === user.name) ||
-        (user?.email && c.createdBy?.email === user.email)
+      (c) => Boolean(user?.id && c.createdBy?.id === user.id)
     );
-  }, [user, complaints]);
+  }, [user?.id, complaints]);
 
   const activeSubmissionsCount = userSubmissions.filter((c) => c.status !== 'resolved').length;
   const inProgressCount = userSubmissions.filter((c) => c.status === 'in_progress' || c.status === 'assigned').length;
@@ -1424,7 +1421,7 @@ export const ReportIssuePage = () => {
               Filing as Authenticated Citizen:
             </span>
             <span className="font-bold text-neutral-900 dark:text-neutral-100 font-mono">
-              {user?.name || 'Priya Nair'} ({user?.email || 'priya.nair@example.com'})
+              {user?.name || 'Citizen'} {user?.email ? `(${user.email})` : ''}
             </span>
           </div>
 
@@ -1466,10 +1463,7 @@ export const MyComplaintsPage = () => {
   const wardId = user?.ward || 8;
   const wardComplaints = complaints.filter((c) => c.ward === wardId);
   const myComplaints = complaints.filter(
-    (c) =>
-      (user?.id && c.createdBy?.id === user.id) ||
-      (user?.name && c.createdBy?.name === user.name) ||
-      (user?.email && c.createdBy?.email === user.email)
+    (c) => Boolean(user?.id && c.createdBy?.id === user.id)
   );
 
   const displayedList = viewScope === 'mine' ? myComplaints : wardComplaints;
@@ -1677,10 +1671,7 @@ export const CitizenProfilePage = () => {
         const res = await getComplaints();
         const all = res.data || [];
         const mine = all.filter(
-          (c) =>
-            (user?.id && c.createdBy?.id === user.id) ||
-            (user?.name && c.createdBy?.name === user.name) ||
-            (user?.email && c.createdBy?.email === user.email)
+          (c) => Boolean(user?.id && c.createdBy?.id === user.id)
         );
         const resolved = mine.filter((c) => c.status === 'resolved' || c.status === 'Resolved').length;
         const total = mine.length;

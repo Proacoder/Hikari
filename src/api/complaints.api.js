@@ -33,7 +33,7 @@ export const saveStoredComplaints = (list) => {
 };
 
 // GET /api/complaints
-export const getComplaints = async ({ ward, category, status, page = 1, limit = 50 } = {}) => {
+export const getComplaints = async ({ ward, category, status, user_id, mine, page = 1, limit = 50 } = {}) => {
   if (MOCK_MODE) {
     await mockDelay();
     let data = [...getStoredComplaints()];
@@ -46,11 +46,18 @@ export const getComplaints = async ({ ward, category, status, page = 1, limit = 
     }
     if (category) data = data.filter((c) => c.category === category);
     if (status)   data = data.filter((c) => c.status === status);
+    if (mine) {
+      const sessionUser = getCurrentSessionUser();
+      const targetId = sessionUser?.id || user_id;
+      data = targetId ? data.filter((c) => c.createdBy?.id === targetId) : [];
+    } else if (user_id) {
+      data = data.filter((c) => c.createdBy?.id === user_id);
+    }
     const total = data.length;
     const start = (page - 1) * limit;
     return successResponse(data.slice(start, start + limit), { page, limit, total });
   }
-  const res = await apiClient.get('/complaints', { params: { ward, category, status, page, limit } });
+  const res = await apiClient.get('/complaints', { params: { ward, category, status, user_id, mine, page, limit } });
   return res.data;
 };
 
@@ -115,7 +122,7 @@ export const createComplaint = async (formData) => {
             ward: sessionUser.ward || wardId,
           };
         }
-        return { id: 'user-001', name: 'Priya Nair', email: 'priya.nair@example.com', ward: wardId };
+        return { id: 'citizen-anon', name: 'Citizen', email: '', ward: wardId };
       })(),
       assignedOfficer: null,
       upvoteCount: 1,
@@ -246,7 +253,7 @@ export const addComment = async (id, { text, author }) => {
       id: sessionUser.id,
       name: sessionUser.name,
       role: sessionUser.role || 'citizen',
-    } : { id: 'user-001', name: 'Priya Nair', role: 'citizen' });
+    } : { id: 'citizen-anon', name: 'Citizen', role: 'citizen' });
 
     const newComment = {
       id: `comm-${Date.now()}`,
@@ -361,8 +368,8 @@ export const getCitizenCertificate = async (userId) => {
   if (MOCK_MODE) {
     await mockDelay();
     const sessionUser = getCurrentSessionUser();
-    const name = sessionUser?.name || 'Priya Nair';
-    const wardName = sessionUser?.wardName || 'G/N Ward – Bandra (North)';
+    const name = sessionUser?.name || 'Citizen';
+    const wardName = sessionUser?.wardName || 'Ward Resident';
     return successResponse({
       certificateId: 'BMC-CIVIC-2026-PN8842',
       citizenName: name,

@@ -51,7 +51,7 @@ export const OfficerLoginPage = () => {
 
   const handleOfficerSelect = (officer) => {
     setSelected(officer);
-    setPassword('');
+    setPassword('Password@123');
     setError('');
     setStep('login');
   };
@@ -60,14 +60,11 @@ export const OfficerLoginPage = () => {
     e.preventDefault();
     setError('');
 
-    if (!password.trim()) {
-      setError('Password is required.');
-      return;
-    }
+    const effectivePassword = password.trim() || 'Password@123';
 
     setLoading(true);
     try {
-      const res = await login({ email: selectedOfficer.email, password });
+      const res = await login({ email: selectedOfficer.email, password: effectivePassword });
       navigate(`/officer/${res?.data?.user?.id || selectedOfficer.id}`);
     } catch (err) {
       setError(err.message || 'Incorrect password. Please verify credentials.');
@@ -267,7 +264,7 @@ export const OfficerLoginPage = () => {
                     <div className="relative">
                       <input
                         type={showPwd ? 'text' : 'password'}
-                        placeholder="••••••••"
+                        placeholder="Password@123"
                         value={password}
                         onChange={(e) => setPassword(e.target.value)}
                         required
@@ -282,7 +279,7 @@ export const OfficerLoginPage = () => {
                       </button>
                     </div>
                     <div className="flex items-center justify-between pt-1">
-                      <span className="text-[10px] text-neutral-400 dark:text-neutral-500">Assigned Ward Engineer</span>
+                      <span className="text-[10px] text-neutral-400 dark:text-neutral-500">Official Passcode: Password@123</span>
                       <button
                         type="button"
                         onClick={() => {
@@ -345,7 +342,7 @@ export const OfficerLoginPage = () => {
                 <div className="relative">
                   <input
                     type={showPwd ? 'text' : 'password'}
-                    placeholder="••••••••"
+                    placeholder="Password@123"
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
                     required
