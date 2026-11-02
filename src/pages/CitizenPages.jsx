@@ -675,9 +675,18 @@ export const ReportIssuePage = () => {
         toast.success(`Verified: ${clipResult.category} (${clipResult.confidence})`, { icon: '🎯' });
         setAiAnalyzing(false);
       } else {
-        // Fallback to text heuristic if ML service completely unavailable
-        setImageRejection(null);
-        runAiAnalysis(file.name.replace(/\.[^/.]+$/, ''));
+        // Strict defect rejection: If ML did not verify the defect, reject!
+        sound.play('error');
+        setFormData((prev) => ({ ...prev, imageUrl: '', imageName: '' }));
+        setAiPrediction(null);
+        setImageRejection({
+          category: 'Non-Civic Upload',
+          message: 'Non-civic photo detected: Upload rejected. Please upload an authentic municipal defect photo (Pothole, Streetlight, Garbage).',
+          isAi: false,
+          evidence: ['Photo does not match any recognized municipal infrastructure defect.'],
+        });
+        toast.error('Invalid photo: Non-civic upload rejected.', { icon: '🚫', duration: 7000 });
+        setAiAnalyzing(false);
       }
     };
     reader.readAsDataURL(file);
